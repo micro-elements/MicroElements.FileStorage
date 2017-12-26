@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.FileStorage", "MicroElements.FileStorage\MicroElements.FileStorage.csproj", "{E002F3EB-E78D-4D13-BDEE-486927092992}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroElements.FileStorage.Tests", "MicroElements.FileStorage.Tests\MicroElements.FileStorage.Tests.csproj", "{ED62983E-4219-41CA-9630-A9233DC9A618}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E002F3EB-E78D-4D13-BDEE-486927092992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E002F3EB-E78D-4D13-BDEE-486927092992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E002F3EB-E78D-4D13-BDEE-486927092992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E002F3EB-E78D-4D13-BDEE-486927092992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED62983E-4219-41CA-9630-A9233DC9A618}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED62983E-4219-41CA-9630-A9233DC9A618}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED62983E-4219-41CA-9630-A9233DC9A618}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED62983E-4219-41CA-9630-A9233DC9A618}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {82F59608-8957-491F-A9EB-462A413160EA}
+	EndGlobalSection
+EndGlobal

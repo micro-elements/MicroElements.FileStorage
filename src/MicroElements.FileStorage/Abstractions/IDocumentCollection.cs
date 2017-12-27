@@ -18,7 +18,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// <summary>
         /// Collection has changes.
         /// </summary>
-        bool HasChanges { get; }
+        bool HasChanges { get; set; }
 
         /// <summary>
         /// Gets count of items in collection.

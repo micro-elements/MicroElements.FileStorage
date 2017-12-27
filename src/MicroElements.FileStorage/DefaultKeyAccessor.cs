@@ -19,12 +19,13 @@ namespace MicroElements.FileStorage
         private readonly Lazy<Func<TValue, string>> _idFunc;
         private readonly Lazy<Action<TValue, string>> _setIdFunc;
 
-        public DefaultKeyAccessor()
+        public DefaultKeyAccessor(string keyPropertyName = "Id")
         {
-            _getIdExpression = new Lazy<Expression<Func<TValue, string>>>(ExpressionFactory.GetIdExpression<TValue>);
-            _setIdExpression = new Lazy<Expression<Action<TValue, string>>>(ExpressionFactory.SetIdExpression<TValue>);
-            _idFunc = new Lazy<Func<TValue, string>>(_getIdExpression.Value.Compile);
-            _setIdFunc = new Lazy<Action<TValue, string>>(_setIdExpression.Value.Compile);
+            // ReSharper disable ConvertClosureToMethodGroup
+            _getIdExpression = new Lazy<Expression<Func<TValue, string>>>(() => ExpressionFactory.GetIdExpression<TValue>(keyPropertyName));
+            _setIdExpression = new Lazy<Expression<Action<TValue, string>>>(() => ExpressionFactory.SetIdExpression<TValue>(keyPropertyName));
+            _idFunc = new Lazy<Func<TValue, string>>(() => _getIdExpression.Value.Compile());
+            _setIdFunc = new Lazy<Action<TValue, string>>(() => _setIdExpression.Value.Compile());
         }
 
         ///<inheritdoc />

@@ -26,6 +26,8 @@ namespace MicroElements.FileStorage.StorageEngine
             Check.NotNull(basePath, nameof(basePath));
 
             _basePath = basePath;
+            if (!Directory.Exists(_basePath))
+                Directory.CreateDirectory(_basePath);
         }
 
         /// <inheritdoc />

@@ -34,7 +34,7 @@ namespace MicroElements.FileStorage
         public CollectionConfigurationTyped<T> ConfigurationTyped { get; }
 
         /// <inheritdoc />
-        public bool HasChanges { get; private set; }
+        public bool HasChanges { get; set; }
 
         /// <inheritdoc />
         public int Count => _documents.Count;

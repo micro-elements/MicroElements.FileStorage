@@ -7,6 +7,7 @@ using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.KeyGenerators;
 using MicroElements.FileStorage.Serializers;
 using MicroElements.FileStorage.StorageEngine;
+using MicroElements.FileStorage.Tests.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -226,6 +227,45 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Fact]
+        public async Task not_standard_id_collection()
+        {
+            var basePath = Path.GetFullPath("TestData/DataStore/not_standard_id_collection");
+            var file = Path.Combine(basePath, "currencies.json");
+            if (File.Exists(file))
+                File.Delete(file);
+
+            Directory.CreateDirectory(basePath);
+            var storeConfiguration = new DataStoreConfiguration
+            {
+                BasePath = basePath,
+                //StorageEngine = new FileStorageEngine(basePath),
+                Collections = new[]
+                {
+                    new CollectionConfigurationTyped<Currency>
+                    {
+                        DocumentType = typeof(Currency),
+                        SourceFile = "currencies.json",
+                        KeyGetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Code)),
+
+                    },
+                }
+            };
+            var dataStore = new DataStore(storeConfiguration);
+
+            await dataStore.Initialize();
+
+            var collection = dataStore.GetCollection<Currency>();
+            collection.Should().NotBeNull();
+
+
+            collection.Add(new Currency() { Code = "USD", Name = "Dollar" });
+            collection.Add(new Currency() { Code = "EUR", Name = "Euro" });
+            collection.Count.Should().Be(2);
+
+            dataStore.Save();
+        }
+
+        [Fact]
         public void builder_tests()
         {
             var services = new ServiceCollection();
@@ -247,22 +287,6 @@ namespace MicroElements.FileStorage.Tests
         //todo: readonly
     }
 
-    public class Person
-    {
-        public string Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-    }
 
-    public class DataTable
-    {
-        public string[] Columns { get; set; }
-        public DataRow[] Rows { get; set; }
-    }
-
-    public class DataRow
-    {
-        public int[] Values { get; set; }
-    }
 
 }

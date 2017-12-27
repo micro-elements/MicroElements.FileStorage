@@ -24,6 +24,7 @@ namespace MicroElements.FileStorage
 
         public async Task Initialize()
         {
+            _configuration.Verify();
             //todo: logger
             foreach (var configuration in _configuration.Collections)
             {
@@ -73,14 +74,13 @@ namespace MicroElements.FileStorage
             {
                 if (collection.HasChanges)
                 {
-                    var configurationName = collection.Configuration.Name;
-
                     var serializer = collection.Configuration.Serializer;
                     var items = collection.GetAll();
                     var fileContent = serializer.Serialize(items, collection.Configuration.DocumentType);
-                    //fileContent.Location = collection.Configuration.SourceFile;
-                    Directory.CreateDirectory(_configuration.BasePath);
-                    _configuration.StorageEngine.WriteFile(Path.Combine(_configuration.BasePath, collection.Configuration.SourceFile), fileContent);
+
+                    _configuration.StorageEngine.WriteFile(collection.Configuration.SourceFile, fileContent);
+
+                    collection.HasChanges = false;
                 }
             }
         }

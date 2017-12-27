@@ -17,11 +17,11 @@ namespace MicroElements.FileStorage.Utils
         /// </summary>
         /// <typeparam name="TValue">Entity type.</typeparam>
         /// <returns>Get Id property accessor expression.</returns>
-        public static Expression<Func<TValue, string>> GetIdExpression<TValue>()
+        public static Expression<Func<TValue, string>> GetIdExpression<TValue>(string keyPropertyName = "Id")
         {
             //instance => instance.Id;
             ParameterExpression instance = Expression.Parameter(typeof(TValue), "instance");
-            MemberExpression memberExpression = Expression.Property(instance, "Id");
+            MemberExpression memberExpression = Expression.Property(instance, keyPropertyName);
             return Expression.Lambda<Func<TValue, string>>(memberExpression, instance);
         }
 
@@ -31,11 +31,11 @@ namespace MicroElements.FileStorage.Utils
         /// </summary>
         /// <typeparam name="TValue">Entity type.</typeparam>
         /// <returns>Set Id property accessor expression.</returns>
-        public static Expression<Action<TValue, string>> SetIdExpression<TValue>()
+        public static Expression<Action<TValue, string>> SetIdExpression<TValue>(string keyPropertyName = "Id")
         {
             //(instance, key) => instance.Id = key;
             ParameterExpression instance = Expression.Parameter(typeof(TValue), "instance");
-            MemberExpression idProperty = Expression.Property(instance, "Id");
+            MemberExpression idProperty = Expression.Property(instance, keyPropertyName);
             ParameterExpression key = Expression.Parameter(typeof(string), "key");
             BinaryExpression binaryExpression = Expression.Assign(idProperty, key);
             return Expression.Lambda<Action<TValue, string>>(binaryExpression, instance, key);

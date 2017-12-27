@@ -1,4 +1,6 @@
-﻿using MicroElements.FileStorage.Abstractions;
+﻿using System;
+using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.StorageEngine;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -28,5 +30,21 @@ namespace MicroElements.FileStorage
         public ILoggerFactory LoggerFactory { get; set; } = NullLoggerFactory.Instance;
 
         public Conventions Conventions { get; set; } = Conventions.Default;
+
+        public void Verify()
+        {
+            if (StorageEngine == null && BasePath != null)
+            {
+                StorageEngine = new FileStorageEngine(BasePath);
+            }
+        }
+    }
+
+    public class InvalidConfigurationException : Exception
+    {
+        /// <inheritdoc />
+        public InvalidConfigurationException(string message) : base(message)
+        {
+        }
     }
 }

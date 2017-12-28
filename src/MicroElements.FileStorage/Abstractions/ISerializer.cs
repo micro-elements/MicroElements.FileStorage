@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace MicroElements.FileStorage.Abstractions
 {
     /// <summary>
     /// Entity serializer.
     /// </summary>
+    [PublicAPI]
     public interface ISerializer
     {
         /// <summary>
@@ -14,7 +16,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// <param name="content">Content.</param>
         /// <param name="type">Entity type.</param>
         /// <returns>One entity or entity list.</returns>
-        IEnumerable<object> Deserialize(FileContent content, Type type);
+        [NotNull] IEnumerable<object> Deserialize([NotNull] FileContent content, [NotNull] Type type);
 
         /// <summary>
         /// Serializes entity or entity list to <see cref="FileContent"/>.
@@ -22,6 +24,34 @@ namespace MicroElements.FileStorage.Abstractions
         /// <param name="items">Entity or entity list.</param>
         /// <param name="type">Entity type.</param>
         /// <returns>FileContent</returns>
-        FileContent Serialize(IReadOnlyCollection<object> items, Type type);
+        [NotNull] FileContent Serialize([NotNull] IReadOnlyCollection<object> items, [NotNull] Type type);
+
+        /// <summary>
+        /// Gets serializer info.
+        /// </summary>
+        /// <returns>Serializer information.</returns>
+        [NotNull] SerializerInfo GetInfo();
+    }
+
+    /// <summary>
+    /// Serializer information.
+    /// </summary>
+    public class SerializerInfo
+    {
+        private string _extension = ".txt";
+
+        /// <summary>
+        /// File extension.
+        /// </summary>
+        public string Extension
+        {
+            get { return _extension; }
+            set
+            {
+                if (String.IsNullOrEmpty(value) || !value.Contains("."))
+                    throw new ArgumentException("Extension must be in format '.ext'");
+                _extension = value;
+            }
+        }
     }
 }

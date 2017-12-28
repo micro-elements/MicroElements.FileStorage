@@ -13,7 +13,7 @@ namespace MicroElements.FileStorage.KeyGenerators
         public KeyType KeyStrategy { get; } = KeyType.UniqId;
 
         /// <inheritdoc />
-        public Key GetNextKey(IDocumentCollection<T> collection)
+        public Key GetNextKey(IDocumentCollection<T> collection, T entity)
         {
             return new Key(KeyType.UniqId, Guid.NewGuid().ToString());
         }

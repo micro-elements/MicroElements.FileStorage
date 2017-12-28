@@ -9,7 +9,9 @@ using MicroElements.FileStorage.Serializers;
 using MicroElements.FileStorage.StorageEngine;
 using MicroElements.FileStorage.Tests.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Xunit;
+using JsonSerializer = MicroElements.FileStorage.Serializers.JsonSerializer;
 
 namespace MicroElements.FileStorage.Tests
 {
@@ -181,6 +183,53 @@ namespace MicroElements.FileStorage.Tests
             person.Id.Should().NotBeNullOrEmpty("Id must be generated");
 
             dataStore.Save();
+        }
+
+        [Fact]
+        public async Task save_multifile_collection_with_semantic_keys()
+        {
+            var basePath = Path.GetFullPath("TestData/DataStore/save_multifile_collection");
+            var collectionDir = Path.Combine(basePath, "persons");
+            if (Directory.Exists(collectionDir))
+                Directory.Delete(collectionDir, true);
+
+            Directory.CreateDirectory(basePath);
+            var storeConfiguration = new DataStoreConfiguration
+            {
+                BasePath = basePath,
+                StorageEngine = new FileStorageEngine(basePath),
+                Collections = new[]
+                {
+                    new CollectionConfigurationTyped<Person>
+                    {
+                        SourceFile = "persons",
+                        Serializer = new JsonSerializer(),
+                        KeyGetter = new DefaultKeyAccessor<Person>(),
+                        KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                    },
+                }
+            };
+            var dataStore = new DataStore(storeConfiguration);
+
+            await dataStore.Initialize();
+
+            var collection = dataStore.GetCollection<Person>();
+            collection.Should().NotBeNull();
+
+            collection.Add(new Person { FirstName = "Bill", LastName = "Gates" });
+            collection.Add(new Person { FirstName = "Steve", LastName = "Ballmer" });
+            collection.Count.Should().Be(2);
+
+            dataStore.Save();
+
+            var file1 = Path.Combine(collectionDir, "Bill_Gates.json");
+            var file2 = Path.Combine(collectionDir, "Steve_Ballmer.json");
+
+            File.Exists(file1).Should().BeTrue();
+            File.Exists(file2).Should().BeTrue();
+
+            var bill = JsonConvert.DeserializeObject<Person>(File.ReadAllText(file1));
+            bill.Should().BeEquivalentTo(new Person { Id = "Bill_Gates", FirstName = "Bill", LastName = "Gates" });
         }
 
         [Fact]

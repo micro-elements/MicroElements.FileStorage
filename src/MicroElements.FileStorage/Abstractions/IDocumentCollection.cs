@@ -25,6 +25,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         int Count { get; }
 
+        [Obsolete]
         IReadOnlyCollection<object> GetAll();
 
         void Drop();

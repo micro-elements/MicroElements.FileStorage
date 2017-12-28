@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.CodeContracts;
 using Newtonsoft.Json;
 
 namespace MicroElements.FileStorage.Serializers
@@ -10,27 +12,62 @@ namespace MicroElements.FileStorage.Serializers
     /// </summary>
     public class JsonSerializer : ISerializer
     {
+        private readonly JsonSerializerSettings _jsonSerializerSettings;
+
+        /// <summary>
+        /// Creates new JsonSerializer.
+        /// </summary>
+        /// <param name="jsonSerializerSettings"><see cref="JsonSerializerSettings"/>.</param>
+        public JsonSerializer(JsonSerializerSettings jsonSerializerSettings = null)
+        {
+            _jsonSerializerSettings = jsonSerializerSettings;
+        }
+
         /// <inheritdoc />
         public IEnumerable<object> Deserialize(FileContent content, Type type)
         {
+            Check.NotNull(content, nameof(content));
+            Check.NotNull(type, nameof(type));
+
             string text = content.Content;
             var isList = text.StartsWith("[");
             if (isList)
             {
                 Type listType = typeof(List<>).MakeGenericType(type);
-                var deserializedList = JsonConvert.DeserializeObject(text, listType);
+                var deserializedList = JsonConvert.DeserializeObject(text, listType, _jsonSerializerSettings);
                 return (IEnumerable<object>)deserializedList;
             }
 
-            var deserialized = JsonConvert.DeserializeObject(text, type);
+            var deserialized = JsonConvert.DeserializeObject(text, type, _jsonSerializerSettings);
             return deserialized != null ? new[] { deserialized } : Array.Empty<object>();
         }
 
         /// <inheritdoc />
         public FileContent Serialize(IReadOnlyCollection<object> items, Type type)
         {
-            var serialized = JsonConvert.SerializeObject(items);
+            Check.NotEmpty(items, nameof(items));
+            Check.NotNull(type, nameof(type));
+
+            string serialized = "(empty)";
+            if (items.Count > 1)
+            {
+                serialized = JsonConvert.SerializeObject(items, _jsonSerializerSettings);
+            }
+            else if (items.Count == 1)
+            {
+                serialized = JsonConvert.SerializeObject(items.First(), _jsonSerializerSettings);
+            }
+
             return new FileContent(String.Empty, serialized);
+        }
+
+        /// <inheritdoc />
+        public SerializerInfo GetInfo()
+        {
+            return new SerializerInfo
+            {
+                Extension = ".json"
+            };
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
 
@@ -35,8 +36,7 @@ namespace MicroElements.FileStorage
                 _collections.Add(documentCollection);
 
                 IEnumerable<Task<FileContent>> fileTasks;
-                var isDirectory = !Path.HasExtension(configuration.SourceFile);
-                if (isDirectory)
+                if (IsMultiFile(configuration))
                 {
                     fileTasks = _configuration.StorageEngine.ReadDirectory(configuration.SourceFile);
                 }
@@ -52,7 +52,7 @@ namespace MicroElements.FileStorage
                     if (String.IsNullOrEmpty(content.Content))
                         continue;
 
-                    var serializer = configuration.Serializer ?? _configuration.Conventions.GetSerializer(configuration);
+                    var serializer = GetSerializer(configuration);
 
                     var objects = serializer.Deserialize(content, configuration.DocumentType);
                     foreach (var document in objects)
@@ -63,26 +63,83 @@ namespace MicroElements.FileStorage
             }
         }
 
+        /// <inheritdoc />
         public IDocumentCollection<T> GetCollection<T>() where T : class
         {
-            return (IDocumentCollection<T>)_collections.First(collection => collection is IDocumentCollection<T>);
+            var documentCollection = (IDocumentCollection<T>)_collections.FirstOrDefault(collection => collection is IDocumentCollection<T>);
+            return documentCollection ?? throw new InvalidOperationException($"Document collection for type {typeof(T)} is not registered in data store.");
         }
 
+        /// <inheritdoc />
+        public IReadOnlyList<IDocumentCollection> GetCollections()
+        {
+            return _collections;
+        }
+
+        /// <inheritdoc />
         public void Save()
         {
             foreach (var collection in _collections)
             {
                 if (collection.HasChanges)
                 {
-                    var serializer = collection.Configuration.Serializer;
-                    var items = collection.GetAll();
-                    var fileContent = serializer.Serialize(items, collection.Configuration.DocumentType);
-
-                    _configuration.StorageEngine.WriteFile(collection.Configuration.SourceFile, fileContent);
-
-                    collection.HasChanges = false;
+                    CallSaveCollection(collection);
                 }
             }
+        }
+
+        /// <inheritdoc />
+        public void Drop()
+        {
+            foreach (var collection in _collections)
+            {
+                collection.Drop();
+            }
+        }
+
+        private void CallSaveCollection(IDocumentCollection collection)
+        {
+            GetType().GetMethod(nameof(SaveCollection), BindingFlags.Instance | BindingFlags.NonPublic)
+                .MakeGenericMethod(collection.Configuration.DocumentType)
+                .Invoke(this, new[] { collection });
+        }
+
+        internal void SaveCollection<T>(IDocumentCollection<T> collection) where T : class
+        {
+            var serializer = GetSerializer(collection.Configuration);
+            var items = collection.Find(arg => true).ToList();
+            if (IsMultiFile(collection.Configuration))
+            {
+                foreach (var item in items)
+                {
+                    var fileContent = serializer.Serialize(new[] { item }, collection.Configuration.DocumentType);
+                    var collectionDir = collection.Configuration.SourceFile;
+                    var key = collection.GetKey(item);
+                    var serializerInfo = serializer.GetInfo();
+                    var fileName = Path.Combine(collectionDir, key + serializerInfo.Extension);
+                    _configuration.StorageEngine.WriteFile(fileName, fileContent);
+                }
+
+            }
+            else
+            {
+                var fileContent = serializer.Serialize(items, collection.Configuration.DocumentType);
+                _configuration.StorageEngine.WriteFile(collection.Configuration.SourceFile, fileContent);
+            }
+
+            collection.HasChanges = false;
+
+        }
+
+        private ISerializer GetSerializer(CollectionConfiguration configuration)
+        {
+            return configuration.Serializer ?? _configuration.Conventions.GetSerializer(configuration);
+        }
+
+        private bool IsMultiFile(CollectionConfiguration configuration)
+        {
+            var isDirectory = !Path.HasExtension(configuration.SourceFile);
+            return isDirectory;
         }
     }
 }

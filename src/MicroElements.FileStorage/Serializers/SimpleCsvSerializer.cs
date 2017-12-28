@@ -46,5 +46,14 @@ namespace MicroElements.FileStorage.Serializers
         {
             throw new NotImplementedException();
         }
+
+        /// <inheritdoc />
+        public SerializerInfo GetInfo()
+        {
+            return new SerializerInfo
+            {
+                Extension = ".csv"
+            };
+        }
     }
 }

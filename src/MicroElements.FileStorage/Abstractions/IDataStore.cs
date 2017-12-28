@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MicroElements.FileStorage.Abstractions
@@ -19,5 +20,21 @@ namespace MicroElements.FileStorage.Abstractions
         /// <typeparam name="T">Document type.</typeparam>
         /// <returns>Typed IDocumentCollection.</returns>
         IDocumentCollection<T> GetCollection<T>() where T : class;
+
+        /// <summary>
+        /// Gets all collections.
+        /// </summary>
+        /// <returns>Collection list.</returns>
+        IReadOnlyList<IDocumentCollection> GetCollections();
+
+        /// <summary>
+        /// Saves changed collections.
+        /// </summary>
+        void Save();
+
+        /// <summary>
+        /// Drops all collections.
+        /// </summary>
+        void Drop();
     }
 }

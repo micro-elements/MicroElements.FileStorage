@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
@@ -29,6 +30,32 @@ namespace MicroElements.FileStorage.CodeContracts
         {
             if (arg == null)
                 throw new ArgumentNullException(argName);
+        }
+
+        [ContractAnnotation("arg:null => halt")]
+        [DebuggerHidden, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [AssertionMethod]
+        public static void NotEmpty<T>(
+            [CanBeNull, NoEnumeration, AssertionCondition(AssertionConditionType.IS_FALSE)] ICollection<T> arg,
+            [NotNull, InvokerParameterName] string argName)
+        {
+            if (arg == null)
+                throw new ArgumentNullException(argName);
+            if (arg.Count == 0)
+                throw new ArgumentException("collection must be not empty", argName);
+        }
+
+        [ContractAnnotation("arg:null => halt")]
+        [DebuggerHidden, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [AssertionMethod]
+        public static void NotEmpty<T>(
+            [CanBeNull, NoEnumeration, AssertionCondition(AssertionConditionType.IS_FALSE)] IReadOnlyCollection<T> arg,
+            [NotNull, InvokerParameterName] string argName)
+        {
+            if (arg == null)
+                throw new ArgumentNullException(argName);
+            if (arg.Count == 0)
+                throw new ArgumentException("collection must be not empty", argName);
         }
     }
 }

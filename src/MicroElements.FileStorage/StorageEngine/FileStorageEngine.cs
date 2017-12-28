@@ -51,10 +51,12 @@ namespace MicroElements.FileStorage.StorageEngine
 
             var location = Path.Combine(_basePath, subPath);
             if (Directory.Exists(location))
+            {
                 foreach (var file in Directory.EnumerateFiles(location))
                 {
                     yield return ReadFile(file);
                 }
+            }
         }
 
         /// <inheritdoc />
@@ -64,6 +66,9 @@ namespace MicroElements.FileStorage.StorageEngine
             Check.NotNull(subPath, nameof(subPath));
 
             var location = Path.Combine(_basePath, subPath);
+            var directoryName = Path.GetDirectoryName(location);
+            if (!Directory.Exists(directoryName))
+                Directory.CreateDirectory(directoryName);
             await FileAsync.WriteAllText(location, content.Content);
         }
     }

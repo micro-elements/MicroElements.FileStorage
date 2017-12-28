@@ -4,6 +4,7 @@ using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.KeyGenerators
 {
+    //todo: persistent sequence
     public class IdentityKeyGenerator<T> : IKeyGenerator<T> where T : class
     {
         private readonly int _startValue;
@@ -20,7 +21,7 @@ namespace MicroElements.FileStorage.KeyGenerators
         public KeyType KeyStrategy { get; } = KeyType.Identity;
 
         /// <inheritdoc />
-        public Key GetNextKey(IDocumentCollection<T> collection)
+        public Key GetNextKey(IDocumentCollection<T> collection, T entity)
         {
             string collectionName = collection.ConfigurationTyped.Name;
 
@@ -38,7 +39,7 @@ namespace MicroElements.FileStorage.KeyGenerators
             {
                 max = collection
                     .Find(arg => true)
-                    .Select(arg => collection.ConfigurationTyped.KeyGetter.GetIdFunc()(arg))
+                    .Select(collection.GetKey)
                     .Select(ParseKey)
                     .Max();
             }
@@ -46,7 +47,5 @@ namespace MicroElements.FileStorage.KeyGenerators
 
             return new Key(KeyType.Identity, nextId.ToString(), collectionName);
         }
-
-
     }
 }

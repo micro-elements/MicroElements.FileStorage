@@ -45,7 +45,8 @@ namespace MicroElements.FileStorage
         /// <inheritdoc />
         public void Drop()
         {
-            _documents.Clear();
+            lock (_documents)
+                _documents.Clear();
         }
 
         /// <inheritdoc />
@@ -54,19 +55,22 @@ namespace MicroElements.FileStorage
             Check.NotNull(item, nameof(item));
 
             //todo: ThreadSafe
-            var key = GetKey(item);
-            if (key == null)
+            lock (_documents)
             {
-                key = GetNextKey();
-                SetKey(item, key);
+                var key = GetKey(item);
+                if (key == null)
+                {
+                    key = GetNextKey(item);
+                    SetKey(item, key);
+                }
+                _documents.Add(item);
+                HasChanges = true;
             }
-            _documents.Add(item);
-            HasChanges = true;
         }
 
-        private string GetNextKey()
+        private string GetNextKey(T item)
         {
-            var nextKey = ConfigurationTyped.KeyGenerator.GetNextKey(this);
+            var nextKey = ConfigurationTyped.KeyGenerator.GetNextKey(this, item);
             return nextKey.Formatted;
         }
 

@@ -12,6 +12,9 @@ namespace MicroElements.FileStorage
     /// <typeparam name="TValue">Entity type.</typeparam>
     public class DefaultKeyAccessor<TValue> : IKeyGetter<TValue>, IKeySetter<TValue>
     {
+        /// <summary>
+        /// Default instance if KeyAccessor for type <see cref="TValue"/>
+        /// </summary>
         public static readonly DefaultKeyAccessor<TValue> Instance = new DefaultKeyAccessor<TValue>();
 
         private readonly Lazy<Expression<Func<TValue, string>>> _getIdExpression;
@@ -19,6 +22,11 @@ namespace MicroElements.FileStorage
         private readonly Lazy<Func<TValue, string>> _idFunc;
         private readonly Lazy<Action<TValue, string>> _setIdFunc;
 
+        /// <summary>
+        /// Creates new DefaultKeyAccessor.
+        /// <para>By default uses string property <c>Id</c></para>
+        /// </summary>
+        /// <param name="keyPropertyName">Name of <c>Id</c> property.</param>
         public DefaultKeyAccessor(string keyPropertyName = "Id")
         {
             // ReSharper disable ConvertClosureToMethodGroup

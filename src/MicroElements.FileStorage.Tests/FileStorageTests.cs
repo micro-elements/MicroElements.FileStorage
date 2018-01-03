@@ -326,16 +326,5 @@ namespace MicroElements.FileStorage.Tests
             var collectionConfigurations = serviceProvider.GetService<IEnumerable<CollectionConfiguration>>();
             var documentCollection = serviceProvider.GetRequiredService<IDocumentCollection<Person>>();
         }
-
-        //todo: create collection (market data cache)
-        //todo: create snapshot
-        //todo: load from other format
-        //todo: key work: full key, short, generation, max, guid
-        //todo: metrics
-        //todo: fullInMemory | lazyLoad
-        //todo: readonly
     }
-
-
-
 }

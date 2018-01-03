@@ -1,5 +1,14 @@
+notifications:
+  email:
+    recipients:
+      - petriashev@gmail.com
+
 language: csharp
 dotnet: 2.1.3
+os:
+  - linux
+before_script:
+  - chmod a+x ./build.sh
 solution: ./src/MicroElements.FileStorage.sln
 script:
   - ./build.sh

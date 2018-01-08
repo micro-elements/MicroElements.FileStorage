@@ -1,3 +1,6 @@
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +18,7 @@ namespace MicroElements.FileStorage.Serializers
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         /// <summary>
-        /// Creates new JsonSerializer.
+        /// Initializes a new instance of the <see cref="JsonSerializer"/> class.
         /// </summary>
         /// <param name="jsonSerializerSettings"><see cref="JsonSerializerSettings"/>.</param>
         public JsonSerializer(JsonSerializerSettings jsonSerializerSettings = null)
@@ -58,7 +61,7 @@ namespace MicroElements.FileStorage.Serializers
                 serialized = JsonConvert.SerializeObject(items.First(), _jsonSerializerSettings);
             }
 
-            return new FileContent(String.Empty, serialized);
+            return new FileContent(string.Empty, serialized);
         }
 
         /// <inheritdoc />

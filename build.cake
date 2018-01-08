@@ -2,7 +2,7 @@
 // ARGUMENTS
 ///////////////////////////////////////////////////////////////////////////////
 
-var solutionFile    = "./src/MicroElements.FileStorage.sln";
+var solutionFile    = "./MicroElements.FileStorage.sln";
 string baseVersion  = "0.0.4";
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");

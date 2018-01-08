@@ -1,3 +1,6 @@
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -28,7 +31,7 @@ namespace MicroElements.FileStorage.StorageEngine
                 }
             }
             //todo: log
-            return new FileContent(subPath, "");
+            return new FileContent(subPath, string.Empty);
         }
 
         public IEnumerable<Task<FileContent>> ReadDirectory(string subPath)

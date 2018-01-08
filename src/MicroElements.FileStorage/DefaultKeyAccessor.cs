@@ -1,3 +1,6 @@
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Linq.Expressions;
 using MicroElements.FileStorage.Abstractions;
@@ -23,7 +26,7 @@ namespace MicroElements.FileStorage
         private readonly Lazy<Action<TValue, string>> _setIdFunc;
 
         /// <summary>
-        /// Creates new DefaultKeyAccessor.
+        /// Initializes a new instance of the <see cref="DefaultKeyAccessor{TValue}"/> class.
         /// <para>By default uses string property <c>Id</c></para>
         /// </summary>
         /// <param name="keyPropertyName">Name of <c>Id</c> property.</param>

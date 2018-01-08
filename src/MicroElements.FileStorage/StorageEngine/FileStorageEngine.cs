@@ -1,3 +1,6 @@
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +21,7 @@ namespace MicroElements.FileStorage.StorageEngine
         private readonly string _basePath;
 
         /// <summary>
-        /// Creates FileStorageEngine.
+        /// Initializes a new instance of the <see cref="FileStorageEngine"/> class.
         /// </summary>
         /// <param name="basePath">Base path.</param>
         public FileStorageEngine([NotNull] string basePath)
@@ -36,7 +39,7 @@ namespace MicroElements.FileStorage.StorageEngine
             Check.NotNull(subPath, nameof(subPath));
 
             var location = Path.Combine(_basePath, subPath);
-            string text = String.Empty;
+            string text = string.Empty;
             if (File.Exists(location))
             {
                 text = await FileAsync.ReadAllText(location);

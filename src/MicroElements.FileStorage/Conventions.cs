@@ -1,3 +1,6 @@
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.IO;
 using MicroElements.FileStorage.Abstractions;
@@ -7,8 +10,8 @@ namespace MicroElements.FileStorage
 {
     public class Conventions
     {
-        public Func<ISerializer> GetDefaultSerializer = DefaultConventions.GetDefaultSerializer;
-        public Func<CollectionConfiguration, ISerializer> GetSerializer = DefaultConventions.DefaultResolveSerializer;
+        public Func<ISerializer> GetDefaultSerializer { get; set; } = DefaultConventions.GetDefaultSerializer;
+        public Func<CollectionConfiguration, ISerializer> GetSerializer { get; set; } = DefaultConventions.DefaultResolveSerializer;
 
         public static readonly Conventions Default = new Conventions
         {
@@ -21,7 +24,7 @@ namespace MicroElements.FileStorage
     {
         public static ISerializer DefaultResolveSerializer(CollectionConfiguration collectionConfiguration)
         {
-            bool IsGoodFormat(string fmt) => !String.IsNullOrEmpty(fmt);
+            bool IsGoodFormat(string fmt) => !string.IsNullOrEmpty(fmt);
 
             var format = collectionConfiguration.Format;
             if (!IsGoodFormat(format) && collectionConfiguration.SourceFile != null)

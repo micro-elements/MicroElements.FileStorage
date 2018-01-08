@@ -1,3 +1,6 @@
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using JetBrains.Annotations;
 using MicroElements.FileStorage.CodeContracts;
@@ -26,7 +29,7 @@ namespace MicroElements.FileStorage.Abstractions
         public string Value { get; }
 
         /// <summary>
-        /// Creates new Key.
+        /// Initializes a new instance of the <see cref="Key"/> class.
         /// </summary>
         /// <param name="keyType">Key type.</param>
         /// <param name="value">Key value.</param>
@@ -37,7 +40,7 @@ namespace MicroElements.FileStorage.Abstractions
 
             KeyType = keyType;
             Value = value;
-            Collection = collection ?? String.Empty;
+            Collection = collection ?? string.Empty;
         }
 
         /// <summary>
@@ -52,7 +55,7 @@ namespace MicroElements.FileStorage.Abstractions
                     return Value;
                 }
 
-                if (!String.IsNullOrEmpty(Collection))
+                if (!string.IsNullOrEmpty(Collection))
                 {
                     return $"{Collection}/{Value}";
                 }
@@ -71,9 +74,12 @@ namespace MicroElements.FileStorage.Abstractions
         /// <inheritdoc />
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != this.GetType())
+                return false;
             return Equals((Key)obj);
         }
 

@@ -1,3 +1,6 @@
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using JetBrains.Annotations;
 using MicroElements.FileStorage.CodeContracts;
 
@@ -19,7 +22,7 @@ namespace MicroElements.FileStorage.Abstractions
         public string Content { get; }
 
         /// <summary>
-        /// ctor.
+        /// Initializes a new instance of the <see cref="FileContent"/> class.
         /// </summary>
         /// <param name="location">File location.</param>
         /// <param name="content">File contens as string.</param>

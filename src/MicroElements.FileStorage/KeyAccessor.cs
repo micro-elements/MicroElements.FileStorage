@@ -1,3 +1,6 @@
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
@@ -18,7 +21,7 @@ namespace MicroElements.FileStorage
         private readonly Action<TValue, string> _setIdFunc;
 
         /// <summary>
-        /// Creates new KeyAccessor.
+        /// Initializes a new instance of the <see cref="KeyAccessor{TValue}"/> class.
         /// </summary>
         /// <param name="getKeyExpression">Expression for get key.</param>
         /// <param name="setKeyExpression">Expression for set key.</param>

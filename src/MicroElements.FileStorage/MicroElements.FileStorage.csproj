@@ -1,26 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\..\build\common.props" />
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <NugetVersion Condition="'$(NugetVersion)'==''">1.0.0-beta</NugetVersion>
-    <Version>$(NugetVersion)</Version>
-    <PackageReleaseNotes>Initial version</PackageReleaseNotes>
-    <Description>FileStorage is a document database with file system.</Description>
-    <PackageTags>DocumentDb json database NoSql</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>alexey.petriashev</Authors>
-    <Company>MicroElements</Company>
   </PropertyGroup>
 
   <PropertyGroup>
-    <DocumentationFile>bin/$(Configuration)/$(TargetFramework)/MicroElements.FileStorage.xml</DocumentationFile>
-    <!--https://github.com/NuGet/Home/issues/4142-->
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <PackageId>MicroElements.FileStorage</PackageId>
+    <Description>FileStorage is a document database with file system.</Description>
+    <PackageTags>DocumentDb json database NoSql</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" PrivateAssets="All" />
-    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.7.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

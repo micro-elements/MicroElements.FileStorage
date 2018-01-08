@@ -1,3 +1,6 @@
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Linq;
 using MicroElements.FileStorage.Abstractions;
@@ -31,7 +34,7 @@ namespace MicroElements.FileStorage.KeyGenerators
                 {
                     key = key.Substring(collectionName.Length + 1);
                 }
-                return Int32.Parse(key);
+                return int.Parse(key);
             }
 
             int max = _startValue;

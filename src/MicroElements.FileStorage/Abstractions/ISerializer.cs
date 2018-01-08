@@ -1,3 +1,6 @@
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
@@ -48,7 +51,7 @@ namespace MicroElements.FileStorage.Abstractions
             get { return _extension; }
             set
             {
-                if (String.IsNullOrEmpty(value) || !value.Contains("."))
+                if (string.IsNullOrEmpty(value) || !value.Contains("."))
                     throw new ArgumentException("Extension must be in format '.ext'");
                 _extension = value;
             }

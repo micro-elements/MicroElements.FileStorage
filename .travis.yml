@@ -9,6 +9,6 @@ os:
   - linux
 before_script:
   - chmod a+x ./build.sh
-solution: ./src/MicroElements.FileStorage.sln
+solution: ./MicroElements.FileStorage.sln
 script:
   - ./build.sh

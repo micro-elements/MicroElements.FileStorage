@@ -1,7 +1,8 @@
 <!-- This file may be overwritten by automation. -->
 <Project>
   <PropertyGroup>
-    <VersionPrefix>1.0.3</VersionPrefix>
+    <VersionPrefix>1.0.4</VersionPrefix>
     <VersionSuffix></VersionSuffix>
+    <PackageReleaseNotes>fixed source link</PackageReleaseNotes>
   </PropertyGroup>
 </Project>

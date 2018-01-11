@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.Abstractions.Exceptions;
 using MicroElements.FileStorage.CodeContracts;
 
 namespace MicroElements.FileStorage
@@ -40,16 +41,15 @@ namespace MicroElements.FileStorage
         public bool HasChanges { get; set; }
 
         /// <inheritdoc />
-        public int Count => _documents.Count;
-
-        /// <inheritdoc />
-        public IReadOnlyCollection<object> GetAll() => _documents;
-
-        /// <inheritdoc />
-        public void Drop()
+        public int Count
         {
-            lock (_documents)
-                _documents.Clear();
+            get
+            {
+                lock (_documents)
+                {
+                    return _documents.Count;
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -57,7 +57,6 @@ namespace MicroElements.FileStorage
         {
             Check.NotNull(item, nameof(item));
 
-            //todo: ThreadSafe
             lock (_documents)
             {
                 var key = GetKey(item);
@@ -66,33 +65,67 @@ namespace MicroElements.FileStorage
                     key = GetNextKey(item);
                     SetKey(item, key);
                 }
+
                 _documents.Add(item);
                 HasChanges = true;
             }
         }
-
-        private string GetNextKey(T item)
-        {
-            var nextKey = ConfigurationTyped.KeyGenerator.GetNextKey(this, item);
-            return nextKey.Formatted;
-        }
-
-        private string GetKey(T item) => _keyGetter.GetIdFunc()(item);
-
-        private void SetKey(T item, string key) => _keySetter.SetIdFunc()(item, key);
 
         /// <inheritdoc />
         public T Get(string key)
         {
             Check.NotNull(key, nameof(key));
 
-            return _documents.FirstOrDefault(arg => _keyGetter.GetIdFunc()(arg) == key);
+            lock (_documents)
+            {
+                return _documents.FirstOrDefault(arg => _keyGetter.GetIdFunc()(arg) == key);
+            }
         }
 
         /// <inheritdoc />
         public IEnumerable<T> Find(Func<T, bool> query)
         {
-            return _documents.Where(query);
+            lock (_documents)
+            {
+                return _documents.Where(query);
+            }
+        }
+
+        /// <inheritdoc />
+        public void Delete(string key)
+        {
+            var entity = Get(key);
+            if (entity != null)
+            {
+                lock (_documents)
+                {
+                    _documents.Remove(entity);
+                }
+            }
+            else
+            {
+                // todo: error?
+                // throw new EntityNotFoundException();
+            }
+        }
+
+        /// <inheritdoc />
+        public void Drop()
+        {
+            lock (_documents)
+            {
+                _documents.Clear();
+            }
+        }
+
+        private string GetKey(T item) => _keyGetter.GetIdFunc()(item);
+
+        private void SetKey(T item, string key) => _keySetter.SetIdFunc()(item, key);
+
+        private string GetNextKey(T item)
+        {
+            var nextKey = ConfigurationTyped.KeyGenerator.GetNextKey(this, item);
+            return nextKey.Formatted;
         }
     }
 }

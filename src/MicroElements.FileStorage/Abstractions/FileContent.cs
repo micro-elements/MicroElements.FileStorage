@@ -17,7 +17,7 @@ namespace MicroElements.FileStorage.Abstractions
         public string Location { get; }
 
         /// <summary>
-        /// File contens as string.
+        /// File content as string.
         /// </summary>
         public string Content { get; }
 
@@ -25,7 +25,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// Initializes a new instance of the <see cref="FileContent"/> class.
         /// </summary>
         /// <param name="location">File location.</param>
-        /// <param name="content">File contens as string.</param>
+        /// <param name="content">File content as string.</param>
         public FileContent([NotNull] string location, [NotNull] string content)
         {
             Check.NotNull(location, nameof(location));

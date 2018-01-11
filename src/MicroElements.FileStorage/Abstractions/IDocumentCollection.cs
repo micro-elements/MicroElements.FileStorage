@@ -52,7 +52,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// Gets item by key.
         /// </summary>
         /// <param name="key">Key.</param>
-        /// <returns></returns>
+        /// <returns>Item or null if not exist.</returns>
         [CanBeNull] T Get([NotNull] string key); //todo: special struct for key
 
         /// <summary>

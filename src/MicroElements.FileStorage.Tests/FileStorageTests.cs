@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.Experimental;
 using MicroElements.FileStorage.KeyGenerators;
 using MicroElements.FileStorage.Serializers;
 using MicroElements.FileStorage.StorageEngine;
 using MicroElements.FileStorage.Tests.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json;
 using Xunit;
 using JsonSerializer = MicroElements.FileStorage.Serializers.JsonSerializer;
@@ -18,34 +19,6 @@ namespace MicroElements.FileStorage.Tests
 {
     public class FileStorageTests
     {
-        [Fact]
-        public void key_getter_should_get_id()
-        {
-            var person = new Person
-            {
-                Id = "persons/1",
-                FirstName = "Bill",
-                LastName = "Gates"
-            };
-            var idFunc = new DefaultKeyAccessor<Person>().GetIdFunc();
-            var key = idFunc(person);
-            key.Should().Be("persons/1");
-        }
-
-        [Fact]
-        public void key_setter_should_set_id()
-        {
-            var person = new Person
-            {
-                Id = null,
-                FirstName = "Bill",
-                LastName = "Gates"
-            };
-            var idFunc = new DefaultKeyAccessor<Person>().SetIdFunc();
-            idFunc(person, "persons/1");
-            person.Id.Should().Be("persons/1");
-        }
-
         [Fact]
         public async Task load_single_file_collection()
         {
@@ -381,24 +354,7 @@ namespace MicroElements.FileStorage.Tests
         [Fact]
         public async void delete_should_delete_entity()
         {
-            var inMemoryStorageEngine = new InMemoryStorageEngine();
-            await inMemoryStorageEngine.WriteFile("currencies.json", new FileContent("currencies.json", "[]"));
-            DataStoreConfiguration storeConfiguration = new DataStoreConfiguration
-            {
-                StorageEngine = inMemoryStorageEngine,
-                Collections = new CollectionConfiguration[]
-                {
-                    new CollectionConfigurationTyped<Currency>
-                    {
-                        DocumentType = typeof(Currency),
-                        SourceFile = "currencies.json",
-                        KeyGetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Code)),
-                    },
-                }
-            };
-            var dataStore = new DataStore(storeConfiguration);
-
-            await dataStore.Initialize();
+            var dataStore = await TestHelper.CreateInMemoryDataStore();
 
             var collection = dataStore.GetCollection<Currency>();
             collection.Should().NotBeNull();
@@ -407,16 +363,19 @@ namespace MicroElements.FileStorage.Tests
             collection.Add(new Currency { Code = "EUR", Name = "Euro" });
             collection.Count.Should().Be(2);
 
+            collection.IsExists("USD").Should().BeTrue();
+            collection.IsExists("EUR").Should().BeTrue();
+
             collection.Delete("USD");
             collection.Count.Should().Be(1);
+            collection.IsExists("USD").Should().BeFalse();
+            collection.IsExists("EUR").Should().BeTrue();
 
             // Delete not existent currency...
             collection.Delete("Bitcoin");
             collection.Count.Should().Be(1);
-        }
-    }
 
-    public class FileProviderInMemory
-    {
+            ((Action)(() => collection.Delete(null))).Should().Throw<ArgumentNullException>();
+        }
     }
 }

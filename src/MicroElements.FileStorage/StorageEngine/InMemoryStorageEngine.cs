@@ -37,5 +37,24 @@ namespace MicroElements.FileStorage.StorageEngine
             _contents[subPath] = content;
             return Task.CompletedTask;
         }
+
+        /// <inheritdoc />
+        public Task DeleteFile(string subPath)
+        {
+            _contents.Remove(subPath);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        public FileContentMetadata GetFileMetadata(string subPath)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public StorageMetadata GetStorageMetadata()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

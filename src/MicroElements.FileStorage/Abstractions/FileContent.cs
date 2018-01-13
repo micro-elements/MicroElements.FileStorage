@@ -1,6 +1,8 @@
 // Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.IO;
 using JetBrains.Annotations;
 using MicroElements.FileStorage.CodeContracts;
 
@@ -21,6 +23,8 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         public string Content { get; }
 
+        //todo: BinaryContent, Encoding
+
         /// <summary>
         /// Initializes a new instance of the <see cref="FileContent"/> class.
         /// </summary>
@@ -34,5 +38,22 @@ namespace MicroElements.FileStorage.Abstractions
             Location = location;
             Content = content;
         }
+    }
+
+    //todo: design. move
+    public class FileContentMetadata
+    {
+        public DateTime CreationTimeUtc { get; }
+        public DateTime LastWriteTimeUtc { get; }
+        public DateTime DateModified { get; }
+        public bool IsExists { get; }
+        public bool IsReadonly { get; }
+        public long Length { get; }
+    }
+
+    // todo: unify location related stuff in Location class
+    public class Location
+    {
+        private Uri _uri;//todo: see Spring.Net and cake build alternatives
     }
 }

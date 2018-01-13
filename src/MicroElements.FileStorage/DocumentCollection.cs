@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MicroElements.FileStorage.Abstractions;
-using MicroElements.FileStorage.Abstractions.Exceptions;
 using MicroElements.FileStorage.CodeContracts;
 
 namespace MicroElements.FileStorage
@@ -78,7 +77,18 @@ namespace MicroElements.FileStorage
 
             lock (_documents)
             {
-                return _documents.FirstOrDefault(arg => _keyGetter.GetIdFunc()(arg) == key);
+                return _documents.FirstOrDefault(arg => GetKey(arg) == key);
+            }
+        }
+
+        /// <inheritdoc />
+        public bool IsExists(string key)
+        {
+            Check.NotNull(key, nameof(key));
+
+            lock (_documents)
+            {
+                return _documents.Any(arg => GetKey(arg) == key);
             }
         }
 

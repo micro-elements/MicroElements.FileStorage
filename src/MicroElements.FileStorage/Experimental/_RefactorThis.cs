@@ -11,39 +11,19 @@ This file contains drafts and ideas.
 Can be deleted at any time or moved to right place.
 */
 
-namespace MicroElements.FileStorage
+namespace MicroElements.FileStorage.Experimental
 {
-    /// <summary>
-    /// Data snapshot represents data state in time.
-    /// </summary>
-    public interface IDataSnapshot
-    {
-    }
+    internal interface IDataValidator { }
 
-    public class SnapshotInfo
-    {
-        public DateTime Timestamp { get; set; }
-    }
-
-    public interface IDataAddon
-    {
-    }
-
-    public interface ISession
-    {
-        void Save();
-    }
-
-    public interface IDataValidator { }
-    public interface IDataConvertor { }
+    internal interface IDataConvertor { }
 
 
-    public interface IDocumentCollectionFactory
+    internal interface IDocumentCollectionFactory
     {
         CollectionConfiguration Get(Type entityType);
     }
 
-    public class DocumentCollectionFactory : IDocumentCollectionFactory
+    internal class DocumentCollectionFactory : IDocumentCollectionFactory
     {
         private readonly IReadOnlyList<CollectionConfiguration> _configurations;
 
@@ -59,7 +39,7 @@ namespace MicroElements.FileStorage
         }
     }
 
-    public class CollectionKey
+    internal class CollectionKey
     {
         public Type Type { get; }
         public string Name { get; }

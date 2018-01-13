@@ -108,6 +108,14 @@ Task("CopyPackages")
     CopyFiles(files, artifactsDir);
 });
 
+Task("UploadPackages")
+    .IsDependentOn("CopyPackages")
+    .Does(() =>
+{
+    var files = GetFiles(artifactsDir.Path+"/*.nupkg");
+    
+});
+
 Task("Default")
     .IsDependentOn("Build")
     .IsDependentOn("Test")

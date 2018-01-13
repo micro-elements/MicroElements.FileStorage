@@ -13,7 +13,7 @@ namespace MicroElements.FileStorage.StorageEngine
 {
     /// <summary>
     /// FileStorageEngine.
-    /// <para>Data stores in file system.</para> 
+    /// <para>Data is stored in the file system.</para>
     /// </summary>
     public class FileStorageEngine : IStorageEngine
     {
@@ -37,13 +37,13 @@ namespace MicroElements.FileStorage.StorageEngine
         {
             Check.NotNull(subPath, nameof(subPath));
 
-            var location = Path.Combine(_basePath, subPath);
+            var fullPath = GetFullPath(subPath);
             string text = string.Empty;
-            if (File.Exists(location))
+            if (File.Exists(fullPath))
             {
-                text = await FileAsync.ReadAllText(location);
+                text = await FileAsync.ReadAllText(fullPath);
             }
-            return new FileContent(location, text);
+            return new FileContent(fullPath, text);
         }
 
         /// <inheritdoc />
@@ -51,10 +51,10 @@ namespace MicroElements.FileStorage.StorageEngine
         {
             Check.NotNull(subPath, nameof(subPath));
 
-            var location = Path.Combine(_basePath, subPath);
-            if (Directory.Exists(location))
+            var fullPath = GetFullPath(subPath);
+            if (Directory.Exists(fullPath))
             {
-                foreach (var file in Directory.EnumerateFiles(location))
+                foreach (var file in Directory.EnumerateFiles(fullPath))
                 {
                     yield return ReadFile(file);
                 }
@@ -67,11 +67,38 @@ namespace MicroElements.FileStorage.StorageEngine
             Check.NotNull(content, nameof(content));
             Check.NotNull(subPath, nameof(subPath));
 
-            var location = Path.Combine(_basePath, subPath);
-            var directoryName = Path.GetDirectoryName(location);
+            var fullPath = GetFullPath(subPath);
+            var directoryName = Path.GetDirectoryName(fullPath);
             if (!Directory.Exists(directoryName))
                 Directory.CreateDirectory(directoryName);
-            await FileAsync.WriteAllText(location, content.Content);
+            await FileAsync.WriteAllText(fullPath, content.Content);
+        }
+
+        /// <inheritdoc />
+        public Task DeleteFile(string subPath)
+        {
+            var fullPath = GetFullPath(subPath);
+            // todo: error catching
+            File.Delete(fullPath);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        public FileContentMetadata GetFileMetadata(string subPath)
+        {
+            return new FileContentMetadata();
+        }
+
+        /// <inheritdoc />
+        public StorageMetadata GetStorageMetadata()
+        {
+            return new StorageMetadata();
+        }
+
+        private string GetFullPath(string subPath)
+        {
+            var location = Path.Combine(_basePath, subPath);
+            return location;
         }
     }
 }

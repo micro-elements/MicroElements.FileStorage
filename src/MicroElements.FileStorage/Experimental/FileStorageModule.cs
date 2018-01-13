@@ -4,7 +4,7 @@
 using MicroElements.FileStorage.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MicroElements.FileStorage
+namespace MicroElements.FileStorage.Experimental
 {
     public class FileStorageModule
     {

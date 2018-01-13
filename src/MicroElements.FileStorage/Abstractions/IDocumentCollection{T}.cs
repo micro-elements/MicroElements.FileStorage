@@ -19,7 +19,7 @@ namespace MicroElements.FileStorage.Abstractions
         CollectionConfigurationTyped<T> ConfigurationTyped { get; }
 
         /// <summary>
-        /// Adds new item to collection.//todo: database is readonly? addons!
+        /// Adds new item to collection.
         /// </summary>
         /// <param name="item">New item.</param>
         void Add([NotNull] T item);
@@ -29,7 +29,14 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// <param name="key">Key.</param>
         /// <returns>Item or null if not exist.</returns>
-        [CanBeNull] T Get([NotNull] string key); //todo: special struct for key
+        [CanBeNull] T Get([NotNull] string key);
+
+        /// <summary>
+        /// Gets a value indicating whether an entity exists.
+        /// </summary>
+        /// <param name="key">Entity key.</param>
+        /// <returns>Returns <see langword="true"/> if entity exists.</returns>
+        bool IsExists([NotNull] string key);
 
         /// <summary>
         /// Find all items matching the query.
@@ -42,6 +49,6 @@ namespace MicroElements.FileStorage.Abstractions
         /// Deletes entity by key.
         /// </summary>
         /// <param name="key">Entity key.</param>
-        void Delete(string key);
+        void Delete([NotNull] string key);
     }
 }

@@ -3,17 +3,19 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 var solutionFile    = "./MicroElements.FileStorage.sln";
-string baseVersion  = "0.0.4";
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
 
-var buildSuffix     = "beta-20180103";
-string nugetVersion = baseVersion;
-/*
-master: 1.0.0
-dev   : 1.0.0-beta
-other : no nuget
-*/
+// NOTE: Add EnvVars PublishUrlBeta and ApiKeyBeta to Travis
+var publishUrlBeta  = ArgumentOrEnvVar(Context, "PublishUrlBeta", null);
+var apiKeyBeta      = ArgumentOrEnvVar(Context, "ApiKeyBeta", null);
+
+// Returns cmd arg or env var or default value
+public static string ArgumentOrEnvVar(ICakeContext context, string name, string defaultValue)
+{
+    return context.Argument(name, (string)null) ?? context.EnvironmentVariable(name) ?? defaultValue;
+}
+
 //////////////////////////////////////////////////////////////////////
 // FILES & DIRECTORIES
 //////////////////////////////////////////////////////////////////////
@@ -78,7 +80,6 @@ Task("Build")
         Configuration = configuration,
         ArgumentCustomization =
           args => args
-            .Append("/p:NugetVersion=" + nugetVersion)
             .Append("/p:SourceLinkCreate=true")
     };
 
@@ -108,9 +109,37 @@ Task("CopyPackages")
     CopyFiles(files, artifactsDir);
 });
 
+Task("PublishPackages")
+    .IsDependentOn("CopyPackages")
+    .Does(() =>
+{
+    var files = GetFiles(artifactsDir.Path+"/*.nupkg");
+
+    if(publishUrlBeta == null)
+    {
+        Information("PublishUrlBeta is null. PublishPackages cancelled.");
+        return;
+    }
+    if(apiKeyBeta == null)
+    {
+        Information("ApiKeyBeta is null. PublishPackages cancelled.");
+        return;
+    }
+    NuGetPush(files, new NuGetPushSettings(){
+        Source = publishUrlBeta,
+        ApiKey = apiKeyBeta,
+    });
+});
+
 Task("Default")
     .IsDependentOn("Build")
     .IsDependentOn("Test")
     .IsDependentOn("CopyPackages");
+
+Task("Travis")
+    .IsDependentOn("Build")
+    .IsDependentOn("Test")
+    .IsDependentOn("CopyPackages")
+    .IsDependentOn("PublishPackages");  
 
 RunTarget(target);

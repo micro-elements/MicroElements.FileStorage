@@ -3,7 +3,7 @@
 
 using MicroElements.FileStorage.Abstractions;
 
-namespace MicroElements.FileStorage
+namespace MicroElements.FileStorage.Experimental
 {
     //todo: ServiceCollection build and inject
     public class DataStoreBuilder

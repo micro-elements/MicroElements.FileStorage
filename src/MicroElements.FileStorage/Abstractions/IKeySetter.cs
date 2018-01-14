@@ -10,7 +10,7 @@ namespace MicroElements.FileStorage.Abstractions
     /// Key setter strategy.
     /// Uses for setting key property.
     /// </summary>
-    /// <typeparam name="TValue"></typeparam>
+    /// <typeparam name="TValue">Entity type.</typeparam>
     public interface IKeySetter<TValue>
     {
         /// <summary>

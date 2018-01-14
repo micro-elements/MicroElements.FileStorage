@@ -39,10 +39,10 @@ namespace MicroElements.FileStorage
             _setIdFunc = new Lazy<Action<TValue, string>>(() => _setIdExpression.Value.Compile());
         }
 
-        ///<inheritdoc />
+        /// <inheritdoc />
         public Expression<Func<TValue, string>> GetIdExpression() => _getIdExpression.Value;
 
-        ///<inheritdoc />
+        /// <inheritdoc />
         public Func<TValue, string> GetIdFunc() => _idFunc.Value;
 
         /// <inheritdoc />

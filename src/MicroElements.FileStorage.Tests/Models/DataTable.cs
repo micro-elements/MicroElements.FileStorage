@@ -1,4 +1,4 @@
-namespace MicroElements.FileStorage.Tests
+namespace MicroElements.FileStorage.Tests.Models
 {
     public class DataTable
     {

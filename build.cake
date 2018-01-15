@@ -1,3 +1,5 @@
+#tool "nuget:?package=GitVersion.CommandLine"
+
 ///////////////////////////////////////////////////////////////////////////////
 // ARGUMENTS
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,6 +132,27 @@ Task("PublishPackages")
         ApiKey = apiKeyBeta,
     });
 });
+
+GitVersion versionInfo = null;
+var specifyProjectJson = "./version.props";
+Task("Version")
+    .Does(() => {
+/*
+<Project>
+  <PropertyGroup>
+    <VersionPrefix>1.0.5</VersionPrefix>
+    <VersionSuffix>beta.2</VersionSuffix>
+    <PackageReleaseNotes>Added IsExists and Delete methods.</PackageReleaseNotes>
+  </PropertyGroup>
+</Project>
+*/
+        versionInfo = GitVersion(new GitVersionSettings{ OutputType = GitVersionOutput.Json });
+        // Update version.props
+        var updatedProjectJson = System.IO.File.ReadAllText(specifyProjectJson)
+            .Replace("1.0.0-*", versionInfo.NuGetVersion);
+
+        //System.IO.File.WriteAllText(specifyProjectJson, updatedProjectJson);
+    });
 
 Task("Default")
     .IsDependentOn("Build")

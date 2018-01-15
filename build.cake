@@ -138,20 +138,10 @@ Task("PublishPackages")
     });
 });
 
-GitVersion versionInfo = null;
-
 Task("Version")
     .Does(() => {
-/*
-<Project>
-  <PropertyGroup>
-    <VersionPrefix>1.0.5</VersionPrefix>
-    <VersionSuffix>beta.2</VersionSuffix>
-    <PackageReleaseNotes>Added IsExists and Delete methods.</PackageReleaseNotes>
-  </PropertyGroup>
-</Project>
-*/
-        versionInfo = GitVersion(new GitVersionSettings{ 
+
+        GitVersion versionInfo = GitVersion(new GitVersionSettings{ 
             OutputType = GitVersionOutput.Json,
         });
         // Update version.props

@@ -71,6 +71,8 @@ namespace MicroElements.FileStorage.Tests
 
         private static IStorageEngine GetStorageEngine(string storageName, string basePath)
         {
+            if (!Directory.Exists(basePath))
+                Directory.CreateDirectory(basePath);
             IStorageEngine storageEngine = null;
             switch (storageName)
             {

@@ -34,6 +34,11 @@ Setup(ctx =>
 {
    // Executed BEFORE the first task.
    Information("Running tasks...");
+
+   Information($"solutionFile={solutionFile}");
+   Information($"target={target}");
+   Information($"configuration={configuration}");
+   Information($"publishUrlBeta={publishUrlBeta}");
 });
 
 Teardown(ctx =>
@@ -171,6 +176,7 @@ Task("Default")
     .IsDependentOn("CopyPackages");
 
 Task("Travis")
+    .IsDependentOn("Version")
     .IsDependentOn("Build")
     .IsDependentOn("Test")
     .IsDependentOn("CopyPackages")

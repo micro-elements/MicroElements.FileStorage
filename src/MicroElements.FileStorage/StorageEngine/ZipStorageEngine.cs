@@ -112,7 +112,9 @@ namespace MicroElements.FileStorage.StorageEngine
 
         public Task DeleteFile([NotNull] string subPath)
         {
-            throw new NotImplementedException();
+            var zipEntry = _zipArchive.Entries.Single(p => p.FullName == subPath);
+            zipEntry.Delete();
+            return Task.CompletedTask;
         }
 
         public FileContentMetadata GetFileMetadata([NotNull] string subPath)
@@ -131,9 +133,14 @@ namespace MicroElements.FileStorage.StorageEngine
             var location = string.Empty;
             if (zipEntry != null)
             {
-                var fileZipStream = zipEntry.Open();
-                var writeStream = new StreamReader(fileZipStream);
-                content = await writeStream.ReadToEndAsync();
+                using (var fileZipStream = zipEntry.Open())
+                {
+                    using (var writeStream = new StreamReader(fileZipStream))
+                    {
+                        content = await writeStream.ReadToEndAsync();
+                    }
+                }
+
                 location = zipEntry.FullName;
             }
 

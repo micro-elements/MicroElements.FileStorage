@@ -179,5 +179,86 @@ namespace MicroElements.FileStorage.Tests
             filesFromZipStorage.Where(p => p.Location.Contains("test3") || p.Location.Contains("test4")).Count().Should().Be(0);
             filesFromZipStorage.Count().Should().Be(3);
         }
+
+        [Fact]
+        public void delete_files()
+        {
+            var fileContentEmpty = new FileContent(string.Empty, string.Empty);
+            var file1 = "1\test1.json";
+            var file2 = "test4.json";
+            var fileContents = new FileContent[]
+            {
+                new FileContent("1\test0.json", "testData0"),
+                new FileContent(file1, "testData1"),
+                new FileContent("1\test2.json", "testData2"),
+                new FileContent("2\test3.json", "testData3"),
+                new FileContent(file2, "testData4"),
+            };
+
+            var zipMemoryStream = new MemoryStream();
+            var zipStorageEngine = new ZipStorageEngine(zipMemoryStream, ZipStorageEngineMode.Write);
+
+            Task.WaitAll(fileContents.Select(f => zipStorageEngine.WriteFile(f.Location, f)).ToArray());
+
+            var filesFromZipStorage = zipStorageEngine.ReadDirectory("1").Select(p => p.GetAwaiter().GetResult()).ToArray();
+            foreach (var file in fileContents)
+            {
+                file.Invoking(f =>
+                {
+                    var fileForCompare = fileContents.FirstOrDefault(p => p.Location == f.Location);
+                    fileForCompare.Should().NotBeNull();
+                    f.Location.Should().Be(fileForCompare.Location);
+                    f.Content.Should().Be(fileForCompare.Content);
+                });
+            }
+            filesFromZipStorage.Count(p => p.Location.Contains("test3") || p.Location.Contains("test4")).Should().Be(0);
+            filesFromZipStorage.Count().Should().Be(3);
+            zipStorageEngine.ReadFile(file1).Should().NotBeNull();
+            zipStorageEngine.ReadFile(file2).Should().NotBeNull();
+
+            // delete file1
+            zipStorageEngine.DeleteFile(file1);
+
+            filesFromZipStorage = zipStorageEngine.ReadDirectory("1").Select(p => p.GetAwaiter().GetResult()).ToArray();
+            foreach (var file in fileContents.Where(p => p.Location != file1))
+            {
+                file.Invoking(f =>
+                {
+                    var fileForCompare = fileContents.FirstOrDefault(p => p.Location == f.Location);
+                    fileForCompare.Should().NotBeNull();
+                    f.Location.Should().Be(fileForCompare.Location);
+                    f.Content.Should().Be(fileForCompare.Content);
+                });
+            }
+            filesFromZipStorage.SingleOrDefault(p => p.Location == file1).Should().BeNull();
+
+            filesFromZipStorage.Count(p => p.Location.Contains("test3") || p.Location.Contains("test4")).Should().Be(0);
+            filesFromZipStorage.Count().Should().Be(2);
+            var ff = zipStorageEngine.ReadFile(file1).GetAwaiter().GetResult();
+            zipStorageEngine.ReadFile(file1).GetAwaiter().GetResult().Should().Be(fileContentEmpty);
+            zipStorageEngine.ReadFile(file2).GetAwaiter().GetResult().Should().NotBe(fileContentEmpty);
+
+            // delete file1 and file2
+            zipStorageEngine.DeleteFile(file2);
+
+            filesFromZipStorage = zipStorageEngine.ReadDirectory("1").Select(p => p.GetAwaiter().GetResult()).ToArray();
+            foreach (var file in fileContents.Where(p => p.Location != file1))
+            {
+                file.Invoking(f =>
+                {
+                    var fileForCompare = fileContents.FirstOrDefault(p => p.Location == f.Location);
+                    fileForCompare.Should().NotBeNull();
+                    f.Location.Should().Be(fileForCompare.Location);
+                    f.Content.Should().Be(fileForCompare.Content);
+                });
+            }
+            filesFromZipStorage.SingleOrDefault(p => p.Location == file1).Should().BeNull();
+
+            filesFromZipStorage.Count(p => p.Location.Contains("test3") || p.Location.Contains("test4")).Should().Be(0);
+            filesFromZipStorage.Count().Should().Be(2);
+            zipStorageEngine.ReadFile(file1).GetAwaiter().GetResult().Should().Be(fileContentEmpty);
+            zipStorageEngine.ReadFile(file2).GetAwaiter().GetResult().Should().Be(fileContentEmpty);
+
+        }
     }
 }

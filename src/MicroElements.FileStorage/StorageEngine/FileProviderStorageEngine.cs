@@ -48,5 +48,23 @@ namespace MicroElements.FileStorage.StorageEngine
         {
             throw new System.NotImplementedException();
         }
+
+        /// <inheritdoc />
+        public Task DeleteFile(string subPath)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public FileContentMetadata GetFileMetadata(string subPath)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public StorageMetadata GetStorageMetadata()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

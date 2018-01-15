@@ -110,6 +110,21 @@ namespace MicroElements.FileStorage.StorageEngine
             return readOnlyArchive;
         }
 
+        public Task DeleteFile([NotNull] string subPath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public FileContentMetadata GetFileMetadata([NotNull] string subPath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public StorageMetadata GetStorageMetadata()
+        {
+            throw new NotImplementedException();
+        }
+
         private static async Task<FileContent> GetFileContentFromZipEntry(ZipArchiveEntry zipEntry)
         {
             var content = string.Empty;

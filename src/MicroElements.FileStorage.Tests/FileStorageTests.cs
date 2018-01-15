@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.Experimental;
 using MicroElements.FileStorage.KeyGenerators;
 using MicroElements.FileStorage.Serializers;
 using MicroElements.FileStorage.StorageEngine;
@@ -18,26 +19,6 @@ namespace MicroElements.FileStorage.Tests
 {
     public class FileStorageTests
     {
-        [Fact]
-        public void key_getter_should_get_id()
-        {
-            var personId = "persons/1";
-            var person = new Person { Id = personId, FirstName = "Bill", LastName = "Gates" };
-            var idFunc = new DefaultKeyAccessor<Person>().GetIdFunc();
-            var key = idFunc(person);
-            key.Should().Be(personId);
-        }
-
-        [Fact]
-        public void key_setter_should_set_id()
-        {
-            var personId = "persons/1";
-            var person = new Person { Id = null, FirstName = "Bill", LastName = "Gates" };
-            var idFunc = new DefaultKeyAccessor<Person>().SetIdFunc();
-            idFunc(person, personId);
-            person.Id.Should().Be(personId);
-        }
-
         [Theory()]
         [InlineData(nameof(FileStorageEngine))]
         [InlineData(nameof(ZipStorageEngine))]
@@ -166,7 +147,7 @@ namespace MicroElements.FileStorage.Tests
                         DocumentType = typeof(Person),
                         SourceFile = "persons.csv",
                         Format = "csv",
-                        Serializer = new SimpleCsvSerializer()//todo: ïðèâÿçàòü ê ïîëþ Format èëè ê ðàñøèðåíèþ
+                        Serializer = new SimpleCsvSerializer() //todo: привязать к полю Format или к расширению
                     },
                 }
             };
@@ -221,10 +202,14 @@ namespace MicroElements.FileStorage.Tests
             collection.Drop();
             //collection.Count.Should().Be(0);
 
-            collection.Add(new Person { FirstName = "Bill", LastName = "Gates" });
+            collection.Add(new Person
+            {
+                FirstName = "Bill",
+                LastName = "Gates"
+            });
             collection.Count.Should().Be(1);
 
-            var person = (Person)collection.GetAll().First();
+            var person = collection.Find(p => true).First();
             person.Id.Should().NotBeNullOrEmpty("Id must be generated");
 
             dataStore.Save();
@@ -257,7 +242,8 @@ namespace MicroElements.FileStorage.Tests
                         SourceFile = "persons",
                         Serializer = new JsonSerializer(),
                         KeyGetter = new DefaultKeyAccessor<Person>(),
-                        KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                        KeyGenerator =
+                            new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
                     },
                 }
             };
@@ -269,8 +255,16 @@ namespace MicroElements.FileStorage.Tests
             collection.Should().NotBeNull();
             collection.Count.Should().Be(0);
 
-            collection.Add(new Person { FirstName = "Bill", LastName = "Gates" });
-            collection.Add(new Person { FirstName = "Steve", LastName = "Ballmer" });
+            collection.Add(new Person
+            {
+                FirstName = "Bill",
+                LastName = "Gates"
+            });
+            collection.Add(new Person
+            {
+                FirstName = "Steve",
+                LastName = "Ballmer"
+            });
             collection.Count.Should().Be(2);
 
             dataStore.Save();
@@ -306,7 +300,12 @@ namespace MicroElements.FileStorage.Tests
             }
 
             var bill = JsonConvert.DeserializeObject<Person>(fileAllTextBill);
-            bill.Should().BeEquivalentTo(new Person { Id = "Bill_Gates", FirstName = "Bill", LastName = "Gates" });
+            bill.Should().BeEquivalentTo(new Person
+            {
+                Id = "Bill_Gates",
+                FirstName = "Bill",
+                LastName = "Gates"
+            });
         }
 
         [Theory()]
@@ -344,11 +343,19 @@ namespace MicroElements.FileStorage.Tests
             collection.Should().NotBeNull();
             collection.Count.Should().Be(0);
 
-            var person = new Person { FirstName = "Bill", LastName = "Gates" };
+            var person = new Person
+            {
+                FirstName = "Bill",
+                LastName = "Gates"
+            };
             collection.Add(person);
             person.Id.Should().Be("person/1");
 
-            person = new Person { FirstName = "Steve", LastName = "Ballmer" };
+            person = new Person
+            {
+                FirstName = "Steve",
+                LastName = "Ballmer"
+            };
             collection.Add(person);
             person.Id.Should().Be("person/2");
 
@@ -388,8 +395,16 @@ namespace MicroElements.FileStorage.Tests
             collection.Should().NotBeNull();
 
 
-            collection.Add(new Currency() { Code = "USD", Name = "Dollar" });
-            collection.Add(new Currency() { Code = "EUR", Name = "Euro" });
+            collection.Add(new Currency()
+            {
+                Code = "USD",
+                Name = "Dollar"
+            });
+            collection.Add(new Currency()
+            {
+                Code = "EUR",
+                Name = "Euro"
+            });
             collection.Count.Should().Be(2);
 
             dataStore.Save();
@@ -401,11 +416,44 @@ namespace MicroElements.FileStorage.Tests
             var services = new ServiceCollection();
             new FileStorageModule().ConfigureServices(services);
 
-            services.AddSingleton(new CollectionConfiguration() { Name = "col1" });
-            services.AddSingleton(new CollectionConfiguration() { Name = "col2" });
+            services.AddSingleton(new CollectionConfiguration()
+            {
+                Name = "col1"
+            });
+            services.AddSingleton(new CollectionConfiguration()
+            {
+                Name = "col2"
+            });
             var serviceProvider = services.BuildServiceProvider(true);
             var collectionConfigurations = serviceProvider.GetService<IEnumerable<CollectionConfiguration>>();
             var documentCollection = serviceProvider.GetRequiredService<IDocumentCollection<Person>>();
+        }
+
+        [Fact]
+        public async void delete_should_delete_entity()
+        {
+            var dataStore = await TestHelper.CreateInMemoryDataStore();
+
+            var collection = dataStore.GetCollection<Currency>();
+            collection.Should().NotBeNull();
+
+            collection.Add(new Currency { Code = "USD", Name = "Dollar" });
+            collection.Add(new Currency { Code = "EUR", Name = "Euro" });
+            collection.Count.Should().Be(2);
+
+            collection.IsExists("USD").Should().BeTrue();
+            collection.IsExists("EUR").Should().BeTrue();
+
+            collection.Delete("USD");
+            collection.Count.Should().Be(1);
+            collection.IsExists("USD").Should().BeFalse();
+            collection.IsExists("EUR").Should().BeTrue();
+
+            // Delete not existent currency...
+            collection.Delete("Bitcoin");
+            collection.Count.Should().Be(1);
+
+            ((Action)(() => collection.Delete(null))).Should().Throw<ArgumentNullException>();
         }
     }
 }

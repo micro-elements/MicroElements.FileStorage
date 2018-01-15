@@ -1,3 +1,4 @@
+ï»¿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,29 +21,35 @@ namespace MicroElements.FileStorage.Tests
         [Fact]
         public void key_getter_should_get_id()
         {
-            var person = new Person { Id = "persons/1", FirstName = "Bill", LastName = "Gates" };
+            var personId = "persons/1";
+            var person = new Person { Id = personId, FirstName = "Bill", LastName = "Gates" };
             var idFunc = new DefaultKeyAccessor<Person>().GetIdFunc();
             var key = idFunc(person);
-            key.Should().Be("persons/1");
+            key.Should().Be(personId);
         }
 
         [Fact]
         public void key_setter_should_set_id()
         {
+            var personId = "persons/1";
             var person = new Person { Id = null, FirstName = "Bill", LastName = "Gates" };
             var idFunc = new DefaultKeyAccessor<Person>().SetIdFunc();
-            idFunc(person, "persons/1");
-            person.Id.Should().Be("persons/1");
+            idFunc(person, personId);
+            person.Id.Should().Be(personId);
         }
 
-        [Fact]
-        public async Task load_single_file_collection()
+        [Theory()]
+        [InlineData(nameof(FileStorageEngine))]
+        [InlineData(nameof(ZipStorageEngine))]
+        public async Task load_single_file_collection(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/SingleFileCollection");
+            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
+
             var storeConfiguration = new DataStoreConfiguration
             {
                 BasePath = basePath,
-                StorageEngine = new FileStorageEngine(basePath),
+                StorageEngine = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfiguration
@@ -81,14 +88,44 @@ namespace MicroElements.FileStorage.Tests
             person.LastName.Should().Be("Gates");
         }
 
-        [Fact]
-        public async Task load_multi_file_collection()
+        private static IStorageEngine GetStorageEngine(string storageName, string basePath)
+        {
+            IStorageEngine storageEngine = null;
+            switch (storageName)
+            {
+                case nameof(FileStorageEngine):
+                    storageEngine = new FileStorageEngine(basePath);
+                    break;
+                case nameof(ZipStorageEngine):
+                    storageEngine = new ZipStorageEngine(new MemoryStream(), ZipStorageEngineMode.Write, true);
+                    var dic = new DirectoryInfo(basePath);
+                    var allFiles = dic.GetFiles("*", SearchOption.AllDirectories);
+                    foreach (var file in allFiles)
+                    {
+                        var location = file.FullName.Replace(dic.FullName, "").TrimStart('/').TrimStart('\\');
+                        var fileContent = new FileContent(location, File.ReadAllText(file.FullName));
+                        storageEngine.WriteFile(location, fileContent).GetAwaiter().GetResult();
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(storageName);
+            }
+
+            return storageEngine;
+        }
+
+        [Theory()]
+        [InlineData(nameof(FileStorageEngine))]
+        [InlineData(nameof(ZipStorageEngine))]
+        public async Task load_multi_file_collection(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/MultiFileCollection");
+            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
+
             var storeConfiguration = new DataStoreConfiguration
             {
                 BasePath = basePath,
-                StorageEngine = new FileStorageEngine(basePath),
+                StorageEngine = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfiguration
@@ -110,14 +147,18 @@ namespace MicroElements.FileStorage.Tests
             collection.Count.Should().Be(2);
         }
 
-        [Fact]
-        public async Task load_csv_collection()
+        [Theory()]
+        [InlineData(nameof(FileStorageEngine))]
+        [InlineData(nameof(ZipStorageEngine))]
+        public async Task load_csv_collection(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/WithConvert");
+            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
+
             var storeConfiguration = new DataStoreConfiguration
             {
                 BasePath = basePath,
-                StorageEngine = new FileStorageEngine(basePath),
+                StorageEngine = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfiguration
@@ -125,7 +166,7 @@ namespace MicroElements.FileStorage.Tests
                         DocumentType = typeof(Person),
                         SourceFile = "persons.csv",
                         Format = "csv",
-                        Serializer = new SimpleCsvSerializer()//todo: ïðèâÿçàòü ê ïîëþ Format èëè ê ðàñøèðåíèþ
+                        Serializer = new SimpleCsvSerializer()//todo: Ã¯Ã°Ã¨Ã¢Ã¿Ã§Ã Ã²Ã¼ Ãª Ã¯Ã®Ã«Ã¾ Format Ã¨Ã«Ã¨ Ãª Ã°Ã Ã±Ã¸Ã¨Ã°Ã¥Ã­Ã¨Ã¾
                     },
                 }
             };
@@ -140,19 +181,23 @@ namespace MicroElements.FileStorage.Tests
             CheckPersons(collection);
         }
 
-        [Fact]
-        public async Task create_collection_and_save()
+        [Theory()]
+        [InlineData(nameof(FileStorageEngine))]
+        [InlineData(nameof(ZipStorageEngine))]
+        public async Task create_collection_and_save(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/create_collection_and_save");
             var file = Path.Combine(basePath, "persons.json");
             if (File.Exists(file))
                 File.Delete(file);
 
+            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
+
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
                 BasePath = basePath,
-                StorageEngine = new FileStorageEngine(basePath),//todo: DI
+                StorageEngine = storageEngine,//todo: DI
                 Collections = new[]
                 {
                     new CollectionConfiguration
@@ -185,19 +230,26 @@ namespace MicroElements.FileStorage.Tests
             dataStore.Save();
         }
 
-        [Fact]
-        public async Task save_multifile_collection_with_semantic_keys()
+        [Theory()]
+        [InlineData(nameof(FileStorageEngine))]
+        [InlineData(nameof(ZipStorageEngine))]
+        public async Task save_multifile_collection_with_semantic_keys(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/save_multifile_collection");
-            var collectionDir = Path.Combine(basePath, "persons");
-            if (Directory.Exists(collectionDir))
-                Directory.Delete(collectionDir, true);
+            var collectionDir = "persons";
+            var collectionFullDir = Path.Combine(basePath, collectionDir);
+            if (Directory.Exists(collectionFullDir))
+                Directory.Delete(collectionFullDir, true);
 
+            var fileName1 = "Bill_Gates.json";
+            var fileName2 = "Steve_Ballmer.json";
+
+            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
                 BasePath = basePath,
-                StorageEngine = new FileStorageEngine(basePath),
+                StorageEngine = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Person>
@@ -215,6 +267,7 @@ namespace MicroElements.FileStorage.Tests
 
             var collection = dataStore.GetCollection<Person>();
             collection.Should().NotBeNull();
+            collection.Count.Should().Be(0);
 
             collection.Add(new Person { FirstName = "Bill", LastName = "Gates" });
             collection.Add(new Person { FirstName = "Steve", LastName = "Ballmer" });
@@ -222,29 +275,57 @@ namespace MicroElements.FileStorage.Tests
 
             dataStore.Save();
 
-            var file1 = Path.Combine(collectionDir, "Bill_Gates.json");
-            var file2 = Path.Combine(collectionDir, "Steve_Ballmer.json");
+            var fileAllTextBill = string.Empty;
 
-            File.Exists(file1).Should().BeTrue();
-            File.Exists(file2).Should().BeTrue();
+            switch (typeStorageEngine)
+            {
+                case nameof(FileStorageEngine):
+                    var file1 = Path.Combine(collectionFullDir, fileName1);
+                    var file2 = Path.Combine(collectionFullDir, fileName2);
 
-            var bill = JsonConvert.DeserializeObject<Person>(File.ReadAllText(file1));
+                    File.Exists(file1).Should().BeTrue();
+                    File.Exists(file2).Should().BeTrue();
+
+                    fileAllTextBill = File.ReadAllText(file1);
+                    break;
+                case nameof(ZipStorageEngine):
+                    var zipStorageEngine = storageEngine as ZipStorageEngine;
+                    zipStorageEngine.Should().NotBeNull();
+                    var zipArchive = zipStorageEngine.GetZipArchiveReadOnlyAndDispose();
+                    using (var billStream = zipArchive.GetEntry(Path.Combine(collectionDir, fileName1)).Open())
+                    {
+                        using (var billStreamReader = new StreamReader(billStream))
+                        {
+                            fileAllTextBill = billStreamReader.ReadToEnd();
+                        }
+                    }
+                    zipArchive.GetEntry(Path.Combine(collectionDir, fileName2));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            var bill = JsonConvert.DeserializeObject<Person>(fileAllTextBill);
             bill.Should().BeEquivalentTo(new Person { Id = "Bill_Gates", FirstName = "Bill", LastName = "Gates" });
         }
 
-        [Fact]
-        public async Task key_generation()
+        [Theory()]
+        [InlineData(nameof(FileStorageEngine))]
+        [InlineData(nameof(ZipStorageEngine))]
+        public async Task key_generation(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/key_generation");
             var file = Path.Combine(basePath, "persons.json");
             if (File.Exists(file))
                 File.Delete(file);
 
+            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
+
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
                 BasePath = basePath,
-                StorageEngine = new FileStorageEngine(basePath),
+                StorageEngine = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Person>

@@ -241,8 +241,8 @@ namespace MicroElements.FileStorage.Tests
             if (Directory.Exists(collectionFullDir))
                 Directory.Delete(collectionFullDir, true);
 
-            var fileName1 = "Bill_Gates.json";
-            var fileName2 = "Steve_Ballmer.json";
+            var fileNameBill = "Bill_Gates.json";
+            var fileNameSteve = "Steve_Ballmer.json";
 
             var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
             Directory.CreateDirectory(basePath);
@@ -280,26 +280,26 @@ namespace MicroElements.FileStorage.Tests
             switch (typeStorageEngine)
             {
                 case nameof(FileStorageEngine):
-                    var file1 = Path.Combine(collectionFullDir, fileName1);
-                    var file2 = Path.Combine(collectionFullDir, fileName2);
+                    var fileBill = Path.Combine(collectionFullDir, fileNameBill);
+                    var fileSteve = Path.Combine(collectionFullDir, fileNameSteve);
 
-                    File.Exists(file1).Should().BeTrue();
-                    File.Exists(file2).Should().BeTrue();
+                    File.Exists(fileBill).Should().BeTrue();
+                    File.Exists(fileSteve).Should().BeTrue();
 
-                    fileAllTextBill = File.ReadAllText(file1);
+                    fileAllTextBill = File.ReadAllText(fileBill);
                     break;
                 case nameof(ZipStorageEngine):
                     var zipStorageEngine = storageEngine as ZipStorageEngine;
                     zipStorageEngine.Should().NotBeNull();
                     var zipArchive = zipStorageEngine.GetZipArchiveReadOnlyAndDispose();
-                    using (var billStream = zipArchive.GetEntry(Path.Combine(collectionDir, fileName1)).Open())
+                    using (var billStream = zipArchive.GetEntry(Path.Combine(collectionDir, fileNameBill)).Open())
                     {
                         using (var billStreamReader = new StreamReader(billStream))
                         {
                             fileAllTextBill = billStreamReader.ReadToEnd();
                         }
                     }
-                    zipArchive.GetEntry(Path.Combine(collectionDir, fileName2));
+                    zipArchive.GetEntry(Path.Combine(collectionDir, fileNameSteve));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

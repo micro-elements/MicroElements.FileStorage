@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.IO;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using MicroElements.FileStorage.CodeContracts;
 
@@ -11,7 +11,7 @@ namespace MicroElements.FileStorage.Abstractions
     /// <summary>
     /// Abstraction of file content.
     /// </summary>
-    public class FileContent
+    public class FileContent : IEquatable<FileContent>
     {
         /// <summary>
         /// File location.
@@ -38,22 +38,35 @@ namespace MicroElements.FileStorage.Abstractions
             Location = location;
             Content = content;
         }
-    }
 
-    //todo: design. move
-    public class FileContentMetadata
-    {
-        public DateTime CreationTimeUtc { get; }
-        public DateTime LastWriteTimeUtc { get; }
-        public DateTime DateModified { get; }
-        public bool IsExists { get; }
-        public bool IsReadonly { get; }
-        public long Length { get; }
-    }
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as FileContent);
+        }
 
-    // todo: unify location related stuff in Location class
-    public class Location
-    {
-        private Uri _uri;//todo: see Spring.Net and cake build alternatives
+        public bool Equals(FileContent other)
+        {
+            return other != null &&
+                   Location == other.Location &&
+                   Content == other.Content;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 319754776;
+            hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(Location);
+            hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(Content);
+            return hashCode;
+        }
+
+        public static bool operator ==(FileContent content1, FileContent content2)
+        {
+            return EqualityComparer<FileContent>.Default.Equals(content1, content2);
+        }
+
+        public static bool operator !=(FileContent content1, FileContent content2)
+        {
+            return !(content1 == content2);
+        }
     }
 }

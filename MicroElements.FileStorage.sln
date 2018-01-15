@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.FileStorage.T
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4C95FBC7-7115-489D-B1B1-4A08D0BC61D7}"
 	ProjectSection(SolutionItems) = preProject
+		build.cake = build.cake
 		cake.config = cake.config
 		version.props = version.props
 	EndProjectSection

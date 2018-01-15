@@ -134,7 +134,7 @@ Task("PublishPackages")
 });
 
 GitVersion versionInfo = null;
-var specifyProjectJson = "./version.props";
+
 Task("Version")
     .Does(() => {
 /*
@@ -146,12 +146,23 @@ Task("Version")
   </PropertyGroup>
 </Project>
 */
-        versionInfo = GitVersion(new GitVersionSettings{ OutputType = GitVersionOutput.Json });
+        versionInfo = GitVersion(new GitVersionSettings{ 
+            OutputType = GitVersionOutput.Json,
+        });
         // Update version.props
-        var updatedProjectJson = System.IO.File.ReadAllText(specifyProjectJson)
-            .Replace("1.0.0-*", versionInfo.NuGetVersion);
+        var versionPrefix = versionInfo.MajorMinorPatch;
+        var versionSuffix = versionInfo.PreReleaseTag;
+        var releaseNotes = "Added IsExists and Delete methods.";
+var version_props = $@"
+<Project>
+  <PropertyGroup>
+    <VersionPrefix>{versionPrefix}</VersionPrefix>
+    <VersionSuffix>{versionSuffix}</VersionSuffix>
+    <PackageReleaseNotes>{releaseNotes}</PackageReleaseNotes>
+  </PropertyGroup>
+</Project>";
 
-        //System.IO.File.WriteAllText(specifyProjectJson, updatedProjectJson);
+        System.IO.File.WriteAllText("./version.props", version_props);
     });
 
 Task("Default")

@@ -1,3 +1,5 @@
+#tool "nuget:?package=GitVersion.CommandLine"
+
 ///////////////////////////////////////////////////////////////////////////////
 // ARGUMENTS
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,6 +34,11 @@ Setup(ctx =>
 {
    // Executed BEFORE the first task.
    Information("Running tasks...");
+
+   Information($"solutionFile={solutionFile}");
+   Information($"target={target}");
+   Information($"configuration={configuration}");
+   Information($"publishUrlBeta={publishUrlBeta}");
 });
 
 Teardown(ctx =>
@@ -131,12 +138,35 @@ Task("PublishPackages")
     });
 });
 
+Task("Version")
+    .Does(() => {
+
+        GitVersion versionInfo = GitVersion(new GitVersionSettings{ 
+            OutputType = GitVersionOutput.Json,
+        });
+        // Update version.props
+        var versionPrefix = versionInfo.MajorMinorPatch;
+        var versionSuffix = versionInfo.PreReleaseTag;
+        var releaseNotes = "Added IsExists and Delete methods.";
+var version_props = $@"
+<Project>
+  <PropertyGroup>
+    <VersionPrefix>{versionPrefix}</VersionPrefix>
+    <VersionSuffix>{versionSuffix}</VersionSuffix>
+    <PackageReleaseNotes>{releaseNotes}</PackageReleaseNotes>
+  </PropertyGroup>
+</Project>";
+
+        System.IO.File.WriteAllText("./version.props", version_props);
+    });
+
 Task("Default")
     .IsDependentOn("Build")
     .IsDependentOn("Test")
     .IsDependentOn("CopyPackages");
 
 Task("Travis")
+    .IsDependentOn("Version")
     .IsDependentOn("Build")
     .IsDependentOn("Test")
     .IsDependentOn("CopyPackages")

@@ -11,4 +11,4 @@ before_script:
   - chmod a+x ./build.sh
 solution: ./MicroElements.FileStorage.sln
 script:
-  - ./build.sh
+  - ./build.sh --target=Travis

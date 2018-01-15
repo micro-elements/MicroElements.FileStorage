@@ -15,6 +15,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// <summary>
         /// Loads data.
         /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Task Initialize();
 
         /// <summary>

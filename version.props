@@ -1,8 +1,8 @@
-<!-- This file may be overwritten by automation. -->
+
 <Project>
   <PropertyGroup>
     <VersionPrefix>1.0.5</VersionPrefix>
-    <VersionSuffix>beta.2</VersionSuffix>
+    <VersionSuffix></VersionSuffix>
     <PackageReleaseNotes>Added IsExists and Delete methods.</PackageReleaseNotes>
   </PropertyGroup>
 </Project>

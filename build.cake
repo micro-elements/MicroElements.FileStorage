@@ -140,15 +140,17 @@ Task("PublishPackages")
 
 Task("Version")
     .Does(() => {
-
         GitVersion versionInfo = GitVersion(new GitVersionSettings{ 
-            OutputType = GitVersionOutput.Json,
+            OutputType = GitVersionOutput.Json, 
         });
+        Information($"SemVer: {versionInfo.SemVer}");
+        Information($"BuildMetaData: {versionInfo.BuildMetaData}");
         // Update version.props
         var versionPrefix = versionInfo.MajorMinorPatch;
         var versionSuffix = versionInfo.PreReleaseTag;
         var releaseNotes = "Added IsExists and Delete methods.";
 var version_props = $@"
+<!-- This file may be overwritten by automation. -->
 <Project>
   <PropertyGroup>
     <VersionPrefix>{versionPrefix}</VersionPrefix>

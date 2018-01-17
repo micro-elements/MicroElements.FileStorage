@@ -27,7 +27,7 @@ namespace MicroElements.FileStorage.StorageEngine
         {
             Check.NotNull(basePath, nameof(basePath));
 
-            _basePath = basePath;
+            _basePath = basePath.PathNormalize();
             if (!Directory.Exists(_basePath))
                 Directory.CreateDirectory(_basePath);
         }
@@ -54,9 +54,10 @@ namespace MicroElements.FileStorage.StorageEngine
             var fullPath = GetFullPath(subPath);
             if (Directory.Exists(fullPath))
             {
-                foreach (var file in Directory.EnumerateFiles(fullPath))
+                foreach (var fullFileName in Directory.EnumerateFiles(fullPath))
                 {
-                    yield return ReadFile(file);
+                    var fullFileNameRelative = fullFileName.RelativeTo(_basePath);
+                    yield return ReadFile(fullFileNameRelative);
                 }
             }
         }

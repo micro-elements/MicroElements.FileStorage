@@ -97,12 +97,17 @@ namespace MicroElements.FileStorage.Tests
             return storageEngine;
         }
 
-        [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
-        public async Task load_multi_file_collection(string typeStorageEngine)
+        [Theory]
+        [InlineData(nameof(FileStorageEngine), false)]
+        [InlineData(nameof(FileStorageEngine), true)]
+        [InlineData(nameof(ZipStorageEngine), false)]
+        [InlineData(nameof(ZipStorageEngine), true)]
+        public async Task load_multi_file_collection(string typeStorageEngine, bool relative)
         {
-            var basePath = Path.GetFullPath("TestData/DataStore/MultiFileCollection");
+            var basePath = "TestData/DataStore/MultiFileCollection";
+            if (!relative)
+                basePath = Path.GetFullPath(basePath);
+
             var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
 
             var storeConfiguration = new DataStoreConfiguration

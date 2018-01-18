@@ -16,6 +16,7 @@ namespace MicroElements.FileStorage
     public class DocumentCollection<T> : IDocumentCollection<T> where T : class
     {
         private readonly List<T> _documents = new List<T>();
+        private readonly Dictionary<string, int> _indexIdDocIndex = new Dictionary<string, int>();
 
         private readonly IKeyGetter<T> _keyGetter;
         private readonly IKeySetter<T> _keySetter;
@@ -65,7 +66,18 @@ namespace MicroElements.FileStorage
                     SetKey(item, key);
                 }
 
-                _documents.Add(item);
+                if (_indexIdDocIndex.TryGetValue(key, out int index))
+                {
+                    // Update item.
+                    _documents[index] = item;
+                }
+                else
+                {
+                    // Add item.
+                    _documents.Add(item);
+                    _indexIdDocIndex[key] = _documents.Count - 1;
+                }
+
                 HasChanges = true;
             }
         }
@@ -77,7 +89,12 @@ namespace MicroElements.FileStorage
 
             lock (_documents)
             {
-                return _documents.FirstOrDefault(arg => GetKey(arg) == key);
+                if (_indexIdDocIndex.TryGetValue(key, out int index))
+                {
+                    return _documents[index];
+                }
+
+                return null;
             }
         }
 
@@ -88,7 +105,7 @@ namespace MicroElements.FileStorage
 
             lock (_documents)
             {
-                return _documents.Any(arg => GetKey(arg) == key);
+                return _indexIdDocIndex.ContainsKey(key);
             }
         }
 
@@ -110,6 +127,9 @@ namespace MicroElements.FileStorage
                 lock (_documents)
                 {
                     _documents.Remove(entity);
+                    _indexIdDocIndex.Remove(key);
+                    // todo: delete is not deletes from file storage
+                    // _storageEngine.Delete(key);
                 }
             }
             else
@@ -124,7 +144,9 @@ namespace MicroElements.FileStorage
         {
             lock (_documents)
             {
+                // todo: delete is not deletes from file storage
                 _documents.Clear();
+                _indexIdDocIndex.Clear();
             }
         }
 

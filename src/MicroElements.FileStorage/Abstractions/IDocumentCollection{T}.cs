@@ -22,6 +22,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// Adds new item to collection.
         /// </summary>
         /// <param name="item">New item.</param>
+        /// todo: rename to Store or AddOrUpdate
         void Add([NotNull] T item);
 
         /// <summary>

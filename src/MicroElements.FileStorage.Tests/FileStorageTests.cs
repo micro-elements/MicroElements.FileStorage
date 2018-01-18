@@ -462,5 +462,22 @@ namespace MicroElements.FileStorage.Tests
 
             ((Action)(() => collection.Delete(null))).Should().Throw<ArgumentNullException>();
         }
+
+        [Fact]
+        public async void double_add_with_same_id_should_update_item()
+        {
+            var dataStore = await TestHelper.CreateInMemoryDataStore();
+
+            var collection = dataStore.GetCollection<Currency>();
+            collection.Should().NotBeNull();
+
+            collection.Add(new Currency { Code = "USD", Name = "Dollar" });
+            collection.Count.Should().Be(1);
+            collection.Get("USD").Name.Should().Be("Dollar");
+
+            collection.Add(new Currency { Code = "USD", Name = "Dollar updated" });
+            collection.Count.Should().Be(1);
+            collection.Get("USD").Name.Should().Be("Dollar updated");
+        }
     }
 }

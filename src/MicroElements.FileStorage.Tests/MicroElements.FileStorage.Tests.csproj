@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.0.0-beta0004" />
+    <PackageReference Include="FluentValidation" Version="7.3.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="2.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170628-02" />
@@ -18,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MicroElements.FileStorage.ZipEngine\MicroElements.FileStorage.ZipEngine.csproj" />
     <ProjectReference Include="..\MicroElements.FileStorage\MicroElements.FileStorage.csproj" />
   </ItemGroup>
 

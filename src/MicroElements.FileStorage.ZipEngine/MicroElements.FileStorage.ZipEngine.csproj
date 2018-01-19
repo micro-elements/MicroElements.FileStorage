@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\build\common.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>MicroElements.FileStorage.ZipEngine</PackageId>
+    <Description>ZipEngine for MicroElements.FileStorage supports zip archives and nuget packages. NuGet packages can be remote.</Description>
+    <PackageTags>Zip NuGet</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MicroElements.FileStorage\MicroElements.FileStorage.csproj" />
+  </ItemGroup>
+
+</Project>

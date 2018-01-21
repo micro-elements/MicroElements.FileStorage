@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentValidation;
+using FluentValidation.Results;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.CodeContracts;
 
@@ -64,6 +66,15 @@ namespace MicroElements.FileStorage
                 {
                     key = GetNextKey(item);
                     SetKey(item, key);
+                }
+
+                // Validation.
+                var validator = GetValidator();
+                if (validator != null)
+                {
+                    var validationResult = validator.Validate(item);
+                    if (!validationResult.IsValid)
+                        throw new ValidationException(validationResult.Errors);
                 }
 
                 if (_indexIdDocIndex.TryGetValue(key, out int index))
@@ -150,6 +161,29 @@ namespace MicroElements.FileStorage
             }
         }
 
+        /// <summary>
+        /// Validates all loaded entities.
+        /// </summary>
+        /// <returns>Aggregated validation result.</returns>
+        public IDictionary<object, ValidationResult> CheckAll()
+        {
+            IDictionary<object, ValidationResult> validationResult = new Dictionary<object, ValidationResult>();
+            IValidator<T> validator = GetValidator();
+            if (validator == null)
+                return validationResult;
+
+            foreach (var document in _documents)
+            {
+                var result = validator.Validate(document);
+                if (!result.IsValid)
+                {
+                    validationResult.Add(document, result);
+                }
+            }
+
+            return validationResult;
+        }
+
         private string GetKey(T item) => _keyGetter.GetIdFunc()(item);
 
         private void SetKey(T item, string key) => _keySetter.SetIdFunc()(item, key);
@@ -158,6 +192,11 @@ namespace MicroElements.FileStorage
         {
             var nextKey = ConfigurationTyped.KeyGenerator.GetNextKey(this, item);
             return nextKey.Formatted;
+        }
+
+        private IValidator<T> GetValidator()
+        {
+            return ConfigurationTyped.ValidatorFactory?.GetValidator<T>();
         }
     }
 }

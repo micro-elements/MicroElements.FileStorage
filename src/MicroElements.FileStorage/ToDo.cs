@@ -21,6 +21,8 @@ namespace MicroElements.FileStorage
     // todo: fullInMemory | lazyLoad
     // todo: readonly
     // todo: validation
+    // todo: NewId generator
+    // todo: full configuration verify
 
     // todo: DocumentCollection: Add, Delete is lockable change operations. Need some like session or transaction log.
 }

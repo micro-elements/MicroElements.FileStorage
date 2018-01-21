@@ -2,8 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using FluentValidation;
+using MicroElements.FileStorage.Abstractions.Exceptions;
 using MicroElements.FileStorage.KeyGenerators;
 using MicroElements.FileStorage.Serializers;
+using MicroElements.FileStorage.Validation;
 
 namespace MicroElements.FileStorage.Abstractions
 {
@@ -38,6 +41,7 @@ namespace MicroElements.FileStorage.Abstractions
         }
 
         public string SourceFile { get; set; }
+
         public string Format { get; set; }
 
         /// <summary>
@@ -48,12 +52,20 @@ namespace MicroElements.FileStorage.Abstractions
 
         // not used yet
         public bool OneFilePerCollection { get; set; }
+
         public string Version { get; set; }
 
-        //todo: verify correctness.
-        public void Verify()
+        /// <summary>
+        /// Verifies correctness of configuration.
+        /// Throws <see cref="InvalidConfigurationException"/> if configuration is not valid.
+        /// </summary>
+        public virtual void Verify()
         {
+            if (SourceFile == null)
+                throw new InvalidConfigurationException("SourceFile is required.");
 
+            if (Serializer == null)
+                Serializer = new JsonSerializer();
         }
     }
 
@@ -66,7 +78,23 @@ namespace MicroElements.FileStorage.Abstractions
         }
 
         public IKeyGetter<T> KeyGetter { get; set; } = DefaultKeyAccessor<T>.Instance;
+
         public IKeySetter<T> KeySetter { get; set; } = DefaultKeyAccessor<T>.Instance;
+
         public IKeyGenerator<T> KeyGenerator { get; set; } = new GuidKeyGenerator<T>();
+
+        public IValidatorFactory ValidatorFactory { get; set; } = new NullValidationFactory();
+
+        /// <inheritdoc />
+        public override void Verify()
+        {
+            base.Verify();
+
+            // Setting default implementations.
+            KeyGetter = KeyGetter ?? DefaultKeyAccessor<T>.Instance;
+            KeySetter = KeySetter ?? DefaultKeyAccessor<T>.Instance;
+            KeyGenerator = KeyGenerator ?? new GuidKeyGenerator<T>();
+            ValidatorFactory = ValidatorFactory ?? new NullValidationFactory();
+        }
     }
 }

@@ -13,8 +13,6 @@ Can be deleted at any time or moved to right place.
 
 namespace MicroElements.FileStorage.Experimental
 {
-    internal interface IDataValidator { }
-
     internal interface IDataConvertor { }
 
 

@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Rules for StyleCop.Analyzers" Description="Code analysis rules for StyleCop.Analyzers.csproj." ToolsVersion="14.0">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Rules for StyleCop.Analyzers" Description="Code analysis rules for StyleCop.Analyzers.csproj." ToolsVersion="15.0">
   <Rules AnalyzerId="AsyncUsageAnalyzers" RuleNamespace="AsyncUsageAnalyzers">
     <Rule Id="AvoidAsyncSuffix" Action="Error" />
     <Rule Id="AvoidAsyncVoid" Action="Error" />
@@ -113,7 +113,7 @@
     <Rule Id="SA1412" Action="None" />
     <Rule Id="SA1413" Action="None" />
     <Rule Id="SA1502" Action="None" />
-    <Rule Id="SA1503" Action="Warning" />
+    <Rule Id="SA1503" Action="None" />
     <Rule Id="SA1512" Action="None" />
     <Rule Id="SA1515" Action="None" />
     <Rule Id="SA1518" Action="None" />

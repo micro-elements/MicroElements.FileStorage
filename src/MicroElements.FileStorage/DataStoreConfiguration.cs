@@ -1,7 +1,6 @@
 ﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.StorageEngine;
 using Microsoft.Extensions.Logging;
@@ -40,14 +39,11 @@ namespace MicroElements.FileStorage
             {
                 StorageEngine = new FileStorageEngine(BasePath);
             }
-        }
-    }
 
-    public class InvalidConfigurationException : Exception
-    {
-        /// <inheritdoc />
-        public InvalidConfigurationException(string message) : base(message)
-        {
+            foreach (var configuration in Collections)
+            {
+                configuration.Verify();
+            }
         }
     }
 }

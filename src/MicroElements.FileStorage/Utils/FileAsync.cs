@@ -26,8 +26,7 @@ namespace MicroElements.FileStorage.Utils
         {
             Check.NotNull(path, nameof(path));
 
-            using (var stream = File.OpenWrite(path))
-            using (var streamWriter = new StreamWriter(stream))
+            using (var streamWriter = new StreamWriter(path, append: false))
             {
                 await streamWriter.WriteAsync(content);
             }

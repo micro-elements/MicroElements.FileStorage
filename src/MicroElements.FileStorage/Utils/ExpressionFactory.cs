@@ -24,7 +24,9 @@ namespace MicroElements.FileStorage.Utils
             //instance => instance.Id;
             ParameterExpression instance = Expression.Parameter(typeof(TValue), "instance");
             MemberExpression memberExpression = Expression.Property(instance, keyPropertyName);
-            return Expression.Lambda<Func<TValue, string>>(memberExpression, instance);
+            if (memberExpression.Type == typeof(string))
+                return Expression.Lambda<Func<TValue, string>>(memberExpression, instance);
+            return GetIdWithConvertExpression<TValue>(keyPropertyName);
         }
 
         /// <summary>
@@ -35,6 +37,21 @@ namespace MicroElements.FileStorage.Utils
         /// <typeparam name="TValue">Entity type.</typeparam>
         /// <returns>Get Id property accessor expression.</returns>
         public static Expression<Func<TValue, string>> GetIdWithConvertExpression<TValue>(string keyPropertyName = "Id")
+        {
+            //instance => (string)Convert.ChangeType(instance.Id, typeof(string))
+            ParameterExpression instance = Expression.Parameter(typeof(TValue), "instance");
+            MemberExpression memberExpression = Expression.Property(instance, keyPropertyName);
+
+            MethodInfo methodInfo = typeof(Convert).GetMethod(nameof(Convert.ChangeType), new[] { typeof(object), typeof(Type) });
+            var changeType = Expression.Call(methodInfo, Expression.TypeAs(memberExpression, typeof(object)), Expression.Constant(typeof(string)));
+            var propertyIsDefaultValue = Expression.Equal(memberExpression, Expression.Default(memberExpression.Type));
+            var convertToString = Expression.Convert(changeType, typeof(string));
+
+            var ifThenElse = Expression.Condition(propertyIsDefaultValue, Expression.Constant(null, typeof(string)), convertToString);
+            return Expression.Lambda<Func<TValue, string>>(ifThenElse, instance);
+        }
+
+        public static Expression<Func<TValue, string>> GetIdWithConvertExpression2<TValue>(string keyPropertyName = "Id")
         {
             //instance => (string)Convert.ChangeType(instance.Id, typeof(string))
             ParameterExpression instance = Expression.Parameter(typeof(TValue), "instance");
@@ -59,8 +76,17 @@ namespace MicroElements.FileStorage.Utils
             ParameterExpression instance = Expression.Parameter(typeof(TValue), "instance");
             MemberExpression idProperty = Expression.Property(instance, keyPropertyName);
             ParameterExpression key = Expression.Parameter(typeof(string), "key");
-            BinaryExpression binaryExpression = Expression.Assign(idProperty, key);
-            return Expression.Lambda<Action<TValue, string>>(binaryExpression, instance, key);
+            if (idProperty.Type == typeof(string))
+            {
+                BinaryExpression binaryExpression = Expression.Assign(idProperty, key);
+                return Expression.Lambda<Action<TValue, string>>(binaryExpression, instance, key);
+            }
+            //(instance, key) => instance.Id = (string)Convert.ChangeType(key, typeof(IdType));
+
+            MethodInfo methodInfo = typeof(Convert).GetMethod(nameof(Convert.ChangeType), new[] { typeof(object), typeof(Type) });
+            var changeKeyType = Expression.Call(methodInfo, Expression.TypeAs(key, typeof(object)), Expression.Constant(idProperty.Type));
+            BinaryExpression assignConverted = Expression.Assign(idProperty, Expression.Convert(changeKeyType, idProperty.Type));
+            return Expression.Lambda<Action<TValue, string>>(assignConverted, instance, key);
         }
 
         /// <summary>

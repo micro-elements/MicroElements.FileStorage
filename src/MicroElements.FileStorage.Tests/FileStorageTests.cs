@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.Experimental;
+using MicroElements.FileStorage.KeyAccessors;
 using MicroElements.FileStorage.KeyGenerators;
 using MicroElements.FileStorage.Serializers;
 using MicroElements.FileStorage.StorageEngine;
@@ -175,32 +176,7 @@ namespace MicroElements.FileStorage.Tests
         public async Task create_collection_and_save(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/create_collection_and_save");
-            var file = Path.Combine(basePath, "persons.json");
-            if (File.Exists(file))
-                File.Delete(file);
-
-            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
-
-            Directory.CreateDirectory(basePath);
-            var storeConfiguration = new DataStoreConfiguration
-            {
-                BasePath = basePath,
-                StorageEngine = storageEngine,//todo: DI
-                Collections = new[]
-                {
-                    new CollectionConfiguration
-                    {
-                        Name = "Persons",
-                        DocumentType = typeof(Person),
-                        SourceFile = "persons.json",
-                        Format = "json",
-                        Version = "1.0",
-                        Serializer = new JsonSerializer(),
-                        OneFilePerCollection = true
-                    },
-                }
-            };
-            var dataStore = new DataStore(storeConfiguration);
+            var dataStore = GetPersonDataStore(typeStorageEngine, basePath);
 
             await dataStore.Initialize();
 
@@ -209,17 +185,87 @@ namespace MicroElements.FileStorage.Tests
             collection.Drop();
             //collection.Count.Should().Be(0);
 
-            collection.Add(new Person
+            var person1 = new Person
             {
                 FirstName = "Bill",
                 LastName = "Gates"
-            });
+            };
+            collection.Add(person1);
             collection.Count.Should().Be(1);
 
-            var person = collection.Find(p => true).First();
-            person.Id.Should().NotBeNullOrEmpty("Id must be generated");
+            var person2 = collection.Find(p => true).First();
+            person2.Id.Should().NotBeNullOrEmpty("Id must be generated");
 
             dataStore.Save();
+
+        }
+
+        [Theory()]
+        [InlineData(nameof(FileStorageEngine))]
+        //[InlineData(nameof(ZipStorageEngine))]//todo: doesnot work
+        public void save_update_save(string typeStorageEngine)
+        {
+            string basePath = Path.GetFullPath("TestData/DataStore/save_update_save");
+            var dataStore = GetPersonDataStore(typeStorageEngine, basePath);
+
+            var collection = dataStore.GetCollection<Person>();
+
+            var person1 = new Person
+            {
+                FirstName = "Bill_123456789",
+                LastName = "Gates"
+            };
+            collection.Add(person1);
+            collection.Count.Should().Be(1);
+
+            // First save
+            dataStore.Save();
+
+            var personId = person1.Id;
+            var person2 = collection.Get(personId);
+            person1.FirstName.Should().Be("Bill_123456789");
+            person2.FirstName = "Bill_123";
+            collection.HasChanges = true;
+            dataStore.Save();
+
+            dataStore = GetPersonDataStore(typeStorageEngine, basePath, delete: false);
+            collection = dataStore.GetCollection<Person>();
+            var person3 = collection.Get(personId);
+            person3.FirstName.Should().Be("Bill_123");
+        }
+
+        private static DataStore GetPersonDataStore(string typeStorageEngine, string basePath, bool delete = true)
+        {
+            var file = Path.Combine(basePath, "persons.json");
+
+            if (delete && File.Exists(file))
+                File.Delete(file);
+
+            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
+
+            Directory.CreateDirectory(basePath);
+            var storeConfiguration = new DataStoreConfiguration
+            {
+                BasePath = basePath,
+                StorageEngine = storageEngine,
+                Collections = new[]
+                {
+                    new CollectionConfigurationTyped<Person>()
+                    {
+                        Name = "Persons",
+                        SourceFile = "persons.json",
+                        Format = "json",
+                        Version = "1.0",
+                        Serializer = new JsonSerializer(),
+                        OneFilePerCollection = true,
+                    },
+                }
+            };
+            var dataStore = new DataStore(storeConfiguration);
+
+            dataStore.Initialize().GetAwaiter().GetResult();
+
+            return dataStore;
         }
 
         [Theory()]
@@ -390,7 +436,6 @@ namespace MicroElements.FileStorage.Tests
                         DocumentType = typeof(Currency),
                         SourceFile = "currencies.json",
                         KeyGetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Code)),
-
                     },
                 }
             };
@@ -478,6 +523,77 @@ namespace MicroElements.FileStorage.Tests
             collection.Add(new Currency { Code = "USD", Name = "Dollar updated" });
             collection.Count.Should().Be(1);
             collection.Get("USD").Name.Should().Be("Dollar updated");
+        }
+
+        [Theory()]
+        [InlineData(nameof(FileStorageEngine))]
+        public async Task add_get_with_identity_key(string typeStorageEngine)
+        {
+            var basePath = Path.GetFullPath("TestData/DataStore/add_get_with_identity_key");
+            var file = Path.Combine(basePath, "entities.json");
+            if (File.Exists(file))
+                File.Delete(file);
+
+            Directory.CreateDirectory(basePath);
+            var storeConfiguration = new DataStoreConfiguration
+            {
+                BasePath = basePath,
+                Collections = new[]
+                {
+                    new CollectionConfigurationTyped<Person>
+                    {
+                        Name = "entities",
+                        SourceFile = "entities.json",
+                        KeyGetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                        KeySetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                        KeyGenerator = new IdentityKeyGenerator<Person>(1, true)
+                    },
+                }
+            };
+            var dataStore = new DataStore(storeConfiguration);
+            await dataStore.Initialize();
+
+            var entityWithIntId = new Person() { LastName = "SomeName" };
+            var collection = dataStore.GetCollection<Person>();
+            collection.Add(entityWithIntId);
+            entityWithIntId.Id.Should().Be("entities/1");
+
+            var getResult = collection.Get("entities/1");
+            getResult.Should().NotBeNull();
+
+            var item = new Person { LastName = "Name2" };
+            collection.Add(item);
+            item.Id.Should().Be("entities/2");
+
+            var storeConfiguration2 = new DataStoreConfiguration
+            {
+                BasePath = basePath,
+                Collections = new[]
+                {
+                    new CollectionConfigurationTyped<Person>
+                    {
+                        Name = "entities",
+                        SourceFile = "entities.json",
+                        KeyGetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                        KeySetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                        KeyGenerator = new IdentityKeyGenerator<Person>(1, false)
+                    },
+                }
+            };
+            var dataStore2 = new DataStore(storeConfiguration2);
+            await dataStore2.Initialize();
+
+            var entityWithIntId2 = new Person() { FirstName = "SomeName" };
+            var collection2 = dataStore2.GetCollection<Person>();
+            collection2.Add(entityWithIntId2);
+            entityWithIntId2.Id.Should().Be("1");
+
+            var getResult2 = collection2.Get("1");
+            getResult2.Should().NotBeNull();
+
+            var item2 = new Person { LastName = "Name2" };
+            collection2.Add(item2);
+            item2.Id.Should().Be("2");
         }
     }
 }

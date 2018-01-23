@@ -44,7 +44,7 @@ namespace MicroElements.FileStorage.Abstractions
         }
 
         /// <summary>
-        /// Full key.
+        /// Full key in format {collectionName}/{id}.
         /// </summary>
         public string Formatted
         {

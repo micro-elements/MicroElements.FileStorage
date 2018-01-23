@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using FluentAssertions;
+using MicroElements.FileStorage.KeyAccessors;
 using MicroElements.FileStorage.Tests.Models;
 using Xunit;
 
@@ -69,18 +70,24 @@ namespace MicroElements.FileStorage.Tests
         {
             var person = new EntityWithIntId
             {
-                Id = null,
                 Name = "Bill",
             };
 
-            //todo: implement https://github.com/micro-elements/MicroElements.FileStorage/issues/9
+            var keyAccessor = new KeyAccessor<EntityWithIntId>(p => p.Id.ToString(), (ent, id) => ent.Id = int.Parse(id));
+            var personId = keyAccessor.GetIdFunc()(person);
+            personId.Should().Be("0");
+            person.Id.Should().Be(0);
 
-            //var idExpression = ExpressionFactory.SetIdExpression<EntityWithIntId>(nameof(EntityWithIntId.Id));
+            keyAccessor.SetIdFunc()(person, "2");
+            person.Id.Should().Be(2);
 
-            //Expression<Action<EntityWithIntId, string>> keyExpression = (p, id) => Assignment<EntityWithIntId, string>(p1 => p1.Id, id);
-            //var idFunc = new KeyAccessor<EntityWithIntId>(p => p.Id, keyExpression).SetIdFunc();
-            //idFunc(person, "persons/1");
-            //person.Id.Should().Be("persons/1");
+            var defaultKeyAccessor = new DefaultKeyAccessor<EntityWithIntId>();
+            person = new EntityWithIntId { Name = "Bill", };
+            person.Id.Should().Be(0);
+            defaultKeyAccessor.GetIdFunc()(person).Should().Be(null, "Id==0, but string key must be null");
+
+            defaultKeyAccessor.SetIdFunc()(person, "1");
+            person.Id.Should().Be(1);
         }
     }
 }

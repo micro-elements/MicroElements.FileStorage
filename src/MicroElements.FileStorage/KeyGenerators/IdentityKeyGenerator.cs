@@ -7,15 +7,24 @@ using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.KeyGenerators
 {
-    //todo: persistent sequence
+    /// <summary>
+    /// Identity key generator is like sequence in relational databases.
+    /// </summary>
+    /// <typeparam name="T">Entity type.</typeparam>
     public class IdentityKeyGenerator<T> : IKeyGenerator<T> where T : class
     {
         private readonly int _startValue;
         private readonly bool _useCollectionPrefix;
 
-        /// <inheritdoc />
-        public IdentityKeyGenerator(int startValue = 0, bool useCollectionPrefix = true)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IdentityKeyGenerator{T}"/> class.
+        /// </summary>
+        /// <param name="startValue">Start value for id.</param>
+        /// <param name="useCollectionPrefix">If true than key formatted as {collectionName}/{id}. if false than key will be {id}.</param>
+        public IdentityKeyGenerator(int startValue = 1, bool useCollectionPrefix = true)
         {
+            if (startValue < 0)
+                throw new ArgumentException("startValue should be positive int value.", nameof(startValue));
             _startValue = startValue;
             _useCollectionPrefix = useCollectionPrefix;
         }
@@ -37,18 +46,18 @@ namespace MicroElements.FileStorage.KeyGenerators
                 return int.Parse(key);
             }
 
-            int max = _startValue;
+            int nextId = _startValue;
             if (collection.Count > 0)
             {
-                max = collection
+                int max = collection
                     .Find(arg => true)
                     .Select(collection.GetKey)
                     .Select(ParseKey)
                     .Max();
+                nextId = Math.Max(_startValue, max + 1);
             }
-            int nextId = max + 1;
 
-            return new Key(KeyType.Identity, nextId.ToString(), collectionName);
+            return new Key(KeyType.Identity, nextId.ToString(), _useCollectionPrefix ? collectionName : null);
         }
     }
 }

@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.CodeContracts;
 
-namespace MicroElements.FileStorage
+namespace MicroElements.FileStorage.KeyAccessors
 {
     /// <summary>
     /// Key accessor implemented be expressions.
@@ -16,7 +16,6 @@ namespace MicroElements.FileStorage
     public class KeyAccessor<TValue> : IKeyGetter<TValue>, IKeySetter<TValue>
     {
         private readonly Expression<Func<TValue, string>> _getKeyExpression;
-        private readonly Expression<Action<TValue, string>> _setKeyExpression;
         private readonly Func<TValue, string> _idFunc;
         private readonly Action<TValue, string> _setIdFunc;
 
@@ -24,17 +23,16 @@ namespace MicroElements.FileStorage
         /// Initializes a new instance of the <see cref="KeyAccessor{TValue}"/> class.
         /// </summary>
         /// <param name="getKeyExpression">Expression for get key.</param>
-        /// <param name="setKeyExpression">Expression for set key.</param>
-        public KeyAccessor([NotNull] Expression<Func<TValue, string>> getKeyExpression, [NotNull] Expression<Action<TValue, string>> setKeyExpression)
+        /// <param name="setKeyFunc">Action for set key.</param>
+        public KeyAccessor([NotNull] Expression<Func<TValue, string>> getKeyExpression, [NotNull] Action<TValue, string> setKeyFunc)
         {
             Check.NotNull(getKeyExpression, nameof(getKeyExpression));
-            Check.NotNull(setKeyExpression, nameof(setKeyExpression));
+            Check.NotNull(setKeyFunc, nameof(setKeyFunc));
 
             _getKeyExpression = getKeyExpression;
-            _setKeyExpression = setKeyExpression;
 
             _idFunc = _getKeyExpression.Compile();
-            _setIdFunc = _setKeyExpression.Compile();
+            _setIdFunc = setKeyFunc;
         }
 
         /// <inheritdoc />
@@ -44,7 +42,7 @@ namespace MicroElements.FileStorage
         public Func<TValue, string> GetIdFunc() => _idFunc;
 
         /// <inheritdoc />
-        public Expression<Action<TValue, string>> SetIdExpression() => _setKeyExpression;
+        public Expression<Action<TValue, string>> SetIdExpression() => null;
 
         /// <inheritdoc />
         public Action<TValue, string> SetIdFunc() => _setIdFunc;

@@ -4,6 +4,7 @@
 using System;
 using FluentValidation;
 using MicroElements.FileStorage.Abstractions.Exceptions;
+using MicroElements.FileStorage.KeyAccessors;
 using MicroElements.FileStorage.KeyGenerators;
 using MicroElements.FileStorage.Serializers;
 using MicroElements.FileStorage.Validation;

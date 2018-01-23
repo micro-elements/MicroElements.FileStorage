@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.KeyAccessors;
 using MicroElements.FileStorage.StorageEngine;
 using MicroElements.FileStorage.Tests.Models;
 

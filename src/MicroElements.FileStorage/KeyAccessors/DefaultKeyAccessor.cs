@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.Utils;
 
-namespace MicroElements.FileStorage
+namespace MicroElements.FileStorage.KeyAccessors
 {
     /// <summary>
     /// Default key getter strategy. Uses property 'Id' for access to entity key.

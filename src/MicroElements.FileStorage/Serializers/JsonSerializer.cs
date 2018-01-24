@@ -48,7 +48,6 @@ namespace MicroElements.FileStorage.Serializers
         /// <inheritdoc />
         public FileContent Serialize(IReadOnlyCollection<object> items, Type type)
         {
-            Check.NotEmpty(items, nameof(items));
             Check.NotNull(type, nameof(type));
 
             string serialized = "(empty)";

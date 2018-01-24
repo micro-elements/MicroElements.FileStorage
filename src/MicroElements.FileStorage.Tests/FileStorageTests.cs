@@ -20,6 +20,31 @@ namespace MicroElements.FileStorage.Tests
 {
     public class FileStorageTests
     {
+        [Theory]
+        [InlineData(nameof(FileStorageEngine))]
+        public async Task delete_should_delete_file(string typeStorageEngine)
+        {
+            var basePath = Path.GetFullPath("TestData/DataStore/create_collection_and_delete");
+            var dataStore = GetPersonDataStore(typeStorageEngine, basePath);
+
+            await dataStore.Initialize();
+
+            var collection = dataStore.GetCollection<Person>();
+            collection.Should().NotBeNull();
+         
+            var person1 = new Person
+            {
+                FirstName = "Bill",
+                LastName = "Gates"
+            };
+            collection.Add(person1);
+            var person = collection.Get(person1.Id);
+            person.Should().NotBeNull();
+            dataStore.Save();
+            collection.Delete(person.Id);
+            dataStore.Save();
+        }
+
         [Theory()]
         [InlineData(nameof(FileStorageEngine))]
         [InlineData(nameof(ZipStorageEngine))]

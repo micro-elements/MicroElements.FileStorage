@@ -15,6 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NuGet.Common" Version="4.5.0" />
+    <PackageReference Include="NuGet.Protocol.Core.v3" Version="4.2.0" />
     <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
   </ItemGroup>
 

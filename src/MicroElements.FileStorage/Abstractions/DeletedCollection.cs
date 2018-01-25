@@ -9,18 +9,16 @@ namespace MicroElements.FileStorage.Abstractions
 {
     public abstract class DeletedCollection
     {
-        private readonly ConcurrentHashSet<string> _keysForDelete = new ConcurrentHashSet<string>();
-
-        protected ConcurrentHashSet<string> KeysForDelete => _keysForDelete;
+        protected ConcurrentHashSet<string> KeysForDelete { get; } = new ConcurrentHashSet<string>();
 
         protected internal IEnumerable<string> GetDeletedKey()
         {
-            return _keysForDelete.AsEnumerable();
+            return KeysForDelete.AsEnumerable();
         }
 
         protected internal void DeleteKey(string key)
         {
-            _keysForDelete.TryRemove(key);
+            KeysForDelete.TryRemove(key);
         }
     }
 }

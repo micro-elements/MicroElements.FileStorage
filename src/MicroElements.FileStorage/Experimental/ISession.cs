@@ -2,13 +2,75 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.Experimental
 {
-    internal interface ISession
+    public interface ISession : IDisposable
     {
-        void Save();
+        void Store<T>(T entity) where T : class;
+
+        void Delete<T>(string key) where T : class;
+
+        void Patch<T>(string key, IDictionary<string, object> properties) where T : class;
+    }
+
+    public class SessionCommand
+    {
+        public DateTime TimestampUtc { get; set; }
+        public Command Command { get; set; }
+        public string Serializer { get; set; }
+        public string Format { get; set; }
+        public string Version { get; set; }
+        public string Content { get; set; }
+
+
+    }
+
+    public class Session : ISession
+    {
+        private IDataStore _dataStore;
+        private IStorageEngine _storageEngine;
+
+        private List<SessionCommand> _commands = new List<SessionCommand>();
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            _dataStore.Save();
+        }
+
+        /// <inheritdoc />
+        public void Store<T>(T entity) where T : class
+        {
+            var sessionCommand = new SessionCommand();
+            sessionCommand.TimestampUtc = DateTime.UtcNow;
+            var configuration = _dataStore.GetCollection<T>().ConfigurationTyped;
+            var serializerInfo = configuration.Serializer.GetInfo();
+
+            // todo: serializer is not optimal for one object
+            sessionCommand.Content = configuration.Serializer.Serialize(new[] { entity }, typeof(T)).Content;
+
+            _commands.Add(sessionCommand);
+        }
+
+        /// <inheritdoc />
+        public void Delete<T>(string key) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void Patch<T>(string key, IDictionary<string, object> properties) where T : class
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class SessionLog
+    {
+
     }
 
     /// <summary>
@@ -28,18 +90,18 @@ namespace MicroElements.FileStorage.Experimental
         public DataCommand[] Rows { get; set; }
     }
 
-    internal class DataCommand
+    public class DataCommand
     {
+        public DateTime TimestampUtc { get; set; }
         public Command Command { get; set; }
         public FileContent Content { get; set; }
     }
 
-    internal enum Command
+    public enum Command
     {
-        Read,
-        Create,
-        Update,
-        Delete
+        Store,
+        Patch,
+        Delete,
     }
 
     // https://github.com/micro-elements/MicroElements.FileStorage/issues/6

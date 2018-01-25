@@ -57,4 +57,39 @@ namespace MicroElements.FileStorage.Abstractions
             }
         }
     }
+
+    /// <summary>
+    /// Entity serializer.
+    /// </summary>
+    [PublicAPI]
+    public interface IEntitySerializer
+    {
+        /// <summary>
+        /// Serializes entity or entity list to <see cref="FileContent"/>.
+        /// </summary>
+        /// <param name="entity">Entity.</param>
+        /// <param name="type">Entity type.</param>
+        /// <returns>FileContent</returns>
+        [NotNull] SerializedEntity Serialize([NotNull] object entity, [NotNull] Type type);
+
+        /// <summary>
+        /// Deserializes entity from text content.
+        /// </summary>
+        /// <param name="content">Content.</param>
+        /// <param name="type">Entity type.</param>
+        /// <returns>One entity or entity list.</returns>
+        [NotNull] object Deserialize([NotNull] SerializedEntity content, [NotNull] Type type);
+    }
+
+    public class SerializedEntity
+    {
+        public string Content { get; set; }
+    }
+
+    public class SerializerMetadata
+    {
+        public string Serializer { get; set; }
+        public string Format { get; set; }// format is alternative for type
+        public string Version { get; set; }// can be several versions or one format
+    }
 }

@@ -23,6 +23,9 @@ namespace MicroElements.FileStorage
     // todo: validation
     // todo: NewId generator
     // todo: full configuration verify
+    // todo: security: sign, encrypt
+    // todo: audit?
+    // todo: persistent sequence for IdentityKeyGenerator
 
     // todo: DocumentCollection: Add, Delete is lockable change operations. Need some like session or transaction log.
 }

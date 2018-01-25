@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using MicroElements.FileStorage.Abstractions;
 
-namespace MicroElements.FileStorage.StorageEngine
+namespace MicroElements.FileStorage.ZipEngine
 {
     public class ZipStorageEngine : IStorageEngine, IDisposable
     {

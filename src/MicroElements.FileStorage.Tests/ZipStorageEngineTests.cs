@@ -7,6 +7,7 @@ using System.Linq;
 using System;
 using MicroElements.FileStorage.Abstractions;
 using System.Threading.Tasks;
+using MicroElements.FileStorage.ZipEngine;
 
 namespace MicroElements.FileStorage.Tests
 {

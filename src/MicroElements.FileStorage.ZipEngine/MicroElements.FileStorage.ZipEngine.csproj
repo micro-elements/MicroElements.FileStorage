@@ -11,6 +11,7 @@
     <PackageId>MicroElements.FileStorage.ZipEngine</PackageId>
     <Description>ZipEngine for MicroElements.FileStorage supports zip archives and nuget packages. NuGet packages can be remote.</Description>
     <PackageTags>Zip NuGet</PackageTags>
+    <RootNamespace>MicroElements.FileStorage</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

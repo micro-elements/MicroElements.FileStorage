@@ -1,4 +1,4 @@
-// Copyright (c) MicroElements. All rights reserved.
+п»ї// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -15,7 +15,7 @@ namespace MicroElements.FileStorage
     /// Typed document collection.
     /// </summary>
     /// <typeparam name="T">Entity type.</typeparam>
-    public class DocumentCollection<T> : IDocumentCollection<T> where T : class
+    public class DocumentCollection<T> : DeletedCollection, IDocumentCollection<T> where T : class
     {
         private readonly List<T> _documents = new List<T>();
         private readonly Dictionary<string, int> _indexIdDocIndex = new Dictionary<string, int>();
@@ -27,7 +27,7 @@ namespace MicroElements.FileStorage
         {
             Configuration = configuration;
 
-            //todo: передавать снаружи
+            //todo: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             ConfigurationTyped = (configuration as CollectionConfigurationTyped<T>) ?? new CollectionConfigurationTyped<T>();
             _keyGetter = ConfigurationTyped.KeyGetter;
             _keySetter = ConfigurationTyped.KeySetter;
@@ -139,9 +139,9 @@ namespace MicroElements.FileStorage
                 {
                     _documents.Remove(entity);
                     _indexIdDocIndex.Remove(key);
-                    // todo: delete is not deletes from file storage
-                    // _storageEngine.Delete(key);
                 }
+                
+                KeysForDelete.Add(key);
             }
             else
             {
@@ -149,13 +149,14 @@ namespace MicroElements.FileStorage
                 // throw new EntityNotFoundException();
             }
         }
-
         /// <inheritdoc />
         public void Drop()
         {
             lock (_documents)
             {
-                // todo: delete is not deletes from file storage
+                foreach (var key in _indexIdDocIndex.Keys)
+                    KeysForDelete.Add(key);
+
                 _documents.Clear();
                 _indexIdDocIndex.Clear();
             }

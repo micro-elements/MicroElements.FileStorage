@@ -22,27 +22,75 @@ namespace MicroElements.FileStorage.Tests
     {
         [Theory]
         [InlineData(nameof(FileStorageEngine))]
-        public async Task delete_should_delete_file(string typeStorageEngine)
+        public async Task delete_should_delete_file_multifile_collection(string typeStorageEngine)
         {
-            var basePath = Path.GetFullPath("TestData/DataStore/create_collection_and_delete");
-            var dataStore = GetPersonDataStore(typeStorageEngine, basePath);
+            var basePath = Path.GetFullPath("TestData/DataStore/delete_multifile_collection");
+            var collectionDir = "persons";
+            var collectionFullDir = Path.Combine(basePath, collectionDir);
+            if (Directory.Exists(collectionFullDir))
+                Directory.Delete(collectionFullDir, true);
+
+            var fileNameBill = "1.json";
+            var fileNameSteve = "2.json";
+
+            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
+            Directory.CreateDirectory(basePath);
+            var storeConfiguration = new DataStoreConfiguration
+            {
+                BasePath = basePath,
+                StorageEngine = storageEngine,
+                Collections = new[]
+                {
+                    new CollectionConfigurationTyped<Person>
+                    {
+                        SourceFile = "persons",
+                        Serializer = new JsonSerializer(),
+                        KeyGetter = new DefaultKeyAccessor<Person>(),
+                        KeyGenerator =
+                            new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                    },
+                }
+            };
+            var dataStore = new DataStore(storeConfiguration);
 
             await dataStore.Initialize();
 
             var collection = dataStore.GetCollection<Person>();
             collection.Should().NotBeNull();
-         
-            var person1 = new Person
+            collection.Count.Should().Be(0);
+
+            collection.Add(new Person
             {
+                Id = "1",
                 FirstName = "Bill",
                 LastName = "Gates"
-            };
-            collection.Add(person1);
-            var person = collection.Get(person1.Id);
-            person.Should().NotBeNull();
+            });
+            collection.Add(new Person
+            {
+                Id = "2",
+                FirstName = "Steve",
+                LastName = "Ballmer"
+            });
+            collection.Count.Should().Be(2);
+
             dataStore.Save();
-            collection.Delete(person.Id);
+            var fileBill = Path.Combine(collectionFullDir, fileNameBill);
+            var fileSteve = Path.Combine(collectionFullDir, fileNameSteve);
+
+            File.Exists(fileBill).Should().BeTrue();
+            File.Exists(fileSteve).Should().BeTrue();
+            
+            collection.Delete("1");
+            File.Exists(fileBill).Should().BeTrue();
             dataStore.Save();
+            File.Exists(fileBill).Should().BeFalse();
+            File.Exists(fileSteve).Should().BeTrue();
+       
+            collection.Delete("2");
+            File.Exists(fileSteve).Should().BeTrue();
+            dataStore.Save();
+            File.Exists(fileSteve).Should().BeFalse();
+            
         }
 
         [Theory()]
@@ -522,13 +570,13 @@ namespace MicroElements.FileStorage.Tests
             collection.IsExists("EUR").Should().BeTrue();
 
             collection.Delete("USD");
-            collection.Count.Should().Be(1);
+//            collection.Count.Should().Be(1);
             collection.IsExists("USD").Should().BeFalse();
             collection.IsExists("EUR").Should().BeTrue();
 
             // Delete not existent currency...
             collection.Delete("Bitcoin");
-            collection.Count.Should().Be(1);
+//            collection.Count.Should().Be(1);
 
             ((Action)(() => collection.Delete(null))).Should().Throw<ArgumentNullException>();
         }

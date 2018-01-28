@@ -137,11 +137,13 @@ namespace MicroElements.FileStorage
             {
                 lock (_documents)
                 {
-                    _documents.Remove(entity);
+                    //! Тут нельзя удалять, иначе перестраивать индекс!
+                   // _documents.Remove(entity);
                     _indexIdDocIndex.Remove(key);
                 }
                 
                 KeysForDelete.Add(key);
+                HasChanges = true;
             }
             else
             {

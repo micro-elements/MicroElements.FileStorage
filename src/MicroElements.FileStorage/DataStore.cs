@@ -148,7 +148,7 @@ namespace MicroElements.FileStorage
 
         private void DeleteFile(DelayedOperations collection, string collectionDir, string  extention)
         {
-            var itemKeysForDelete = collection?.GetDeletedKey();
+            var itemKeysForDelete = collection?.GetDeletedKeys();
             if (itemKeysForDelete == null) 
                 return;
             

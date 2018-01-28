@@ -11,7 +11,7 @@ namespace MicroElements.FileStorage.Abstractions
     {
         protected ConcurrentHashSet<string> KeysForDelete { get; } = new ConcurrentHashSet<string>();
 
-        protected internal IEnumerable<string> GetDeletedKey()
+        protected internal IEnumerable<string> GetDeletedKeys()
         {
             return KeysForDelete.AsEnumerable();
         }

@@ -3,13 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
-using NuGet.Common;
+using MicroElements.FileStorage.ZipEngine;
+using Microsoft.Extensions.Logging;
 using NuGet.Configuration;
-using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -17,38 +17,61 @@ using NuGet.Versioning;
 
 namespace MicroElements.FileStorage.NuGetEngine
 {
-    public class NuGetStorageEngine : IStorageEngine
+    public class NuGetStorageEngine : IStorageEngine, IDisposable
     {
+        private ZipStorageEngine _zipStorageEngine;
+
         /// <inheritdoc />
-        public NuGetStorageEngine()
+        public NuGetStorageEngine(NuGetStorageConfiguration configuration, ILoggerFactory loggerFactory)
         {
-            var packageSource = new PackageSource("https://api.nuget.org/v3/index.json");
-
-            List<Lazy<INuGetResourceProvider>> providers = new List<Lazy<INuGetResourceProvider>>();
-            providers.AddRange(Repository.Provider.GetCoreV3());  // Add v3 API support
-            //providers.AddRange(Repository.Provider.GetCoreV2());  // Add v2 API support
-            //providers.Add(new Lazy<INuGetResourceProvider>(() => new DownloadResourceV3Provider()));
+            var packageSource = new PackageSource(configuration.PackageSource);
+            var providers = new List<Lazy<INuGetResourceProvider>>(Repository.Provider.GetCoreV3());
             var sourceRepository = new SourceRepository(packageSource, providers);
-            var downloadResourceV3 = sourceRepository.GetResource<DownloadResource>();
-            var packageIdentity = new PackageIdentity("NUnit", NuGetVersion.Parse("3.9.0"));
-            var sourceCacheContext = new SourceCacheContext();
-            var packageDownloadContext = new PackageDownloadContext(sourceCacheContext);
-            var downloadResourceResult = downloadResourceV3.GetDownloadResourceResultAsync(packageIdentity,
-                packageDownloadContext, "globalPackagesFolder", new NullLogger(), CancellationToken.None).Result;
-            var enumerable = downloadResourceResult.PackageReader.GetFiles().ToList();
+            var downloadResource = sourceRepository.GetResource<DownloadResource>();
+            var packageIdentity = new PackageIdentity(configuration.PackageId, NuGetVersion.Parse(configuration.PackageVersion));
+            var sourceCacheContext = new SourceCacheContext { DirectDownload = configuration.DirectDownload };
+            var packageDownloadContext = new PackageDownloadContext(sourceCacheContext, configuration.InstallPackagesFolder, configuration.DirectDownload);
 
+            var nuGetLogger = new NuGetLogger(loggerFactory.CreateLogger<NuGetLogger>());
+            var downloadResourceResult = downloadResource.GetDownloadResourceResultAsync(packageIdentity, packageDownloadContext, configuration.GlobalPackagesFolder, nuGetLogger, CancellationToken.None).Result;
+            //var enumerable = downloadResourceResult.PackageReader.GetFiles().ToList();
+
+            string packageFileName;
+            if (!string.IsNullOrEmpty(configuration.InstallPackagesFolder))
+            {
+                Directory.CreateDirectory(configuration.InstallPackagesFolder);
+
+                packageFileName = Path.Combine(configuration.InstallPackagesFolder, $"{packageIdentity.Id}.{packageIdentity.Version}.nupkg");
+                if (!File.Exists(packageFileName))
+                {
+                    using (var fileStream = new FileStream(packageFileName, FileMode.OpenOrCreate))
+                    {
+                        downloadResourceResult.PackageStream.CopyTo(fileStream);
+                    }
+                }
+            }
+            else
+            {
+                packageFileName = "todo_get";
+            }
+
+            _zipStorageEngine = new ZipStorageEngine(new ZipStorageConfiguration(packageFileName)
+            {
+                StreamType = ZipStorageEngineStreamType.MemoryStream,
+                LeaveOpen = false
+            });
         }
 
         /// <inheritdoc />
         public Task<FileContent> ReadFile(string subPath)
         {
-            throw new System.NotImplementedException();
+            return _zipStorageEngine.ReadFile(subPath);
         }
 
         /// <inheritdoc />
         public IEnumerable<Task<FileContent>> ReadDirectory(string subPath)
         {
-            throw new System.NotImplementedException();
+            return _zipStorageEngine.ReadDirectory(subPath);
         }
 
         /// <inheritdoc />
@@ -73,6 +96,12 @@ namespace MicroElements.FileStorage.NuGetEngine
         public StorageMetadata GetStorageMetadata()
         {
             throw new System.NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            _zipStorageEngine?.Dispose();
         }
     }
 }

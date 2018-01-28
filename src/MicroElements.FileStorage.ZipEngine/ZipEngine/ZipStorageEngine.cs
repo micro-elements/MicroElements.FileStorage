@@ -7,57 +7,47 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.ZipEngine
 {
-    public class ZipStorageEngine : IStorageEngine, IDisposable
+    /// <summary>
+    /// Zip storage engine.
+    /// </summary>
+    public sealed class ZipStorageEngine : IStorageEngine, IDisposable
     {
+        private readonly ZipStorageConfiguration _configuration;
         private readonly Stream _zipArchiveStream;
         private readonly ZipArchive _zipArchive;
-        private readonly bool _leaveOpen;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ZipStorageEngine"/> class.
-        /// Create a ZipStorageEngine by path.
         /// </summary>
-        /// <param name="path">A relative or absolute path for the archive.</param>
-        /// <param name="zipStorageEngineTypeWork">To use fileStram or MemoryStream. For Memory available in read-only mode. For FileStream available in read-write mode.</param>
-        /// <param name="leaveOpen">True to leave the stream open after the ZiptorageEngine object is disposed; otherwise, false</param>
-        public ZipStorageEngine(string path, ZipStorageEngineStreamType zipStorageEngineTypeWork, bool leaveOpen = false)
+        /// <param name="configuration">Configuration.</param>
+        public ZipStorageEngine(ZipStorageConfiguration configuration)
         {
-            var zipArchiveMode = ZipArchiveMode.Read;
-            Stream zipStream = null;
-            switch (zipStorageEngineTypeWork)
+            _configuration = configuration;
+            if (configuration.Stream != null)
             {
-                case ZipStorageEngineStreamType.FileStream:
-                    zipArchiveMode = ZipArchiveMode.Update;
-                    zipStream = new FileStream(path, FileMode.Open);
-                    break;
-                case ZipStorageEngineStreamType.MemoryStream:
-                    zipStream = new MemoryStream(File.ReadAllBytes(path));
-                    break;
-                default:
-                    throw new NotImplementedException();
+                _zipArchiveStream = configuration.Stream;
+            }
+            else
+            {
+                switch (configuration.StreamType)
+                {
+                    case ZipStorageEngineStreamType.FileStream:
+                        _zipArchiveStream = new FileStream(configuration.Path, FileMode.Open);
+                        break;
+                    case ZipStorageEngineStreamType.MemoryStream:
+                        _zipArchiveStream = new MemoryStream(File.ReadAllBytes(configuration.Path));
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
             }
 
-            _leaveOpen = leaveOpen;
-            _zipArchiveStream = zipStream;
-            _zipArchive = new ZipArchive(_zipArchiveStream, zipArchiveMode, leaveOpen);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ZipStorageEngine"/> class.
-        /// </summary>
-        /// <param name="stream">The input or output stream.</param>
-        /// <param name="mode">Read-only or read-write mode.</param>
-        /// <param name="leaveOpen">True to leave the stream open after the ZiptorageEngine object is disposed; otherwise, false</param>
-        public ZipStorageEngine(Stream stream, ZipStorageEngineMode mode = ZipStorageEngineMode.Read, bool leaveOpen = false)
-        {
-            _leaveOpen = leaveOpen;
             ZipArchiveMode zipArchiveMode;
-            switch (mode)
+            switch (configuration.Mode)
             {
                 case ZipStorageEngineMode.Read:
                     zipArchiveMode = ZipArchiveMode.Read;
@@ -66,31 +56,31 @@ namespace MicroElements.FileStorage.ZipEngine
                     zipArchiveMode = ZipArchiveMode.Update;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(mode));
+                    throw new ArgumentOutOfRangeException(nameof(configuration.Mode));
             }
 
-            _zipArchiveStream = stream;
-            _zipArchive = new ZipArchive(_zipArchiveStream, zipArchiveMode, leaveOpen);
+            _zipArchive = new ZipArchive(_zipArchiveStream, zipArchiveMode, configuration.LeaveOpen);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<Task<FileContent>> ReadDirectory([NotNull] string subPath)
+        public IEnumerable<Task<FileContent>> ReadDirectory(string subPath)
         {
+            subPath = PreparePath(subPath);
             var zipEntries = _zipArchive.Entries.Where(p => p.FullName.StartsWith(subPath));
             return zipEntries.Select(GetFileContentFromZipEntry);
         }
 
         /// <inheritdoc/>
-        public async Task<FileContent> ReadFile([NotNull] string subPath)
+        public async Task<FileContent> ReadFile(string subPath)
         {
-            var zipEntry = _zipArchive.GetEntry(subPath);
+            var zipEntry = _zipArchive.GetEntry(PreparePath(subPath));
             return await GetFileContentFromZipEntry(zipEntry);
         }
 
         /// <inheritdoc/>
-        public async Task WriteFile([NotNull] string subPath, [NotNull] FileContent content)
+        public async Task WriteFile(string subPath, FileContent content)
         {
-            var zipEntry = _zipArchive.CreateEntry(subPath);
+            var zipEntry = _zipArchive.CreateEntry(PreparePath(subPath));
 
             using (var fileZipStream = zipEntry.Open())
             {
@@ -101,23 +91,15 @@ namespace MicroElements.FileStorage.ZipEngine
             }
         }
 
-        public ZipArchive GetZipArchiveReadOnlyAndDispose()
+        public Task DeleteFile(string subPath)
         {
-            _zipArchive.Dispose();
-            _zipArchiveStream.Seek(0, SeekOrigin.Begin);
-            var readOnlyArchive = new ZipArchive(_zipArchiveStream, ZipArchiveMode.Read);
-            Dispose();
-            return readOnlyArchive;
-        }
-
-        public Task DeleteFile([NotNull] string subPath)
-        {
+            subPath = PreparePath(subPath);
             var zipEntry = _zipArchive.Entries.Single(p => p.FullName == subPath);
             zipEntry.Delete();
             return Task.CompletedTask;
         }
 
-        public FileContentMetadata GetFileMetadata([NotNull] string subPath)
+        public FileContentMetadata GetFileMetadata(string subPath)
         {
             throw new NotImplementedException();
         }
@@ -125,6 +107,23 @@ namespace MicroElements.FileStorage.ZipEngine
         public StorageMetadata GetStorageMetadata()
         {
             throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            _zipArchiveStream?.Dispose();
+            _zipArchive?.Dispose();
+        }
+
+        public ZipArchive GetZipArchive()
+        {
+            return _zipArchive;
+        }
+
+        private static string PreparePath(string path)
+        {
+            return path.Replace('\\', '/');
         }
 
         private static async Task<FileContent> GetFileContentFromZipEntry(ZipArchiveEntry zipEntry)
@@ -146,32 +145,5 @@ namespace MicroElements.FileStorage.ZipEngine
 
             return new FileContent(location, content);
         }
-
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    if (!_leaveOpen)
-                    {
-                        _zipArchiveStream.Dispose();
-                    }
-
-                    _zipArchive.Dispose();
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-        #endregion
     }
 }

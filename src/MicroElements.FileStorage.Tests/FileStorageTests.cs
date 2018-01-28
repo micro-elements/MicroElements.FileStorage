@@ -82,7 +82,7 @@ namespace MicroElements.FileStorage.Tests
                     storageEngine = new FileStorageEngine(basePath);
                     break;
                 case nameof(ZipStorageEngine):
-                    storageEngine = new ZipStorageEngine(new MemoryStream(), ZipStorageEngineMode.Write, true);
+                    storageEngine = new ZipStorageEngine(new ZipStorageConfiguration(new MemoryStream()) { Mode = ZipStorageEngineMode.Write, LeaveOpen = true });
                     var dic = new DirectoryInfo(basePath);
                     var allFiles = dic.GetFiles("*", SearchOption.AllDirectories);
                     foreach (var file in allFiles)
@@ -339,8 +339,8 @@ namespace MicroElements.FileStorage.Tests
                 case nameof(ZipStorageEngine):
                     var zipStorageEngine = storageEngine as ZipStorageEngine;
                     zipStorageEngine.Should().NotBeNull();
-                    var zipArchive = zipStorageEngine.GetZipArchiveReadOnlyAndDispose();
-                    using (var billStream = zipArchive.GetEntry(Path.Combine(collectionDir, fileNameBill)).Open())
+                    var zipArchive = zipStorageEngine.GetZipArchive();
+                    using (var billStream = zipArchive.GetEntry(collectionDir + "/" + fileNameBill).Open())
                     {
                         using (var billStreamReader = new StreamReader(billStream))
                         {

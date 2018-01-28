@@ -119,7 +119,7 @@ namespace MicroElements.FileStorage
                 foreach (var item in items)
                 {
                     var key = collection.GetKey(item);
-                    var format = string.Format("{0}{0}", key, serializerInfo.Extension);
+                    var format = string.Format("{0}{1}", key, serializerInfo.Extension);
                     var fileName = Path.Combine(collectionDir, format);
                     SaveFile(serializer, new[] { item }, fileName, collection.Configuration.DocumentType);
                }
@@ -155,7 +155,7 @@ namespace MicroElements.FileStorage
             foreach (var keyForDelete in itemKeysForDelete)
             {
                 var fileName = Path.Combine(collectionDir,
-                    string.Format("{0}{0}", keyForDelete, extention));
+                    string.Format("{0}{1}", keyForDelete, extention));
                 
                 _configuration.StorageEngine.DeleteFile(fileName);
                 collection.DeleteKey(keyForDelete);

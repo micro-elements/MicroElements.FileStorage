@@ -21,9 +21,10 @@ namespace MicroElements.FileStorage
             _configuration = configuration;
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
-            throw new System.NotImplementedException();
+            (_configuration.StorageEngine as IDisposable)?.Dispose();
         }
 
         public async Task Initialize()

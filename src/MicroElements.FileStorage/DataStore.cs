@@ -123,7 +123,7 @@ namespace MicroElements.FileStorage
                     var fileName = Path.Combine(collectionDir, format);
                     SaveFile(serializer, new[] { item }, fileName, collection.Configuration.DocumentType);
                }
-                DeleteFile(collection as DeletedCollection, collectionDir, serializerInfo.Extension);
+                DeleteFile(collection as DelayedOperations, collectionDir, serializerInfo.Extension);
             }
             else
             {
@@ -146,7 +146,7 @@ namespace MicroElements.FileStorage
             _configuration.StorageEngine.WriteFile(fileName, fileContent);
         }
 
-        private void DeleteFile(DeletedCollection collection, string collectionDir, string  extention)
+        private void DeleteFile(DelayedOperations collection, string collectionDir, string  extention)
         {
             var itemKeysForDelete = collection?.GetDeletedKey();
             if (itemKeysForDelete == null) 

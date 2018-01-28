@@ -15,7 +15,7 @@ namespace MicroElements.FileStorage
     /// Typed document collection.
     /// </summary>
     /// <typeparam name="T">Entity type.</typeparam>
-    public class DocumentCollection<T> : DeletedCollection, IDocumentCollection<T> where T : class
+    public class DocumentCollection<T> : DelayedOperations, IDocumentCollection<T> where T : class
     {
         private readonly List<T> _documents = new List<T>();
         private readonly Dictionary<string, int> _indexIdDocIndex = new Dictionary<string, int>();

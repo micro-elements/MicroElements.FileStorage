@@ -7,7 +7,7 @@ using ConcurrentCollections;
 
 namespace MicroElements.FileStorage.Abstractions
 {
-    public abstract class DeletedCollection
+    public abstract class DelayedOperations
     {
         protected ConcurrentHashSet<string> KeysForDelete { get; } = new ConcurrentHashSet<string>();
 

@@ -25,6 +25,13 @@ namespace MicroElements.FileStorage.Abstractions
         /// <summary>
         /// Id unique for one collection. It's a sequence of ordinal numbers.
         /// </summary>
-        Identity
+        Identity,
+
+        /// <summary>
+        /// Hash key. Represents state of entity.
+        /// <para>Not unique globally.</para>
+        /// <para>Same hash represents equivalent entities but its not truth in common.</para>
+        /// </summary>
+        Hash
     }
 }

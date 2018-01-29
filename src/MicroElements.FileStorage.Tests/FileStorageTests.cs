@@ -21,6 +21,79 @@ namespace MicroElements.FileStorage.Tests
 {
     public class FileStorageTests
     {
+        [Theory]
+        [InlineData(nameof(FileStorageEngine))]
+        public async Task delete_should_delete_file_multifile_collection(string typeStorageEngine)
+        {
+            var basePath = Path.GetFullPath("TestData/DataStore/delete_multifile_collection");
+            var collectionDir = "persons";
+            var collectionFullDir = Path.Combine(basePath, collectionDir);
+            if (Directory.Exists(collectionFullDir))
+                Directory.Delete(collectionFullDir, true);
+
+            var fileNameBill = "1.json";
+            var fileNameSteve = "2.json";
+
+            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
+            Directory.CreateDirectory(basePath);
+            var storeConfiguration = new DataStoreConfiguration
+            {
+                BasePath = basePath,
+                StorageEngine = storageEngine,
+                Collections = new[]
+                {
+                    new CollectionConfigurationTyped<Person>
+                    {
+                        SourceFile = "persons",
+                        Serializer = new JsonSerializer(),
+                        KeyGetter = new DefaultKeyAccessor<Person>(),
+                        KeyGenerator =
+                            new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                    },
+                }
+            };
+            var dataStore = new DataStore(storeConfiguration);
+
+            await dataStore.Initialize();
+
+            var collection = dataStore.GetCollection<Person>();
+            collection.Should().NotBeNull();
+            collection.Count.Should().Be(0);
+
+            collection.Add(new Person
+            {
+                Id = "1",
+                FirstName = "Bill",
+                LastName = "Gates"
+            });
+            collection.Add(new Person
+            {
+                Id = "2",
+                FirstName = "Steve",
+                LastName = "Ballmer"
+            });
+            collection.Count.Should().Be(2);
+
+            dataStore.Save();
+            var fileBill = Path.Combine(collectionFullDir, fileNameBill);
+            var fileSteve = Path.Combine(collectionFullDir, fileNameSteve);
+
+            File.Exists(fileBill).Should().BeTrue();
+            File.Exists(fileSteve).Should().BeTrue();
+            
+            collection.Delete("1");
+            File.Exists(fileBill).Should().BeTrue();
+            dataStore.Save();
+            File.Exists(fileBill).Should().BeFalse();
+            File.Exists(fileSteve).Should().BeTrue();
+       
+            collection.Delete("2");
+            File.Exists(fileSteve).Should().BeTrue();
+            dataStore.Save();
+            File.Exists(fileSteve).Should().BeFalse();
+            
+        }
+
         [Theory()]
         [InlineData(nameof(FileStorageEngine))]
         [InlineData(nameof(ZipStorageEngine))]

@@ -7,7 +7,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.CodeContracts;
 
 namespace MicroElements.FileStorage.ZipEngine
 {
@@ -19,14 +21,24 @@ namespace MicroElements.FileStorage.ZipEngine
         private readonly ZipStorageConfiguration _configuration;
         private readonly Stream _zipArchiveStream;
         private readonly ZipArchive _zipArchive;
+        private readonly string _basePath;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ZipStorageEngine"/> class.
         /// </summary>
         /// <param name="configuration">Configuration.</param>
-        public ZipStorageEngine(ZipStorageConfiguration configuration)
+        public ZipStorageEngine([NotNull] ZipStorageConfiguration configuration)
         {
+            Check.NotNull(configuration, nameof(configuration));
             _configuration = configuration;
+
+            if (!string.IsNullOrEmpty(configuration.BasePath))
+            {
+                _basePath = NormalizeSlashes(configuration.BasePath);
+                if (!_basePath.EndsWith("/"))
+                    _basePath += "/";
+            }
+
             if (configuration.Stream != null)
             {
                 _zipArchiveStream = configuration.Stream;
@@ -121,7 +133,12 @@ namespace MicroElements.FileStorage.ZipEngine
             return _zipArchive;
         }
 
-        private static string PreparePath(string path)
+        private string PreparePath(string path)
+        {
+            return _basePath != null ? _basePath + NormalizeSlashes(path) : NormalizeSlashes(path);
+        }
+
+        private string NormalizeSlashes(string path)
         {
             return path.Replace('\\', '/');
         }

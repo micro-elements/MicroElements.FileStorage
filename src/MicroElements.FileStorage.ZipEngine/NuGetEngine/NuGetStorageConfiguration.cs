@@ -24,6 +24,11 @@ namespace MicroElements.FileStorage.NuGetEngine
         public string PackageVersion { get; set; } = "3.9.0";
 
         /// <summary>
+        /// Base path to search files.
+        /// </summary>
+        public string BasePath { get; set; }
+
+        /// <summary>
         /// Global package cache folder. All packages cached in this folder.
         /// </summary>
         public string GlobalPackagesFolder { get; set; } = "GlobalPackagesFolder";

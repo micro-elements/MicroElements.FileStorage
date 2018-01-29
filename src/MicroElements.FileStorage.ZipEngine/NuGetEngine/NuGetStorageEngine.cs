@@ -6,7 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.Abstractions.Exceptions;
+using MicroElements.FileStorage.CodeContracts;
 using MicroElements.FileStorage.ZipEngine;
 using Microsoft.Extensions.Logging;
 using NuGet.Configuration;
@@ -17,13 +20,24 @@ using NuGet.Versioning;
 
 namespace MicroElements.FileStorage.NuGetEngine
 {
+    /// <summary>
+    /// NuGet storage engine.
+    /// <para>Downloads nuget package and uses as data source.</para>
+    /// </summary>
     public class NuGetStorageEngine : IStorageEngine, IDisposable
     {
-        private ZipStorageEngine _zipStorageEngine;
+        private readonly ZipStorageEngine _zipStorageEngine;
 
-        /// <inheritdoc />
-        public NuGetStorageEngine(NuGetStorageConfiguration configuration, ILoggerFactory loggerFactory)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NuGetStorageEngine"/> class.
+        /// </summary>
+        /// <param name="configuration"><see cref="NuGetStorageConfiguration"/>.</param>
+        /// <param name="loggerFactory"><see cref="ILoggerFactory"/>.</param>
+        public NuGetStorageEngine([NotNull] NuGetStorageConfiguration configuration, [NotNull] ILoggerFactory loggerFactory)
         {
+            Check.NotNull(configuration, nameof(configuration));
+            Check.NotNull(loggerFactory, nameof(loggerFactory));
+
             var packageSource = new PackageSource(configuration.PackageSource);
             var providers = new List<Lazy<INuGetResourceProvider>>(Repository.Provider.GetCoreV3());
             var sourceRepository = new SourceRepository(packageSource, providers);
@@ -32,8 +46,8 @@ namespace MicroElements.FileStorage.NuGetEngine
             var sourceCacheContext = new SourceCacheContext { DirectDownload = configuration.DirectDownload };
             var packageDownloadContext = new PackageDownloadContext(sourceCacheContext, configuration.InstallPackagesFolder, configuration.DirectDownload);
 
-            var nuGetLogger = new NuGetLogger(loggerFactory.CreateLogger<NuGetLogger>());
-            var downloadResourceResult = downloadResource.GetDownloadResourceResultAsync(packageIdentity, packageDownloadContext, configuration.GlobalPackagesFolder, nuGetLogger, CancellationToken.None).Result;
+            var logger = new NuGetLogger(loggerFactory.CreateLogger<NuGetLogger>());
+            var downloadResourceResult = downloadResource.GetDownloadResourceResultAsync(packageIdentity, packageDownloadContext, configuration.GlobalPackagesFolder, logger, CancellationToken.None).Result;
             //var enumerable = downloadResourceResult.PackageReader.GetFiles().ToList();
 
             string packageFileName;
@@ -44,6 +58,11 @@ namespace MicroElements.FileStorage.NuGetEngine
                 packageFileName = Path.Combine(configuration.InstallPackagesFolder, $"{packageIdentity.Id}.{packageIdentity.Version}.nupkg");
                 if (!File.Exists(packageFileName))
                 {
+                    if (downloadResourceResult.PackageStream == null)
+                    {
+                        throw new FileStorageException($"Package is not found. Status: {downloadResourceResult.Status}");
+                    }
+
                     using (var fileStream = new FileStream(packageFileName, FileMode.OpenOrCreate))
                     {
                         downloadResourceResult.PackageStream.CopyTo(fileStream);
@@ -58,7 +77,9 @@ namespace MicroElements.FileStorage.NuGetEngine
             _zipStorageEngine = new ZipStorageEngine(new ZipStorageConfiguration(packageFileName)
             {
                 StreamType = ZipStorageEngineStreamType.MemoryStream,
-                LeaveOpen = false
+                Mode = ZipStorageEngineMode.Read,
+                LeaveOpen = false,
+                BasePath = configuration.BasePath
             });
         }
 

@@ -11,16 +11,6 @@ namespace MicroElements.FileStorage.ZipEngine
     public class ZipStorageConfiguration
     {
         /// <summary>
-        /// A relative or absolute path for the archive.
-        /// </summary>
-        public string Path { get; }
-
-        /// <summary>
-        /// Input zip stream.
-        /// </summary>
-        public Stream Stream { get; }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ZipStorageConfiguration"/> class.
         /// </summary>
         /// <param name="path">Relative or absolute path for the archive.</param>
@@ -39,9 +29,19 @@ namespace MicroElements.FileStorage.ZipEngine
         }
 
         /// <summary>
-        /// A relative path in internal zip.
+        /// A relative or absolute path for the archive.
         /// </summary>
-        public string ZipInternalBasePath { get; set; }
+        public string Path { get; }
+
+        /// <summary>
+        /// Input zip stream.
+        /// </summary>
+        public Stream Stream { get; }
+
+        /// <summary>
+        /// Base path to search files.
+        /// </summary>
+        public string BasePath { get; set; }
 
         /// <summary>
         /// To use FileStream or MemoryStream. For Memory available in read-only mode. For FileStream available in read-write mode.

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using FluentValidation;
@@ -15,10 +16,11 @@ namespace MicroElements.FileStorage
     /// Typed document collection.
     /// </summary>
     /// <typeparam name="T">Entity type.</typeparam>
-    public class DocumentCollection<T> : DelayedOperations, IDocumentCollection<T> where T : class
+    public class DocumentCollection<T> : IDocumentCollection<T> where T : class
     {
         private readonly List<T> _documents = new List<T>();
-        private readonly Dictionary<string, int> _indexIdDocIndex = new Dictionary<string, int>();
+        private readonly ConcurrentDictionary<string, int> _indexIdDocIndex = new ConcurrentDictionary<string, int>();
+        private readonly Lazy<DelayedOperations> _delayedOperations = new Lazy<DelayedOperations>(() => new DelayedOperations());
 
         private readonly IKeyGetter<T> _keyGetter;
         private readonly IKeySetter<T> _keySetter;
@@ -42,16 +44,7 @@ namespace MicroElements.FileStorage
         public bool HasChanges { get; set; }
 
         /// <inheritdoc />
-        public int Count
-        {
-            get
-            {
-                lock (_documents)
-                {
-                    return _indexIdDocIndex.Count;
-                }
-            }
-        }
+        public int Count => _indexIdDocIndex.Count;
 
         /// <inheritdoc />
         public void Add(T item)
@@ -142,10 +135,10 @@ namespace MicroElements.FileStorage
                         _documents[index] = null;
                     }
 
-                    _indexIdDocIndex.Remove(key);
+                    _indexIdDocIndex.TryRemove(key, out _);
                 }
 
-                KeysForDelete.Add(key);
+                _delayedOperations.Value.MarkAsDeleted(key);
                 HasChanges = true;
             }
             else
@@ -154,13 +147,20 @@ namespace MicroElements.FileStorage
                 // throw new EntityNotFoundException();
             }
         }
+
+        /// <inheritdoc />
+        public DelayedOperations GetDelayedOperations()
+        {
+            return _delayedOperations.Value;
+        }
+
         /// <inheritdoc />
         public void Drop()
         {
             lock (_documents)
             {
                 foreach (var key in _indexIdDocIndex.Keys)
-                    KeysForDelete.Add(key);
+                    _delayedOperations.Value.MarkAsDeleted(key);
 
                 _documents.Clear();
                 _indexIdDocIndex.Clear();

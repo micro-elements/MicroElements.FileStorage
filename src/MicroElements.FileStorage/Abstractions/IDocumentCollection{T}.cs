@@ -51,5 +51,11 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// <param name="key">Entity key.</param>
         void Delete([NotNull] string key);
+
+        /// <summary>
+        /// Gets list of delayed oparations.
+        /// </summary>
+        /// <returns><see cref="DelayedOperations"/>.</returns>
+        DelayedOperations GetDelayedOperations();
     }
 }

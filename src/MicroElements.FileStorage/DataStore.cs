@@ -114,7 +114,7 @@ namespace MicroElements.FileStorage
             var serializerInfo = serializer.GetInfo();
             var items = collection.Find(arg => true).ToList();
             var collectionDir = collection.Configuration.SourceFile;
-           
+
             if (IsMultiFile(collection.Configuration))
             {
                 foreach (var item in items)
@@ -122,44 +122,38 @@ namespace MicroElements.FileStorage
                     var key = collection.GetKey(item);
                     var format = string.Format("{0}{1}", key, serializerInfo.Extension);
                     var fileName = Path.Combine(collectionDir, format);
-                    SaveFile(serializer, new[] { item }, fileName, collection.Configuration.DocumentType);
-               }
-                DeleteFile(collection as DelayedOperations, collectionDir, serializerInfo.Extension);
+                    SaveFiles(serializer, new[] { item }, fileName, collection.Configuration.DocumentType);
+                }
+
+                DeleteFiles(collection.GetDelayedOperations(), collectionDir, serializerInfo.Extension);
             }
             else
             {
-                SaveFile(serializer,
-                    items,
-                    collection.Configuration.SourceFile,
-                    collection.Configuration.DocumentType);
+                SaveFiles(serializer, items, collection.Configuration.SourceFile, collection.Configuration.DocumentType);
             }
 
             collection.HasChanges = false;
 
         }
 
-        private void SaveFile<T>(ISerializer serializer,
-            IReadOnlyCollection<T> items, 
-            string fileName,
-            Type configurationDocumentType) where T : class
+        private void SaveFiles<T>(ISerializer serializer, IReadOnlyCollection<T> items, string fileName, Type configurationDocumentType) where T : class
         {
             var fileContent = serializer.Serialize(items, configurationDocumentType);
             _configuration.StorageEngine.WriteFile(fileName, fileContent);
         }
 
-        private void DeleteFile(DelayedOperations collection, string collectionDir, string  extention)
+        private void DeleteFiles(DelayedOperations delayedOperations, string collectionDir, string extention)
         {
-            var itemKeysForDelete = collection?.GetDeletedKeys();
-            if (itemKeysForDelete == null) 
+            var itemKeysForDelete = delayedOperations?.GetDeletedKeys();
+            if (itemKeysForDelete == null)
                 return;
-            
+
             foreach (var keyForDelete in itemKeysForDelete)
             {
-                var fileName = Path.Combine(collectionDir,
-                    string.Format("{0}{1}", keyForDelete, extention));
-                
+                var fileName = Path.Combine(collectionDir, string.Format("{0}{1}", keyForDelete, extention));
+
                 _configuration.StorageEngine.DeleteFile(fileName);
-                collection.DeleteKey(keyForDelete);
+                delayedOperations.RemoveKeyFromDeleteList(keyForDelete);
             }
         }
 

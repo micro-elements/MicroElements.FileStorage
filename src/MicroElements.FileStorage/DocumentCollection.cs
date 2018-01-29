@@ -27,7 +27,6 @@ namespace MicroElements.FileStorage
         {
             Configuration = configuration;
 
-            //todo: ���������� �������
             ConfigurationTyped = (configuration as CollectionConfigurationTyped<T>) ?? new CollectionConfigurationTyped<T>();
             _keyGetter = ConfigurationTyped.KeyGetter;
             _keySetter = ConfigurationTyped.KeySetter;
@@ -126,7 +125,7 @@ namespace MicroElements.FileStorage
             lock (_documents)
             {
                 var enumerable = _documents.Where(query);
-                return enumerable.Where(d=> d != null);
+                return enumerable.Where(d => d != null);
             }
         }
 
@@ -142,10 +141,10 @@ namespace MicroElements.FileStorage
                     {
                         _documents[index] = null;
                     }
-                    
+
                     _indexIdDocIndex.Remove(key);
                 }
-                
+
                 KeysForDelete.Add(key);
                 HasChanges = true;
             }

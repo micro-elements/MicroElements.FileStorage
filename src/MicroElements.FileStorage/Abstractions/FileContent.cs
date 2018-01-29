@@ -39,6 +39,12 @@ namespace MicroElements.FileStorage.Abstractions
             Content = content;
         }
 
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{nameof(Location)}: {Location}, Size: {Content?.Length}";
+        }
+
         public override bool Equals(object obj)
         {
             return Equals(obj as FileContent);

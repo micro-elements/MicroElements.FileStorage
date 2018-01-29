@@ -571,13 +571,13 @@ namespace MicroElements.FileStorage.Tests
             collection.IsExists("EUR").Should().BeTrue();
 
             collection.Delete("USD");
-//            collection.Count.Should().Be(1);
+            collection.Count.Should().Be(1);
             collection.IsExists("USD").Should().BeFalse();
             collection.IsExists("EUR").Should().BeTrue();
 
             // Delete not existent currency...
             collection.Delete("Bitcoin");
-//            collection.Count.Should().Be(1);
+            collection.Count.Should().Be(1);
 
             ((Action)(() => collection.Delete(null))).Should().Throw<ArgumentNullException>();
         }

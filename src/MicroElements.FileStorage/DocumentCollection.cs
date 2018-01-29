@@ -49,7 +49,7 @@ namespace MicroElements.FileStorage
             {
                 lock (_documents)
                 {
-                    return _documents.Count;
+                    return _indexIdDocIndex.Count;
                 }
             }
         }
@@ -125,7 +125,8 @@ namespace MicroElements.FileStorage
         {
             lock (_documents)
             {
-                return _documents.Where(query);
+                var enumerable = _documents.Where(query);
+                return enumerable.Where(d=> d != null);
             }
         }
 
@@ -137,8 +138,11 @@ namespace MicroElements.FileStorage
             {
                 lock (_documents)
                 {
-                    //! Тут нельзя удалять, иначе перестраивать индекс!
-                   // _documents.Remove(entity);
+                    if (_indexIdDocIndex.TryGetValue(key, out int index))
+                    {
+                        _documents[index] = null;
+                    }
+                    
                     _indexIdDocIndex.Remove(key);
                 }
                 

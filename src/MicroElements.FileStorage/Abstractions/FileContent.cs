@@ -1,4 +1,4 @@
-// Copyright (c) MicroElements. All rights reserved.
+﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -37,6 +37,12 @@ namespace MicroElements.FileStorage.Abstractions
 
             Location = location;
             Content = content;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{nameof(Location)}: {Location}, Size: {Content?.Length}";
         }
 
         public override bool Equals(object obj)

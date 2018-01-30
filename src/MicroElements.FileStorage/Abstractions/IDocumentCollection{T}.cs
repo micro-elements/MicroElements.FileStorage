@@ -1,4 +1,4 @@
-// Copyright (c) MicroElements. All rights reserved.
+﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -51,5 +51,11 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// <param name="key">Entity key.</param>
         void Delete([NotNull] string key);
+
+        /// <summary>
+        /// Gets list of delayed oparations.
+        /// </summary>
+        /// <returns><see cref="DelayedOperations"/>.</returns>
+        DelayedOperations GetDelayedOperations();
     }
 }

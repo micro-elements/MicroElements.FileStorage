@@ -1,7 +1,8 @@
-// Copyright (c) MicroElements. All rights reserved.
+п»ї// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using FluentValidation;
@@ -18,7 +19,8 @@ namespace MicroElements.FileStorage
     public class DocumentCollection<T> : IDocumentCollection<T> where T : class
     {
         private readonly List<T> _documents = new List<T>();
-        private readonly Dictionary<string, int> _indexIdDocIndex = new Dictionary<string, int>();
+        private readonly ConcurrentDictionary<string, int> _indexIdDocIndex = new ConcurrentDictionary<string, int>();
+        private readonly Lazy<DelayedOperations> _delayedOperations = new Lazy<DelayedOperations>(() => new DelayedOperations());
 
         private readonly IKeyGetter<T> _keyGetter;
         private readonly IKeySetter<T> _keySetter;
@@ -27,7 +29,6 @@ namespace MicroElements.FileStorage
         {
             Configuration = configuration;
 
-            //todo: передавать снаружи
             ConfigurationTyped = (configuration as CollectionConfigurationTyped<T>) ?? new CollectionConfigurationTyped<T>();
             _keyGetter = ConfigurationTyped.KeyGetter;
             _keySetter = ConfigurationTyped.KeySetter;
@@ -43,16 +44,7 @@ namespace MicroElements.FileStorage
         public bool HasChanges { get; set; }
 
         /// <inheritdoc />
-        public int Count
-        {
-            get
-            {
-                lock (_documents)
-                {
-                    return _documents.Count;
-                }
-            }
-        }
+        public int Count => _indexIdDocIndex.Count;
 
         /// <inheritdoc />
         public void Add(T item)
@@ -125,7 +117,8 @@ namespace MicroElements.FileStorage
         {
             lock (_documents)
             {
-                return _documents.Where(query);
+                var enumerable = _documents.Where(query);
+                return enumerable.Where(d => d != null);
             }
         }
 
@@ -137,11 +130,16 @@ namespace MicroElements.FileStorage
             {
                 lock (_documents)
                 {
-                    _documents.Remove(entity);
-                    _indexIdDocIndex.Remove(key);
-                    // todo: delete is not deletes from file storage
-                    // _storageEngine.Delete(key);
+                    if (_indexIdDocIndex.TryGetValue(key, out int index))
+                    {
+                        _documents[index] = null;
+                    }
+
+                    _indexIdDocIndex.TryRemove(key, out _);
                 }
+
+                _delayedOperations.Value.MarkAsDeleted(key);
+                HasChanges = true;
             }
             else
             {
@@ -151,11 +149,19 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
+        public DelayedOperations GetDelayedOperations()
+        {
+            return _delayedOperations.Value;
+        }
+
+        /// <inheritdoc />
         public void Drop()
         {
             lock (_documents)
             {
-                // todo: delete is not deletes from file storage
+                foreach (var key in _indexIdDocIndex.Keys)
+                    _delayedOperations.Value.MarkAsDeleted(key);
+
                 _documents.Clear();
                 _indexIdDocIndex.Clear();
             }

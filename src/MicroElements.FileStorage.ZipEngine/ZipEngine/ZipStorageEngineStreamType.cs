@@ -1,8 +1,7 @@
 ﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-
-namespace MicroElements.FileStorage.StorageEngine
+namespace MicroElements.FileStorage.ZipEngine
 {
     /// <summary>
     /// The stream type of be used.

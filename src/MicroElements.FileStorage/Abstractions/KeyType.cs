@@ -1,4 +1,4 @@
-// Copyright (c) MicroElements. All rights reserved.
+﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace MicroElements.FileStorage.Abstractions
@@ -25,6 +25,13 @@ namespace MicroElements.FileStorage.Abstractions
         /// <summary>
         /// Id unique for one collection. It's a sequence of ordinal numbers.
         /// </summary>
-        Identity
+        Identity,
+
+        /// <summary>
+        /// Hash key. Represents state of entity.
+        /// <para>Not unique globally.</para>
+        /// <para>Same hash represents equivalent entities but its not truth in common.</para>
+        /// </summary>
+        Hash
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) MicroElements. All rights reserved.
+﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -21,9 +21,10 @@ namespace MicroElements.FileStorage
             _configuration = configuration;
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
-            throw new System.NotImplementedException();
+            (_configuration.StorageEngine as IDisposable)?.Dispose();
         }
 
         public async Task Initialize()
@@ -76,7 +77,7 @@ namespace MicroElements.FileStorage
         /// <inheritdoc />
         public IReadOnlyList<IDocumentCollection> GetCollections()
         {
-            return _collections;
+            return _collections.AsReadOnly();
         }
 
         /// <inheritdoc />
@@ -107,31 +108,53 @@ namespace MicroElements.FileStorage
                 .Invoke(this, new[] { collection });
         }
 
-        internal void SaveCollection<T>(IDocumentCollection<T> collection) where T : class
+        private void SaveCollection<T>(IDocumentCollection<T> collection) where T : class
         {
             var serializer = GetSerializer(collection.Configuration);
+            var serializerInfo = serializer.GetInfo();
             var items = collection.Find(arg => true).ToList();
+            var collectionDir = collection.Configuration.SourceFile;
+
             if (IsMultiFile(collection.Configuration))
             {
                 foreach (var item in items)
                 {
-                    var fileContent = serializer.Serialize(new[] { item }, collection.Configuration.DocumentType);
-                    var collectionDir = collection.Configuration.SourceFile;
                     var key = collection.GetKey(item);
-                    var serializerInfo = serializer.GetInfo();
-                    var fileName = Path.Combine(collectionDir, key + serializerInfo.Extension);
-                    _configuration.StorageEngine.WriteFile(fileName, fileContent);
+                    var format = string.Format("{0}{1}", key, serializerInfo.Extension);
+                    var fileName = Path.Combine(collectionDir, format);
+                    SaveFiles(serializer, new[] { item }, fileName, collection.Configuration.DocumentType);
                 }
 
+                DeleteFiles(collection.GetDelayedOperations(), collectionDir, serializerInfo.Extension);
             }
             else
             {
-                var fileContent = serializer.Serialize(items, collection.Configuration.DocumentType);
-                _configuration.StorageEngine.WriteFile(collection.Configuration.SourceFile, fileContent);
+                SaveFiles(serializer, items, collection.Configuration.SourceFile, collection.Configuration.DocumentType);
             }
 
             collection.HasChanges = false;
 
+        }
+
+        private void SaveFiles<T>(ISerializer serializer, IReadOnlyCollection<T> items, string fileName, Type configurationDocumentType) where T : class
+        {
+            var fileContent = serializer.Serialize(items, configurationDocumentType);
+            _configuration.StorageEngine.WriteFile(fileName, fileContent);
+        }
+
+        private void DeleteFiles(DelayedOperations delayedOperations, string collectionDir, string extention)
+        {
+            var itemKeysForDelete = delayedOperations?.GetDeletedKeys();
+            if (itemKeysForDelete == null)
+                return;
+
+            foreach (var keyForDelete in itemKeysForDelete)
+            {
+                var fileName = Path.Combine(collectionDir, string.Format("{0}{1}", keyForDelete, extention));
+
+                _configuration.StorageEngine.DeleteFile(fileName);
+                delayedOperations.RemoveKeyFromDeleteList(keyForDelete);
+            }
         }
 
         private ISerializer GetSerializer(CollectionConfiguration configuration)

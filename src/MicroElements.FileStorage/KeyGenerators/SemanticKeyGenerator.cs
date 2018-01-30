@@ -1,4 +1,4 @@
-// Copyright (c) MicroElements. All rights reserved.
+﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -7,10 +7,14 @@ using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.KeyGenerators
 {
+    /// <summary>
+    /// Key generator based on entity values.
+    /// </summary>
+    /// <typeparam name="T">Entity type.</typeparam>
     public class SemanticKeyGenerator<T> : IKeyGenerator<T> where T : class
     {
-        private Expression<Func<T, string>> _getKeyExpression;
-        private Func<T, string> _getKeyfunc;
+        private readonly Expression<Func<T, string>> _getKeyExpression;
+        private readonly Func<T, string> _getKeyfunc;
 
         public SemanticKeyGenerator(Expression<Func<T, string>> getKeyExpression)
         {

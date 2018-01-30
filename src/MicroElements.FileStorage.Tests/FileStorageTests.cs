@@ -11,6 +11,7 @@ using MicroElements.FileStorage.KeyGenerators;
 using MicroElements.FileStorage.Serializers;
 using MicroElements.FileStorage.StorageEngine;
 using MicroElements.FileStorage.Tests.Models;
+using MicroElements.FileStorage.ZipEngine;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
@@ -20,6 +21,79 @@ namespace MicroElements.FileStorage.Tests
 {
     public class FileStorageTests
     {
+        [Theory]
+        [InlineData(nameof(FileStorageEngine))]
+        public async Task delete_should_delete_file_multifile_collection(string typeStorageEngine)
+        {
+            var basePath = Path.GetFullPath("TestData/DataStore/delete_multifile_collection");
+            var collectionDir = "persons";
+            var collectionFullDir = Path.Combine(basePath, collectionDir);
+            if (Directory.Exists(collectionFullDir))
+                Directory.Delete(collectionFullDir, true);
+
+            var fileNameBill = "1.json";
+            var fileNameSteve = "2.json";
+
+            var storageEngine = GetStorageEngine(typeStorageEngine, basePath);
+            Directory.CreateDirectory(basePath);
+            var storeConfiguration = new DataStoreConfiguration
+            {
+                BasePath = basePath,
+                StorageEngine = storageEngine,
+                Collections = new[]
+                {
+                    new CollectionConfigurationTyped<Person>
+                    {
+                        SourceFile = "persons",
+                        Serializer = new JsonSerializer(),
+                        KeyGetter = new DefaultKeyAccessor<Person>(),
+                        KeyGenerator =
+                            new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                    },
+                }
+            };
+            var dataStore = new DataStore(storeConfiguration);
+
+            await dataStore.Initialize();
+
+            var collection = dataStore.GetCollection<Person>();
+            collection.Should().NotBeNull();
+            collection.Count.Should().Be(0);
+
+            collection.Add(new Person
+            {
+                Id = "1",
+                FirstName = "Bill",
+                LastName = "Gates"
+            });
+            collection.Add(new Person
+            {
+                Id = "2",
+                FirstName = "Steve",
+                LastName = "Ballmer"
+            });
+            collection.Count.Should().Be(2);
+
+            dataStore.Save();
+            var fileBill = Path.Combine(collectionFullDir, fileNameBill);
+            var fileSteve = Path.Combine(collectionFullDir, fileNameSteve);
+
+            File.Exists(fileBill).Should().BeTrue();
+            File.Exists(fileSteve).Should().BeTrue();
+            
+            collection.Delete("1");
+            File.Exists(fileBill).Should().BeTrue();
+            dataStore.Save();
+            File.Exists(fileBill).Should().BeFalse();
+            File.Exists(fileSteve).Should().BeTrue();
+       
+            collection.Delete("2");
+            File.Exists(fileSteve).Should().BeTrue();
+            dataStore.Save();
+            File.Exists(fileSteve).Should().BeFalse();
+            
+        }
+
         [Theory()]
         [InlineData(nameof(FileStorageEngine))]
         [InlineData(nameof(ZipStorageEngine))]
@@ -81,7 +155,7 @@ namespace MicroElements.FileStorage.Tests
                     storageEngine = new FileStorageEngine(basePath);
                     break;
                 case nameof(ZipStorageEngine):
-                    storageEngine = new ZipStorageEngine(new MemoryStream(), ZipStorageEngineMode.Write, true);
+                    storageEngine = new ZipStorageEngine(new ZipStorageConfiguration(new MemoryStream()) { Mode = ZipStorageEngineMode.Write, LeaveOpen = true });
                     var dic = new DirectoryInfo(basePath);
                     var allFiles = dic.GetFiles("*", SearchOption.AllDirectories);
                     foreach (var file in allFiles)
@@ -338,8 +412,8 @@ namespace MicroElements.FileStorage.Tests
                 case nameof(ZipStorageEngine):
                     var zipStorageEngine = storageEngine as ZipStorageEngine;
                     zipStorageEngine.Should().NotBeNull();
-                    var zipArchive = zipStorageEngine.GetZipArchiveReadOnlyAndDispose();
-                    using (var billStream = zipArchive.GetEntry(Path.Combine(collectionDir, fileNameBill)).Open())
+                    var zipArchive = zipStorageEngine.GetZipArchive();
+                    using (var billStream = zipArchive.GetEntry(collectionDir + "/" + fileNameBill).Open())
                     {
                         using (var billStreamReader = new StreamReader(billStream))
                         {

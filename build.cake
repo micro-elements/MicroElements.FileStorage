@@ -140,6 +140,7 @@ Task("PublishPackages")
 
 Task("Version")
     .Does(() => {
+try{
         GitVersion versionInfo = GitVersion(new GitVersionSettings{ 
             OutputType = GitVersionOutput.Json, 
             UpdateAssemblyInfo = false,
@@ -162,6 +163,10 @@ var version_props = $@"
 </Project>";
 
         System.IO.File.WriteAllText("./version.props", version_props);
+}catch(Exception e)
+{
+    Information($"VersioEnnor={e.ToString()}");
+}
     });
 
 Task("Default")

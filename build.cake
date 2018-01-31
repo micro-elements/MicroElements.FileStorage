@@ -142,6 +142,8 @@ Task("Version")
     .Does(() => {
         GitVersion versionInfo = GitVersion(new GitVersionSettings{ 
             OutputType = GitVersionOutput.Json, 
+            UpdateAssemblyInfo = false,
+            Branch = "develop"
         });
         Information($"SemVer: {versionInfo.SemVer}");
         Information($"BuildMetaData: {versionInfo.BuildMetaData}");

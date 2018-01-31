@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.Operations;
 
 namespace MicroElements.FileStorage
 {
@@ -125,7 +126,7 @@ namespace MicroElements.FileStorage
                     SaveFiles(serializer, new[] { item }, fileName, collection.Configuration.DocumentType);
                 }
 
-                DeleteFiles(collection.GetDelayedOperations(), collectionDir, serializerInfo.Extension);
+                ProcessDeletes(collection, collectionDir, serializerInfo.Extension).GetAwaiter().GetResult();
             }
             else
             {
@@ -133,7 +134,6 @@ namespace MicroElements.FileStorage
             }
 
             collection.HasChanges = false;
-
         }
 
         private void SaveFiles<T>(ISerializer serializer, IReadOnlyCollection<T> items, string fileName, Type configurationDocumentType) where T : class
@@ -142,18 +142,17 @@ namespace MicroElements.FileStorage
             _configuration.StorageEngine.WriteFile(fileName, fileContent);
         }
 
-        private void DeleteFiles(DelayedOperations delayedOperations, string collectionDir, string extention)
+        private async Task ProcessDeletes<T>(IDocumentCollection<T> collection, string collectionDir, string extention) where T : class
         {
-            var itemKeysForDelete = delayedOperations?.GetDeletedKeys();
-            if (itemKeysForDelete == null)
-                return;
+            var commandLog = collection.GetCommandLog();
+            var deleteCommands = commandLog.Where(command => !command.Processed && command.CommandType == CommandType.Delete);
 
-            foreach (var keyForDelete in itemKeysForDelete)
+            foreach (var deleteCommand in deleteCommands)
             {
-                var fileName = Path.Combine(collectionDir, string.Format("{0}{1}", keyForDelete, extention));
+                var fileName = Path.Combine(collectionDir, string.Format("{0}{1}", deleteCommand.Key, extention));
 
-                _configuration.StorageEngine.DeleteFile(fileName);
-                delayedOperations.RemoveKeyFromDeleteList(keyForDelete);
+                await _configuration.StorageEngine.DeleteFile(fileName);
+                deleteCommand.Processed = true;
             }
         }
 

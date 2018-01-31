@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using MicroElements.FileStorage.Operations;
 
 namespace MicroElements.FileStorage.Abstractions
 {
@@ -53,9 +54,38 @@ namespace MicroElements.FileStorage.Abstractions
         void Delete([NotNull] string key);
 
         /// <summary>
-        /// Gets list of delayed oparations.
+        /// Gets command log.
         /// </summary>
-        /// <returns><see cref="DelayedOperations"/>.</returns>
-        DelayedOperations GetDelayedOperations();
+        /// <returns><see cref="IReadOnlyCommandLog"/></returns>
+        IReadOnlyCommandLog GetCommandLog();
+    }
+
+    public interface IDataSnapshot<T> where T : class
+    {
+        /// <summary>
+        /// Typed configuration.
+        /// </summary>
+        CollectionConfigurationTyped<T> ConfigurationTyped { get; }
+
+        /// <summary>
+        /// Gets item by key.
+        /// </summary>
+        /// <param name="key">Key.</param>
+        /// <returns>Item or null if not exist.</returns>
+        [CanBeNull] T Get([NotNull] string key);
+
+        /// <summary>
+        /// Gets a value indicating whether an entity exists.
+        /// </summary>
+        /// <param name="key">Entity key.</param>
+        /// <returns>Returns <see langword="true"/> if entity exists.</returns>
+        bool IsExists([NotNull] string key);
+
+        /// <summary>
+        /// Find all items matching the query.
+        /// </summary>
+        /// <param name="query">Filter predicate</param>
+        /// <returns>Items matching the query</returns>
+        IEnumerable<T> Find(Func<T, bool> query);
     }
 }

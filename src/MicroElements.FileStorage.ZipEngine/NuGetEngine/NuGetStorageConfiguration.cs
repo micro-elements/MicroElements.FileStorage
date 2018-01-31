@@ -16,12 +16,12 @@ namespace MicroElements.FileStorage.NuGetEngine
         /// <summary>
         /// Package id.
         /// </summary>
-        public string PackageId { get; set; } = "NUnit";
+        public string PackageId { get; set; }
 
         /// <summary>
         /// Package version.
         /// </summary>
-        public string PackageVersion { get; set; } = "3.9.0";
+        public string PackageVersion { get; set; }
 
         /// <summary>
         /// Base path to search files.

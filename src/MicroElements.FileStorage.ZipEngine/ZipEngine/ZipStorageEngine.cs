@@ -118,7 +118,10 @@ namespace MicroElements.FileStorage.ZipEngine
 
         public StorageMetadata GetStorageMetadata()
         {
-            throw new NotImplementedException();
+            return new StorageMetadata
+            {
+                IsReadonly = _configuration.Mode != ZipStorageEngineMode.Write
+            };
         }
 
         /// <inheritdoc />

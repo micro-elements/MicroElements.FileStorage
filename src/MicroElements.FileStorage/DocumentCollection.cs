@@ -9,6 +9,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.CodeContracts;
+using MicroElements.FileStorage.Operations;
 
 namespace MicroElements.FileStorage
 {
@@ -20,7 +21,8 @@ namespace MicroElements.FileStorage
     {
         private readonly List<T> _documents = new List<T>();
         private readonly ConcurrentDictionary<string, int> _indexIdDocIndex = new ConcurrentDictionary<string, int>();
-        private readonly Lazy<DelayedOperations> _delayedOperations = new Lazy<DelayedOperations>(() => new DelayedOperations());
+        private readonly IDocumentContainer<T> _documentContainer = new DocumentContainer<T>();
+        private readonly CommandLog _commandLog = new CommandLog();
 
         private readonly IKeyGetter<T> _keyGetter;
         private readonly IKeySetter<T> _keySetter;
@@ -117,8 +119,9 @@ namespace MicroElements.FileStorage
         {
             lock (_documents)
             {
-                var enumerable = _documents.Where(query);
-                return enumerable.Where(d => d != null);
+                return _documents
+                    .Where(d => d != null)
+                    .Where(query);
             }
         }
 
@@ -138,7 +141,7 @@ namespace MicroElements.FileStorage
                     _indexIdDocIndex.TryRemove(key, out _);
                 }
 
-                _delayedOperations.Value.MarkAsDeleted(key);
+                _commandLog.Add(new StoreCommand(CommandType.Delete, typeof(T), key));
                 HasChanges = true;
             }
             else
@@ -149,9 +152,9 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
-        public DelayedOperations GetDelayedOperations()
+        public IReadOnlyCommandLog GetCommandLog()
         {
-            return _delayedOperations.Value;
+            return _commandLog;
         }
 
         /// <inheritdoc />
@@ -160,7 +163,9 @@ namespace MicroElements.FileStorage
             lock (_documents)
             {
                 foreach (var key in _indexIdDocIndex.Keys)
-                    _delayedOperations.Value.MarkAsDeleted(key);
+                {
+                    _commandLog.Add(new StoreCommand(CommandType.Delete, typeof(T), key));
+                }
 
                 _documents.Clear();
                 _indexIdDocIndex.Clear();
@@ -203,6 +208,97 @@ namespace MicroElements.FileStorage
         private IValidator<T> GetValidator()
         {
             return ConfigurationTyped.ValidatorFactory?.GetValidator<T>();
+        }
+    }
+
+
+    public class DocumentContainer<T> : IDocumentContainer<T> where T : class
+    {
+        private readonly List<T> _documents = new List<T>();
+        private readonly ConcurrentDictionary<string, int> _indexIdDocIndex = new ConcurrentDictionary<string, int>();
+
+        /// <inheritdoc />
+        public void Add(T item, string key)
+        {
+            Check.NotNull(item, nameof(item));
+            Check.NotNull(key, nameof(key));
+
+            lock (_documents)
+            {
+                if (_indexIdDocIndex.TryGetValue(key, out int index))
+                {
+                    // Update item.
+                    _documents[index] = item;
+                }
+                else
+                {
+                    // Add item.
+                    _documents.Add(item);
+                    _indexIdDocIndex[key] = _documents.Count - 1;
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public T Get(string key)
+        {
+            Check.NotNull(key, nameof(key));
+
+            lock (_documents)
+            {
+                if (_indexIdDocIndex.TryGetValue(key, out int index))
+                {
+                    return _documents[index];
+                }
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public bool IsExists(string key)
+        {
+            Check.NotNull(key, nameof(key));
+
+            lock (_documents)
+            {
+                return _indexIdDocIndex.ContainsKey(key);
+            }
+        }
+
+        /// <inheritdoc />
+        public void Delete(string key)
+        {
+            var entity = Get(key);
+            if (entity != null)
+            {
+                lock (_documents)
+                {
+                    if (_indexIdDocIndex.TryGetValue(key, out int index))
+                    {
+                        _documents[index] = null;
+                    }
+
+                    _indexIdDocIndex.TryRemove(key, out _);
+                }
+            }
+            else
+            {
+                // todo: error?
+                // throw new EntityNotFoundException();
+            }
+        }
+
+
+
+        public IEnumerable<T> Find(Func<T, bool> query)
+        {
+            lock (_documents)
+            {
+                return _documents
+                    .Where(d => d != null)
+                    .Where(query);
+            }
         }
     }
 }

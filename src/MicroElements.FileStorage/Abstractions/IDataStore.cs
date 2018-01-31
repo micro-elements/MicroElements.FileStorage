@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MicroElements.FileStorage.Experimental;
 
 namespace MicroElements.FileStorage.Abstractions
 {
@@ -40,5 +41,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// Drops all collections.
         /// </summary>
         void Drop();
+
+        // ISession OpenSession();
     }
 }

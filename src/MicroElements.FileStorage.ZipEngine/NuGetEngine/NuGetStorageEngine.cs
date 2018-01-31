@@ -26,6 +26,7 @@ namespace MicroElements.FileStorage.NuGetEngine
     /// </summary>
     public class NuGetStorageEngine : IStorageEngine, IDisposable
     {
+        private readonly NuGetStorageConfiguration _configuration;
         private readonly ZipStorageEngine _zipStorageEngine;
 
         /// <summary>
@@ -37,6 +38,7 @@ namespace MicroElements.FileStorage.NuGetEngine
         {
             Check.NotNull(configuration, nameof(configuration));
             Check.NotNull(loggerFactory, nameof(loggerFactory));
+            _configuration = configuration;
 
             var packageSource = new PackageSource(configuration.PackageSource);
             var providers = new List<Lazy<INuGetResourceProvider>>(Repository.Provider.GetCoreV3());
@@ -98,25 +100,28 @@ namespace MicroElements.FileStorage.NuGetEngine
         /// <inheritdoc />
         public Task WriteFile(string subPath, FileContent content)
         {
-            throw new System.NotImplementedException();
+            return _zipStorageEngine.WriteFile(subPath, content);
         }
 
         /// <inheritdoc />
         public Task DeleteFile(string subPath)
         {
-            throw new System.NotImplementedException();
+            return _zipStorageEngine.DeleteFile(subPath);
         }
 
         /// <inheritdoc />
         public FileContentMetadata GetFileMetadata(string subPath)
         {
-            throw new System.NotImplementedException();
+            return _zipStorageEngine.GetFileMetadata(subPath);
         }
 
         /// <inheritdoc />
         public StorageMetadata GetStorageMetadata()
         {
-            throw new System.NotImplementedException();
+            return new StorageMetadata
+            {
+                IsReadonly = true
+            };
         }
 
         /// <inheritdoc />

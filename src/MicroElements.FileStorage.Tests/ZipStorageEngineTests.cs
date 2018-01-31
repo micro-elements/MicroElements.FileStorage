@@ -182,7 +182,7 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Fact]
-        public void delete_files()
+        public async Task delete_files()
         {
             var fileContentEmpty = new FileContent(string.Empty, string.Empty);
             var file1 = "1\test1.json";
@@ -218,7 +218,7 @@ namespace MicroElements.FileStorage.Tests
             zipStorageEngine.ReadFile(file2).Should().NotBeNull();
 
             // delete file1
-            zipStorageEngine.DeleteFile(file1);
+            await zipStorageEngine.DeleteFile(file1);
 
             filesFromZipStorage = zipStorageEngine.ReadDirectory("1").Select(p => p.GetAwaiter().GetResult()).ToArray();
             foreach (var file in fileContents.Where(p => p.Location != file1))
@@ -240,7 +240,7 @@ namespace MicroElements.FileStorage.Tests
             zipStorageEngine.ReadFile(file2).GetAwaiter().GetResult().Should().NotBe(fileContentEmpty);
 
             // delete file1 and file2
-            zipStorageEngine.DeleteFile(file2);
+            await zipStorageEngine.DeleteFile(file2);
 
             filesFromZipStorage = zipStorageEngine.ReadDirectory("1").Select(p => p.GetAwaiter().GetResult()).ToArray();
             foreach (var file in fileContents.Where(p => p.Location != file1))

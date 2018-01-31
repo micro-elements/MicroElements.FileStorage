@@ -80,18 +80,18 @@ namespace MicroElements.FileStorage.Tests
 
             File.Exists(fileBill).Should().BeTrue();
             File.Exists(fileSteve).Should().BeTrue();
-            
+
             collection.Delete("1");
             File.Exists(fileBill).Should().BeTrue();
             dataStore.Save();
             File.Exists(fileBill).Should().BeFalse();
             File.Exists(fileSteve).Should().BeTrue();
-       
+
             collection.Delete("2");
             File.Exists(fileSteve).Should().BeTrue();
             dataStore.Save();
             File.Exists(fileSteve).Should().BeFalse();
-            
+
         }
 
         [Theory()]
@@ -152,7 +152,7 @@ namespace MicroElements.FileStorage.Tests
             switch (storageName)
             {
                 case nameof(FileStorageEngine):
-                    storageEngine = new FileStorageEngine(basePath);
+                    storageEngine = new FileStorageEngine(new FileStorageConfiguration { BasePath = basePath });
                     break;
                 case nameof(ZipStorageEngine):
                     storageEngine = new ZipStorageEngine(new ZipStorageConfiguration(new MemoryStream()) { Mode = ZipStorageEngineMode.Write, LeaveOpen = true });

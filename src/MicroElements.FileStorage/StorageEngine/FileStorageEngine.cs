@@ -22,12 +22,13 @@ namespace MicroElements.FileStorage.StorageEngine
         /// <summary>
         /// Initializes a new instance of the <see cref="FileStorageEngine"/> class.
         /// </summary>
-        /// <param name="basePath">Base path.</param>
-        public FileStorageEngine([NotNull] string basePath)
+        /// <param name="configuration">FileStorageConfiguration.</param>
+        public FileStorageEngine([NotNull] FileStorageConfiguration configuration)
         {
-            Check.NotNull(basePath, nameof(basePath));
+            Check.NotNull(configuration, nameof(configuration));
+            Check.NotNull(configuration.BasePath, nameof(configuration.BasePath));
 
-            _basePath = basePath.PathNormalize();
+            _basePath = configuration.BasePath.PathNormalize();
             if (!Directory.Exists(_basePath))
                 Directory.CreateDirectory(_basePath);
         }
@@ -93,7 +94,10 @@ namespace MicroElements.FileStorage.StorageEngine
         /// <inheritdoc />
         public StorageMetadata GetStorageMetadata()
         {
-            return new StorageMetadata();
+            return new StorageMetadata
+            {
+                IsReadonly = false
+            };
         }
 
         private string GetFullPath(string subPath)

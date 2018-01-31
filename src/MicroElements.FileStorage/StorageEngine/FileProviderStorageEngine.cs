@@ -64,7 +64,10 @@ namespace MicroElements.FileStorage.StorageEngine
         /// <inheritdoc />
         public StorageMetadata GetStorageMetadata()
         {
-            throw new System.NotImplementedException();
+            return new StorageMetadata
+            {
+                IsReadonly = true
+            };
         }
     }
 }

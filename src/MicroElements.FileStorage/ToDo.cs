@@ -11,6 +11,7 @@ namespace MicroElements.FileStorage
     // https://ravendb.net/docs/article-page/3.5/all/server/kb/document-key-generation
     // guid, semantic, identity
     // todo: special struct for key
+    // todo: NewId or CombGuid
 
     // todo: create collection (data cache)
     // todo: create snapshot
@@ -26,6 +27,8 @@ namespace MicroElements.FileStorage
     // todo: security: sign, encrypt
     // todo: audit?
     // todo: persistent sequence for IdentityKeyGenerator
+    // todo: TTL for caching?
+    // todo: reactive? observable?
 
     // todo: DocumentCollection: Add, Delete is lockable change operations. Need some like session or transaction log.
 }

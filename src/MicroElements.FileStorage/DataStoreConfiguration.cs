@@ -37,7 +37,7 @@ namespace MicroElements.FileStorage
         {
             if (StorageEngine == null && BasePath != null)
             {
-                StorageEngine = new FileStorageEngine(BasePath);
+                StorageEngine = new FileStorageEngine(new FileStorageConfiguration { BasePath = BasePath });
             }
 
             foreach (var configuration in Collections)

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.Operations;
 
 namespace MicroElements.FileStorage.Experimental
 {
@@ -16,24 +17,12 @@ namespace MicroElements.FileStorage.Experimental
         void Patch<T>(string key, IDictionary<string, object> properties) where T : class;
     }
 
-    public class SessionCommand
-    {
-        public DateTime TimestampUtc { get; set; }
-        public Command Command { get; set; }
-        public string Serializer { get; set; }
-        public string Format { get; set; }
-        public string Version { get; set; }
-        public string Content { get; set; }
-
-
-    }
-
     public class Session : ISession
     {
         private IDataStore _dataStore;
         private IStorageEngine _storageEngine;
 
-        private List<SessionCommand> _commands = new List<SessionCommand>();
+        private List<StoreCommand> _commands = new List<StoreCommand>();
 
         /// <inheritdoc />
         public void Dispose()
@@ -44,7 +33,7 @@ namespace MicroElements.FileStorage.Experimental
         /// <inheritdoc />
         public void Store<T>(T entity) where T : class
         {
-            var sessionCommand = new SessionCommand();
+            var sessionCommand = new StoreCommand(CommandType.Store, typeof(T), null, null);
             sessionCommand.TimestampUtc = DateTime.UtcNow;
             var configuration = _dataStore.GetCollection<T>().ConfigurationTyped;
             var serializerInfo = configuration.Serializer.GetInfo();
@@ -66,42 +55,6 @@ namespace MicroElements.FileStorage.Experimental
         {
             throw new NotImplementedException();
         }
-    }
-
-    public class SessionLog
-    {
-
-    }
-
-    /// <summary>
-    /// Data snapshot represents data state in time.
-    /// </summary>
-    internal interface IDataSnapshot
-    {
-    }
-
-    internal class SnapshotInfo
-    {
-        public DateTime Timestamp { get; set; }
-    }
-
-    internal class DataAddon
-    {
-        public DataCommand[] Rows { get; set; }
-    }
-
-    public class DataCommand
-    {
-        public DateTime TimestampUtc { get; set; }
-        public Command Command { get; set; }
-        public FileContent Content { get; set; }
-    }
-
-    public enum Command
-    {
-        Store,
-        Patch,
-        Delete,
     }
 
     // https://github.com/micro-elements/MicroElements.FileStorage/issues/6

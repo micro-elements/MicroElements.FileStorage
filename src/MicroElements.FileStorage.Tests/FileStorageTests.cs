@@ -38,7 +38,6 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
                 StorageEngine = storageEngine,
                 Collections = new[]
                 {
@@ -47,8 +46,7 @@ namespace MicroElements.FileStorage.Tests
                         SourceFile = "persons",
                         Serializer = new JsonSerializer(),
                         KeyGetter = new DefaultKeyAccessor<Person>(),
-                        KeyGenerator =
-                            new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                        KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
                     },
                 }
             };
@@ -104,7 +102,6 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
                 StorageEngine = storageEngine,
                 Collections = new[]
                 {
@@ -187,7 +184,6 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
                 StorageEngine = storageEngine,
                 Collections = new[]
                 {
@@ -220,7 +216,6 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
                 StorageEngine = storageEngine,
                 Collections = new[]
                 {
@@ -320,7 +315,6 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
                 StorageEngine = storageEngine,
                 Collections = new[]
                 {
@@ -360,7 +354,6 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
                 StorageEngine = storageEngine,
                 Collections = new[]
                 {
@@ -369,8 +362,7 @@ namespace MicroElements.FileStorage.Tests
                         SourceFile = "persons",
                         Serializer = new JsonSerializer(),
                         KeyGetter = new DefaultKeyAccessor<Person>(),
-                        KeyGenerator =
-                            new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                        KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
                     },
                 }
             };
@@ -450,7 +442,6 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
                 StorageEngine = storageEngine,
                 Collections = new[]
                 {
@@ -501,8 +492,7 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                //StorageEngine = new FileStorageEngine(basePath),
+                StorageEngine = new FileStorageEngine(new FileStorageConfiguration() { BasePath = basePath }),
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Currency>
@@ -611,7 +601,7 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
+                StorageEngine = new FileStorageEngine(new FileStorageConfiguration() { BasePath = basePath }),
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Person>
@@ -641,7 +631,7 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration2 = new DataStoreConfiguration
             {
-                BasePath = basePath,
+                StorageEngine = new FileStorageEngine(new FileStorageConfiguration() { BasePath = basePath }),
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Person>

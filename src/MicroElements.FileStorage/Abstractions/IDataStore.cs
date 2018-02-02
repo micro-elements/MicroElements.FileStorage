@@ -42,6 +42,6 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         void Drop();
 
-        // ISession OpenSession();
+        ISession OpenSession();
     }
 }

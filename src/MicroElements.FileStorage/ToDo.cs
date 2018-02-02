@@ -24,11 +24,19 @@ namespace MicroElements.FileStorage
     // todo: validation
     // todo: NewId generator
     // todo: full configuration verify
-    // todo: security: sign, encrypt
-    // todo: audit?
+    // todo: security: sign, encrypt, hashing
+    // todo: audit
     // todo: persistent sequence for IdentityKeyGenerator
     // todo: TTL for caching?
     // todo: reactive? observable?
+    // todo: Addon rules: EveryDay (Time function), SizeLimit
 
     // todo: DocumentCollection: Add, Delete is lockable change operations. Need some like session or transaction log.
+
+    /*
+     Some investigation:
+        https://github.com/RolandPheasant/DynamicData/blob/a848dd088d30181a0896a027fb33d5eb96669c33/DynamicData/Cache/Change.cs
+
+    */
+
 }

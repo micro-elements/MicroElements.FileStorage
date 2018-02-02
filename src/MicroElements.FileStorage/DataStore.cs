@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.Experimental;
 using MicroElements.FileStorage.Operations;
 
 namespace MicroElements.FileStorage
@@ -100,6 +101,12 @@ namespace MicroElements.FileStorage
             {
                 collection.Drop();
             }
+        }
+
+        /// <inheritdoc />
+        public ISession OpenSession()
+        {
+            throw new NotImplementedException();
         }
 
         private void CallSaveCollection(IDocumentCollection collection)

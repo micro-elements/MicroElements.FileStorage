@@ -8,13 +8,38 @@ using System.Collections.Generic;
 using System.Linq;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.CodeContracts;
+using MicroElements.FileStorage.Operations;
 
 namespace MicroElements.FileStorage
 {
+    public class Index
+    {
+        // Key->index in list => поиск по ключу
+        // Перечисление по индексу => итерация по списку
+        // Удаления??? => 
+        // Last DocumentContainer со списком транзакций
+        // Для сквозного поиска нужны все индексы + последний
+        private readonly ConcurrentDictionary<string, int> _indexIdDocIndex = new ConcurrentDictionary<string, int>();
+
+
+
+    }
+
+
+
+    public interface IIndex<TBy>
+    {
+        IDictionary<TBy, int> Index();
+
+        void Add(TBy item, int key);
+    }
+
     public class DocumentContainer<T> : IDocumentContainer<T>, IEnumerable<T> where T : class
     {
         private readonly List<T> _documents = new List<T>();
         private readonly ConcurrentDictionary<string, int> _indexIdDocIndex = new ConcurrentDictionary<string, int>();
+
+        private IIndex<string> _byKeyIndex;
 
         /// <inheritdoc />
         public void Add(T item, string key)
@@ -37,6 +62,9 @@ namespace MicroElements.FileStorage
                 }
             }
         }
+
+        /// <inheritdoc />
+        public bool IsReadOnly { get; }
 
         /// <inheritdoc />
         public T Get(string key)
@@ -63,6 +91,12 @@ namespace MicroElements.FileStorage
             {
                 return _indexIdDocIndex.ContainsKey(key);
             }
+        }
+
+        /// <inheritdoc />
+        public void AddOrUpdate(T item, string key)
+        {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />
@@ -113,7 +147,35 @@ namespace MicroElements.FileStorage
         }
     }
 
-    public class CommandLogDocCollection
+    public class CommandLogDocCollection<T> : IDocumentContainer<T>
     {
+        private ICommandLog _commandLog = new CommandLog();
+
+        /// <inheritdoc />
+        public T Get(string key)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public bool IsExists(string key)
+        {
+            return false;
+        }
+
+        /// <inheritdoc />
+        public bool IsReadOnly { get; }
+
+        /// <inheritdoc />
+        public void AddOrUpdate(T item, string key)
+        {
+            _commandLog.Add(new StoreCommand(CommandType.Store, typeof(T), key) { Entity = item });
+        }
+
+        /// <inheritdoc />
+        public void Delete(string key)
+        {
+            _commandLog.Add(new StoreCommand(CommandType.Delete, typeof(T), key));
+        }
     }
 }

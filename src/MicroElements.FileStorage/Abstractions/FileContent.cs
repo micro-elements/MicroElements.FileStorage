@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using JetBrains.Annotations;
 using MicroElements.FileStorage.CodeContracts;
 
@@ -73,6 +74,24 @@ namespace MicroElements.FileStorage.Abstractions
         public static bool operator !=(FileContent content1, FileContent content2)
         {
             return !(content1 == content2);
+        }
+    }
+
+    public class Content
+    {
+        private Span<byte> _content;
+        private Encoding _encoding;
+
+        /// <inheritdoc />
+        public Content(Span<byte> content, Encoding encoding)
+        {
+            _content = content;
+            _encoding = encoding;
+        }
+
+        public string Text
+        {
+            get { return _encoding.GetString(_content.ToArray()); }
         }
     }
 }

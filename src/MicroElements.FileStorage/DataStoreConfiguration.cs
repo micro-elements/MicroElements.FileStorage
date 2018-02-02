@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using MicroElements.FileStorage.Abstractions;
-using MicroElements.FileStorage.StorageEngine;
+using MicroElements.FileStorage.Abstractions.Exceptions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -14,11 +14,6 @@ namespace MicroElements.FileStorage
     public class DataStoreConfiguration
     {
         /// <summary>
-        /// Base path to file storage.
-        /// </summary>
-        public string BasePath { get; set; }
-
-        /// <summary>
         /// StorageEngine.
         /// </summary>
         public IStorageEngine StorageEngine { get; set; }
@@ -28,16 +23,15 @@ namespace MicroElements.FileStorage
         /// </summary>
         public CollectionConfiguration[] Collections { get; set; }
 
-        //todo: service collection
         public ILoggerFactory LoggerFactory { get; set; } = NullLoggerFactory.Instance;
 
         public Conventions Conventions { get; set; } = Conventions.Default;
 
         public void Verify()
         {
-            if (StorageEngine == null && BasePath != null)
+            if (StorageEngine == null)
             {
-                StorageEngine = new FileStorageEngine(new FileStorageConfiguration { BasePath = BasePath });
+                throw new InvalidConfigurationException("StorageEngine is required");
             }
 
             foreach (var configuration in Collections)

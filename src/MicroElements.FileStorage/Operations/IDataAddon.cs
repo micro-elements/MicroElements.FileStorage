@@ -7,4 +7,13 @@ namespace MicroElements.FileStorage.Operations
     {
         void Add(StoreCommand command);
     }
+
+    public interface IAddonManager
+    {
+        /// <summary>
+        /// Gets existing or new addon according rules.
+        /// </summary>
+        /// <returns></returns>
+        IDataAddon GetAddon();
+    }
 }

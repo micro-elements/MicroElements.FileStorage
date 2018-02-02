@@ -24,6 +24,7 @@ namespace MicroElements.FileStorage.Operations
         public Type EntityType { get; set; }
         public string Key { get; set; }
         public string Content { get; set; }
+        public object Entity { get; set; }
 
         public bool Processed { get; set; }
         public bool Persisted { get; set; }

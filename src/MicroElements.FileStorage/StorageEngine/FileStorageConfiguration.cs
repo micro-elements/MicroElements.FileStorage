@@ -4,7 +4,7 @@
 namespace MicroElements.FileStorage.StorageEngine
 {
     /// <summary>
-    /// Configuration for <see cref="FileStorageEngine"/>.
+    /// Configuration for <see cref="FileStorageProvider"/>.
     /// </summary>
     public class FileStorageConfiguration : CommonStorageConfiguration
     {

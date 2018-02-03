@@ -22,7 +22,7 @@ namespace MicroElements.FileStorage.Tests
     public class FileStorageTests
     {
         [Theory]
-        [InlineData(nameof(FileStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
         public async Task delete_should_delete_file_multifile_collection(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/delete_multifile_collection");
@@ -38,7 +38,7 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageEngine = storageEngine,
+                StorageProvider = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Person>
@@ -93,8 +93,8 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
+        [InlineData(nameof(ZipStorageProvider))]
         public async Task load_single_file_collection(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/SingleFileCollection");
@@ -102,7 +102,7 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageEngine = storageEngine,
+                StorageProvider = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfiguration
@@ -141,39 +141,39 @@ namespace MicroElements.FileStorage.Tests
             person.LastName.Should().Be("Gates");
         }
 
-        private static IStorageEngine GetStorageEngine(string storageName, string basePath)
+        private static IStorageProvider GetStorageEngine(string storageName, string basePath)
         {
             if (!Directory.Exists(basePath))
                 Directory.CreateDirectory(basePath);
-            IStorageEngine storageEngine = null;
+            IStorageProvider storageProvider = null;
             switch (storageName)
             {
-                case nameof(FileStorageEngine):
-                    storageEngine = new FileStorageEngine(new FileStorageConfiguration { BasePath = basePath });
+                case nameof(FileStorageProvider):
+                    storageProvider = new FileStorageProvider(new FileStorageConfiguration { BasePath = basePath });
                     break;
-                case nameof(ZipStorageEngine):
-                    storageEngine = new ZipStorageEngine(new ZipStorageConfiguration(new MemoryStream()) { Mode = ZipStorageEngineMode.Write, LeaveOpen = true });
+                case nameof(ZipStorageProvider):
+                    storageProvider = new ZipStorageProvider(new ZipStorageConfiguration(new MemoryStream()) { Mode = ZipStorageEngineMode.Write, LeaveOpen = true });
                     var dic = new DirectoryInfo(basePath);
                     var allFiles = dic.GetFiles("*", SearchOption.AllDirectories);
                     foreach (var file in allFiles)
                     {
                         var location = file.FullName.Replace(dic.FullName, "").TrimStart('/').TrimStart('\\');
                         var fileContent = new FileContent(location, File.ReadAllText(file.FullName));
-                        storageEngine.WriteFile(location, fileContent).GetAwaiter().GetResult();
+                        storageProvider.WriteFile(location, fileContent).GetAwaiter().GetResult();
                     }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(storageName);
             }
 
-            return storageEngine;
+            return storageProvider;
         }
 
         [Theory]
-        [InlineData(nameof(FileStorageEngine), false)]
-        [InlineData(nameof(FileStorageEngine), true)]
-        [InlineData(nameof(ZipStorageEngine), false)]
-        [InlineData(nameof(ZipStorageEngine), true)]
+        [InlineData(nameof(FileStorageProvider), false)]
+        [InlineData(nameof(FileStorageProvider), true)]
+        [InlineData(nameof(ZipStorageProvider), false)]
+        [InlineData(nameof(ZipStorageProvider), true)]
         public async Task load_multi_file_collection(string typeStorageEngine, bool relative)
         {
             var basePath = "TestData/DataStore/MultiFileCollection";
@@ -184,7 +184,7 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageEngine = storageEngine,
+                StorageProvider = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfiguration
@@ -207,8 +207,8 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
+        [InlineData(nameof(ZipStorageProvider))]
         public async Task load_csv_collection(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/WithConvert");
@@ -216,7 +216,7 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageEngine = storageEngine,
+                StorageProvider = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfiguration
@@ -240,8 +240,8 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
+        [InlineData(nameof(ZipStorageProvider))]
         public async Task create_collection_and_save(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/create_collection_and_save");
@@ -270,8 +270,8 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        //[InlineData(nameof(ZipStorageEngine))]//todo: doesnot work
+        [InlineData(nameof(FileStorageProvider))]
+        //[InlineData(nameof(ZipStorageProvider))]//todo: doesnot work
         public void save_update_save(string typeStorageEngine)
         {
             string basePath = Path.GetFullPath("TestData/DataStore/save_update_save");
@@ -315,7 +315,7 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageEngine = storageEngine,
+                StorageProvider = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Person>()
@@ -337,8 +337,8 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
+        [InlineData(nameof(ZipStorageProvider))]
         public async Task save_multifile_collection_with_semantic_keys(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/save_multifile_collection");
@@ -354,7 +354,7 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageEngine = storageEngine,
+                StorageProvider = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Person>
@@ -392,7 +392,7 @@ namespace MicroElements.FileStorage.Tests
 
             switch (typeStorageEngine)
             {
-                case nameof(FileStorageEngine):
+                case nameof(FileStorageProvider):
                     var fileBill = Path.Combine(collectionFullDir, fileNameBill);
                     var fileSteve = Path.Combine(collectionFullDir, fileNameSteve);
 
@@ -401,8 +401,8 @@ namespace MicroElements.FileStorage.Tests
 
                     fileAllTextBill = File.ReadAllText(fileBill);
                     break;
-                case nameof(ZipStorageEngine):
-                    var zipStorageEngine = storageEngine as ZipStorageEngine;
+                case nameof(ZipStorageProvider):
+                    var zipStorageEngine = storageEngine as ZipStorageProvider;
                     zipStorageEngine.Should().NotBeNull();
                     var zipArchive = zipStorageEngine.GetZipArchive();
                     using (var billStream = zipArchive.GetEntry(collectionDir + "/" + fileNameBill).Open())
@@ -428,8 +428,8 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
+        [InlineData(nameof(ZipStorageProvider))]
         public async Task key_generation(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/key_generation");
@@ -442,7 +442,7 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageEngine = storageEngine,
+                StorageProvider = storageEngine,
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Person>
@@ -492,7 +492,7 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageEngine = new FileStorageEngine(new FileStorageConfiguration() { BasePath = basePath }),
+                StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Currency>
@@ -590,7 +590,7 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
         public async Task add_get_with_identity_key(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/add_get_with_identity_key");
@@ -601,7 +601,7 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageEngine = new FileStorageEngine(new FileStorageConfiguration() { BasePath = basePath }),
+                StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Person>
@@ -631,7 +631,7 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration2 = new DataStoreConfiguration
             {
-                StorageEngine = new FileStorageEngine(new FileStorageConfiguration() { BasePath = basePath }),
+                StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
                 Collections = new[]
                 {
                     new CollectionConfigurationTyped<Person>

@@ -4,7 +4,7 @@
 namespace MicroElements.FileStorage.NuGetEngine
 {
     /// <summary>
-    /// Configuration for <see cref="NuGetStorageEngine"/>.
+    /// Configuration for <see cref="NuGetStorageProvider"/>.
     /// </summary>
     public class NuGetStorageConfiguration
     {

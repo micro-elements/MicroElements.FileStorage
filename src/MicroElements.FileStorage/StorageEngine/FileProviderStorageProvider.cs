@@ -9,11 +9,11 @@ using Microsoft.Extensions.FileProviders;
 
 namespace MicroElements.FileStorage.StorageEngine
 {
-    public class FileProviderStorageEngine : IStorageEngine
+    public class FileProviderStorageProvider : IStorageProvider
     {
         private readonly IFileProvider _fileProvider;
 
-        public FileProviderStorageEngine(IFileProvider fileProvider)
+        public FileProviderStorageProvider(IFileProvider fileProvider)
         {
             _fileProvider = fileProvider;
         }

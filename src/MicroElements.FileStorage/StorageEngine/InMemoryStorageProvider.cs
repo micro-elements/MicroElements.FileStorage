@@ -11,7 +11,7 @@ namespace MicroElements.FileStorage.StorageEngine
     /// <summary>
     /// In memory storage engine. For test scenarios.
     /// </summary>
-    public class InMemoryStorageEngine : IStorageEngine
+    public class InMemoryStorageProvider : IStorageProvider
     {
         private readonly Dictionary<string, FileContent> _contents = new Dictionary<string, FileContent>();
 

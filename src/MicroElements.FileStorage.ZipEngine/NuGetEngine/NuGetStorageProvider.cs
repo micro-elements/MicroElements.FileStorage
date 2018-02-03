@@ -24,17 +24,17 @@ namespace MicroElements.FileStorage.NuGetEngine
     /// NuGet storage engine.
     /// <para>Downloads nuget package and uses as data source.</para>
     /// </summary>
-    public class NuGetStorageEngine : IStorageEngine, IDisposable
+    public class NuGetStorageProvider : IStorageProvider, IDisposable
     {
         private readonly NuGetStorageConfiguration _configuration;
-        private readonly ZipStorageEngine _zipStorageEngine;
+        private readonly ZipStorageProvider _zipStorageProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NuGetStorageEngine"/> class.
+        /// Initializes a new instance of the <see cref="NuGetStorageProvider"/> class.
         /// </summary>
         /// <param name="configuration"><see cref="NuGetStorageConfiguration"/>.</param>
         /// <param name="loggerFactory"><see cref="ILoggerFactory"/>.</param>
-        public NuGetStorageEngine([NotNull] NuGetStorageConfiguration configuration, [NotNull] ILoggerFactory loggerFactory)
+        public NuGetStorageProvider([NotNull] NuGetStorageConfiguration configuration, [NotNull] ILoggerFactory loggerFactory)
         {
             Check.NotNull(configuration, nameof(configuration));
             Check.NotNull(loggerFactory, nameof(loggerFactory));
@@ -76,7 +76,7 @@ namespace MicroElements.FileStorage.NuGetEngine
                 packageFileName = "todo_get";
             }
 
-            _zipStorageEngine = new ZipStorageEngine(new ZipStorageConfiguration(packageFileName)
+            _zipStorageProvider = new ZipStorageProvider(new ZipStorageConfiguration(packageFileName)
             {
                 StreamType = ZipStorageEngineStreamType.MemoryStream,
                 Mode = ZipStorageEngineMode.Read,
@@ -88,31 +88,31 @@ namespace MicroElements.FileStorage.NuGetEngine
         /// <inheritdoc />
         public Task<FileContent> ReadFile(string subPath)
         {
-            return _zipStorageEngine.ReadFile(subPath);
+            return _zipStorageProvider.ReadFile(subPath);
         }
 
         /// <inheritdoc />
         public IEnumerable<Task<FileContent>> ReadDirectory(string subPath)
         {
-            return _zipStorageEngine.ReadDirectory(subPath);
+            return _zipStorageProvider.ReadDirectory(subPath);
         }
 
         /// <inheritdoc />
         public Task WriteFile(string subPath, FileContent content)
         {
-            return _zipStorageEngine.WriteFile(subPath, content);
+            return _zipStorageProvider.WriteFile(subPath, content);
         }
 
         /// <inheritdoc />
         public Task DeleteFile(string subPath)
         {
-            return _zipStorageEngine.DeleteFile(subPath);
+            return _zipStorageProvider.DeleteFile(subPath);
         }
 
         /// <inheritdoc />
         public FileContentMetadata GetFileMetadata(string subPath)
         {
-            return _zipStorageEngine.GetFileMetadata(subPath);
+            return _zipStorageProvider.GetFileMetadata(subPath);
         }
 
         /// <inheritdoc />
@@ -127,7 +127,7 @@ namespace MicroElements.FileStorage.NuGetEngine
         /// <inheritdoc />
         public void Dispose()
         {
-            _zipStorageEngine?.Dispose();
+            _zipStorageProvider?.Dispose();
         }
     }
 }

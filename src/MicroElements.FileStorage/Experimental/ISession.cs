@@ -20,7 +20,7 @@ namespace MicroElements.FileStorage.Experimental
     public class Session : ISession
     {
         private IDataStore _dataStore;
-        private IStorageEngine _storageEngine;
+        private IStorageProvider _storageProvider;
 
         private List<StoreCommand> _commands = new List<StoreCommand>();
 

@@ -12,18 +12,18 @@ using MicroElements.FileStorage.Utils;
 namespace MicroElements.FileStorage.StorageEngine
 {
     /// <summary>
-    /// FileStorageEngine.
+    /// FileStorageProvider.
     /// <para>Data is stored in the file system.</para>
     /// </summary>
-    public class FileStorageEngine : IStorageEngine
+    public class FileStorageProvider : IStorageProvider
     {
         private readonly string _basePath;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileStorageEngine"/> class.
+        /// Initializes a new instance of the <see cref="FileStorageProvider"/> class.
         /// </summary>
         /// <param name="configuration">FileStorageConfiguration.</param>
-        public FileStorageEngine([NotNull] FileStorageConfiguration configuration)
+        public FileStorageProvider([NotNull] FileStorageConfiguration configuration)
         {
             Check.NotNull(configuration, nameof(configuration));
             Check.NotNull(configuration.BasePath, nameof(configuration.BasePath));

@@ -56,7 +56,7 @@ namespace MicroElements.FileStorage.Tests
         public void create_storageEngine_ReadMode_Fail()
         {
             var stream = new MemoryStream();
-            Action createZipStorageEngine = () => { new ZipStorageEngine(new ZipStorageConfiguration(stream) { Mode = ZipStorageEngineMode.Read }); };
+            Action createZipStorageEngine = () => { new ZipStorageProvider(new ZipStorageConfiguration(stream) { Mode = ZipStorageEngineMode.Read }); };
             var data = createZipStorageEngine.Should().Throw<InvalidDataException>();
         }
 
@@ -64,7 +64,7 @@ namespace MicroElements.FileStorage.Tests
         public void create_storageEngine_ReadWriteMode()
         {
             var stream = new MemoryStream();
-            Action createZipStorageEngine = () => { new ZipStorageEngine(new ZipStorageConfiguration(stream) { Mode = ZipStorageEngineMode.Write }); };
+            Action createZipStorageEngine = () => { new ZipStorageProvider(new ZipStorageConfiguration(stream) { Mode = ZipStorageEngineMode.Write }); };
             createZipStorageEngine.Should().NotThrow();
         }
 
@@ -76,7 +76,7 @@ namespace MicroElements.FileStorage.Tests
             var fileName = "test.json";
             var fileContent = "testData";
             zipArchiveCreater.AddFile(fileName, fileContent);
-            var zipStorageEngine = new ZipStorageEngine(new ZipStorageConfiguration(zipArchiveCreater.ZipStream));
+            var zipStorageEngine = new ZipStorageProvider(new ZipStorageConfiguration(zipArchiveCreater.ZipStream));
 
             var fileFromZipStorage = zipStorageEngine.ReadFile(fileName).GetAwaiter().GetResult();
             fileFromZipStorage.Content.Should().Be(fileContent);
@@ -98,7 +98,7 @@ namespace MicroElements.FileStorage.Tests
                 zipArchiveCreater.AddFile(file.Location, file.Content);
             }
 
-            var zipStorageEngine = new ZipStorageEngine(new ZipStorageConfiguration(zipArchiveCreater.ZipStream));
+            var zipStorageEngine = new ZipStorageProvider(new ZipStorageConfiguration(zipArchiveCreater.ZipStream));
             var filesFromZipStorage = zipStorageEngine.ReadDirectory("1").Select(p => p.GetAwaiter().GetResult()).ToArray();
             foreach (var file in fileContents)
             {
@@ -132,7 +132,7 @@ namespace MicroElements.FileStorage.Tests
                 zipArchiveCreater.AddFile(file.Location, file.Content);
             }
 
-            var zipStorageEngine = new ZipStorageEngine(new ZipStorageConfiguration(zipArchiveCreater.ZipStream));
+            var zipStorageEngine = new ZipStorageProvider(new ZipStorageConfiguration(zipArchiveCreater.ZipStream));
             var filesFromZipStorage = zipStorageEngine.ReadDirectory("1").Select(p => p.GetAwaiter().GetResult()).ToArray();
             foreach (var file in fileContents)
             {
@@ -162,7 +162,7 @@ namespace MicroElements.FileStorage.Tests
             };
 
             var zipMemoryStream = new MemoryStream();
-            var zipStorageEngine = new ZipStorageEngine(new ZipStorageConfiguration(zipMemoryStream) { Mode = ZipStorageEngineMode.Write });
+            var zipStorageEngine = new ZipStorageProvider(new ZipStorageConfiguration(zipMemoryStream) { Mode = ZipStorageEngineMode.Write });
 
             Task.WaitAll(fileContents.Select(f => zipStorageEngine.WriteFile(f.Location, f)).ToArray());
 
@@ -197,7 +197,7 @@ namespace MicroElements.FileStorage.Tests
             };
 
             var zipMemoryStream = new MemoryStream();
-            var zipStorageEngine = new ZipStorageEngine(new ZipStorageConfiguration(zipMemoryStream) { Mode = ZipStorageEngineMode.Write });
+            var zipStorageEngine = new ZipStorageProvider(new ZipStorageConfiguration(zipMemoryStream) { Mode = ZipStorageEngineMode.Write });
 
             Task.WaitAll(fileContents.Select(f => zipStorageEngine.WriteFile(f.Location, f)).ToArray());
 

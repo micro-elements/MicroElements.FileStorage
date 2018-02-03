@@ -27,7 +27,7 @@ namespace MicroElements.FileStorage.Tests
                 PackageId = "Classifiers.Currency",
                 PackageVersion = "0.0.1"
             };
-            var nuGetStorageEngine = new NuGetStorageEngine(storageConfiguration, new LoggerFactory().AddConsole());
+            var nuGetStorageEngine = new NuGetStorageProvider(storageConfiguration, new LoggerFactory().AddConsole());
             var readDirectory = nuGetStorageEngine.ReadDirectory("Classifiers/Currency").Select(task => task.Result).ToList();
             readDirectory.Should().HaveCount(2);
             var readFile = await nuGetStorageEngine.ReadFile(@"Classifiers/Currency/ISO_4217.xml");
@@ -46,8 +46,8 @@ namespace MicroElements.FileStorage.Tests
                 PackageId = "Classifiers.Currency",
                 PackageVersion = "0.0.1",
             };
-            var nuGetStorageEngine = new NuGetStorageEngine(storageConfiguration, new LoggerFactory().AddConsole());
-            dataStoreConfiguration.StorageEngine = nuGetStorageEngine;
+            var nuGetStorageEngine = new NuGetStorageProvider(storageConfiguration, new LoggerFactory().AddConsole());
+            dataStoreConfiguration.StorageProvider = nuGetStorageEngine;
             dataStoreConfiguration.Collections = new[]
             {
                 new CollectionConfigurationTyped<Currency>()

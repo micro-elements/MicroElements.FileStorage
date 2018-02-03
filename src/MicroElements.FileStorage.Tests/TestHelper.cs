@@ -10,11 +10,11 @@ namespace MicroElements.FileStorage.Tests
     {
         public static async Task<DataStore> CreateInMemoryDataStore()
         {
-            var inMemoryStorageEngine = new InMemoryStorageEngine();
+            var inMemoryStorageEngine = new InMemoryStorageProvider();
             await inMemoryStorageEngine.WriteFile("currencies.json", new FileContent("currencies.json", "[]"));
             DataStoreConfiguration storeConfiguration = new DataStoreConfiguration
             {
-                StorageEngine = inMemoryStorageEngine,
+                StorageProvider = inMemoryStorageEngine,
                 Collections = new CollectionConfiguration[]
                 {
                     new CollectionConfigurationTyped<Currency>

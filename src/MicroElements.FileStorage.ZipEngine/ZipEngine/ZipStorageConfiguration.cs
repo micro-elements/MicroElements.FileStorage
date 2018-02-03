@@ -6,7 +6,7 @@ using System.IO;
 namespace MicroElements.FileStorage.ZipEngine
 {
     /// <summary>
-    /// Cjnfiguration for <see cref="ZipStorageEngine"/>.
+    /// Cjnfiguration for <see cref="ZipStorageProvider"/>.
     /// </summary>
     public class ZipStorageConfiguration
     {

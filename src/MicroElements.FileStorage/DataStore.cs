@@ -26,7 +26,7 @@ namespace MicroElements.FileStorage
         /// <inheritdoc />
         public void Dispose()
         {
-            (_configuration.StorageEngine as IDisposable)?.Dispose();
+            (_configuration.StorageProvider as IDisposable)?.Dispose();
         }
 
         public async Task Initialize()
@@ -44,11 +44,11 @@ namespace MicroElements.FileStorage
                 IEnumerable<Task<FileContent>> fileTasks;
                 if (IsMultiFile(configuration))
                 {
-                    fileTasks = _configuration.StorageEngine.ReadDirectory(configuration.SourceFile);
+                    fileTasks = _configuration.StorageProvider.ReadDirectory(configuration.SourceFile);
                 }
                 else
                 {
-                    fileTasks = new[] { _configuration.StorageEngine.ReadFile(configuration.SourceFile) };
+                    fileTasks = new[] { _configuration.StorageProvider.ReadFile(configuration.SourceFile) };
                 }
 
                 foreach (var fileTask in fileTasks)
@@ -146,7 +146,7 @@ namespace MicroElements.FileStorage
         private void SaveFiles<T>(ISerializer serializer, IReadOnlyCollection<T> items, string fileName, Type configurationDocumentType) where T : class
         {
             var fileContent = serializer.Serialize(items, configurationDocumentType);
-            _configuration.StorageEngine.WriteFile(fileName, fileContent);
+            _configuration.StorageProvider.WriteFile(fileName, fileContent);
         }
 
         private async Task ProcessDeletes<T>(IDocumentCollection<T> collection, string collectionDir, string extention) where T : class
@@ -158,7 +158,7 @@ namespace MicroElements.FileStorage
             {
                 var fileName = Path.Combine(collectionDir, string.Format("{0}{1}", deleteCommand.Key, extention));
 
-                await _configuration.StorageEngine.DeleteFile(fileName);
+                await _configuration.StorageProvider.DeleteFile(fileName);
                 deleteCommand.Processed = true;
             }
         }

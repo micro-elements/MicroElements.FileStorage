@@ -5,9 +5,9 @@ namespace MicroElements.FileStorage.Abstractions
 {
     public static class StorageEngineExtensions
     {
-        public static bool IsExists(this IStorageEngine storageEngine, string location)
+        public static bool IsExists(this IStorageProvider storageProvider, string location)
         {
-            return storageEngine.GetFileMetadata(location).IsExists;
+            return storageProvider.GetFileMetadata(location).IsExists;
         }
     }
 }

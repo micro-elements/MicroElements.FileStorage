@@ -3,24 +3,24 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
-using MicroElements.FileStorage.Experimental;
 using MicroElements.FileStorage.Operations;
+using Microsoft.Extensions.Logging;
 
 namespace MicroElements.FileStorage
 {
     public class DataStore : IDataStore
     {
+        private readonly ILoggerFactory _loggerFactory;
         private readonly DataStoreConfiguration _configuration;
-        private readonly List<IDocumentCollection> _collections = new List<IDocumentCollection>();
+        private IDataSnapshot _dataStorage;
 
         public DataStore(DataStoreConfiguration configuration)
         {
             _configuration = configuration;
+            _loggerFactory = configuration.LoggerFactory;
         }
 
         /// <inheritdoc />
@@ -32,146 +32,44 @@ namespace MicroElements.FileStorage
         public async Task Initialize()
         {
             _configuration.Verify();
-            //todo: logger
-            foreach (var configuration in _configuration.Collections)
-            {
-                var documentCollectionType = typeof(DocumentCollection<>).MakeGenericType(configuration.DocumentType);
-                var documentCollection = (IDocumentCollection)Activator.CreateInstance(documentCollectionType, configuration);
-                var addMethodInfo = documentCollectionType.GetMethod(nameof(IDocumentCollection<object>.Add), new[] { configuration.DocumentType });
 
-                _collections.Add(documentCollection);
+            var dataStorageConfiguration = _configuration.Storages.First();
 
-                IEnumerable<Task<FileContent>> fileTasks;
-                if (IsMultiFile(configuration))
-                {
-                    fileTasks = _configuration.StorageProvider.ReadDirectory(configuration.SourceFile);
-                }
-                else
-                {
-                    fileTasks = new[] { _configuration.StorageProvider.ReadFile(configuration.SourceFile) };
-                }
-
-                foreach (var fileTask in fileTasks)
-                {
-                    var content = await fileTask;
-
-                    if (string.IsNullOrEmpty(content.Content))
-                        continue;
-
-                    var serializer = GetSerializer(configuration);
-
-                    var objects = serializer.Deserialize(content, configuration.DocumentType);
-                    foreach (var document in objects)
-                    {
-                        addMethodInfo.Invoke(documentCollection, new[] { document });
-                    }
-                }
-            }
+            _dataStorage = new DataSnapshot(this, _loggerFactory, dataStorageConfiguration);
+            await _dataStorage.Initialize();
         }
 
         /// <inheritdoc />
         public IDocumentCollection<T> GetCollection<T>() where T : class
         {
-            var documentCollection = (IDocumentCollection<T>)_collections.FirstOrDefault(collection => collection is IDocumentCollection<T>);
-            return documentCollection ?? throw new InvalidOperationException($"Document collection for type {typeof(T)} is not registered in data store.");
+            return _dataStorage.GetCollection<T>();
         }
 
         /// <inheritdoc />
         public IReadOnlyList<IDocumentCollection> GetCollections()
         {
-            return _collections.AsReadOnly();
+            return _dataStorage.GetCollections();
         }
 
         /// <inheritdoc />
         public void Save()
         {
-            foreach (var collection in _collections)
-            {
-                if (collection.HasChanges)
-                {
-                    CallSaveCollection(collection);
-                }
-            }
+            _dataStorage.Save();
         }
 
         /// <inheritdoc />
         public void Drop()
         {
-            foreach (var collection in _collections)
-            {
-                collection.Drop();
-            }
+            _dataStorage.Drop();
         }
+
+        /// <inheritdoc />
+        public DataStoreConfiguration Configuration => _configuration;
 
         /// <inheritdoc />
         public ISession OpenSession()
         {
-            throw new NotImplementedException();
-        }
-
-        private void CallSaveCollection(IDocumentCollection collection)
-        {
-            GetType().GetMethod(nameof(SaveCollection), BindingFlags.Instance | BindingFlags.NonPublic)
-                .MakeGenericMethod(collection.Configuration.DocumentType)
-                .Invoke(this, new[] { collection });
-        }
-
-        private void SaveCollection<T>(IDocumentCollection<T> collection) where T : class
-        {
-            var serializer = GetSerializer(collection.Configuration);
-            var serializerInfo = serializer.GetInfo();
-            var items = collection.Find(arg => true).ToList();
-            var collectionDir = collection.Configuration.SourceFile;
-
-            if (IsMultiFile(collection.Configuration))
-            {
-                foreach (var item in items)
-                {
-                    var key = collection.GetKey(item);
-                    var format = string.Format("{0}{1}", key, serializerInfo.Extension);
-                    var fileName = Path.Combine(collectionDir, format);
-                    SaveFiles(serializer, new[] { item }, fileName, collection.Configuration.DocumentType);
-                }
-
-                ProcessDeletes(collection, collectionDir, serializerInfo.Extension).GetAwaiter().GetResult();
-            }
-            else
-            {
-                SaveFiles(serializer, items, collection.Configuration.SourceFile, collection.Configuration.DocumentType);
-            }
-
-            collection.HasChanges = false;
-        }
-
-        private void SaveFiles<T>(ISerializer serializer, IReadOnlyCollection<T> items, string fileName, Type configurationDocumentType) where T : class
-        {
-            var fileContent = serializer.Serialize(items, configurationDocumentType);
-            _configuration.StorageProvider.WriteFile(fileName, fileContent);
-        }
-
-        private async Task ProcessDeletes<T>(IDocumentCollection<T> collection, string collectionDir, string extention) where T : class
-        {
-            var commandLog = collection.GetCommandLog();
-            var deleteCommands = commandLog.Where(command => !command.Processed && command.CommandType == CommandType.Delete);
-
-            foreach (var deleteCommand in deleteCommands)
-            {
-                var fileName = Path.Combine(collectionDir, string.Format("{0}{1}", deleteCommand.Key, extention));
-
-                await _configuration.StorageProvider.DeleteFile(fileName);
-                deleteCommand.Processed = true;
-            }
-        }
-
-        private ISerializer GetSerializer(CollectionConfiguration configuration)
-        {
-            return configuration.Serializer ?? _configuration.Conventions.GetSerializer(configuration);
-        }
-
-        private bool IsMultiFile(CollectionConfiguration configuration)
-        {
-            var isDirectory = !Path.HasExtension(configuration.SourceFile);
-            return isDirectory;
+            return new Session(this);
         }
     }
 }

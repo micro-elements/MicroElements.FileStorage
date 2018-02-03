@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MicroElements.FileStorage.Operations
 {
@@ -52,6 +53,12 @@ namespace MicroElements.FileStorage.Operations
         public void Add(StoreCommand command)
         {
             _commands.Add(command);
+        }
+
+        /// <inheritdoc />
+        public Task Initialize()
+        {
+            throw new NotImplementedException();
         }
     }
 }

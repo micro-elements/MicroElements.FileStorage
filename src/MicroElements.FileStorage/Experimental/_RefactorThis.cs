@@ -15,7 +15,6 @@ namespace MicroElements.FileStorage.Experimental
 {
     internal interface IDataConvertor { }
 
-
     internal interface IDocumentCollectionFactory
     {
         CollectionConfiguration Get(Type entityType);

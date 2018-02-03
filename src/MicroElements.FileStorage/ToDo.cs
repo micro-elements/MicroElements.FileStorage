@@ -39,4 +39,26 @@ namespace MicroElements.FileStorage
 
     */
 
+
+
+    // https://github.com/micro-elements/MicroElements.FileStorage/issues/6
+    // GH #6 Issue
+
+    /*
+proposal:
+
+* Snapshot is original data
+* Addon is snapshot changes: add, update, delete
+* It can be many addons
+* Addons must be ordered
+* Snapshot+addon_1+...+addon_N = new snapshot (compaction)
+* 
+* Audit: initiator, timestamp, signature
+* Bulk?
+* Import/Export?
+* Backup
+* Append only storage?
+
+    */
+
 }

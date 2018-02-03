@@ -1,6 +1,8 @@
 ﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Linq;
 using FluentValidation;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.Abstractions.Exceptions;
@@ -17,14 +19,24 @@ namespace MicroElements.FileStorage
         /// <summary>
         /// StorageProvider.
         /// </summary>
-        public IStorageProvider StorageProvider { get; set; }
+        [Obsolete("Use Storages")]
+        public IStorageProvider StorageProvider
+        {
+            get => Storages.First().StorageProvider;
+            set => Storages.First().StorageProvider = value;
+        }
 
         /// <summary>
         /// Collection definitions.
         /// </summary>
-        public CollectionConfiguration[] Collections { get; set; }
+        [Obsolete("Use Storages")]
+        public CollectionConfiguration[] Collections
+        {
+            get => Storages.First().Collections;
+            set => Storages.First().Collections = value;
+        }
 
-        public DataStorageConfiguration[] Storages { get; set; }
+        public DataStorageConfiguration[] Storages { get; set; } = { new DataStorageConfiguration() };
 
         public ILoggerFactory LoggerFactory { get; set; } = NullLoggerFactory.Instance;
 
@@ -32,14 +44,14 @@ namespace MicroElements.FileStorage
 
         public void Verify()
         {
-            if (StorageProvider == null)
+            if (Storages == null)
             {
-                throw new InvalidConfigurationException("StorageProvider is required");
+                throw new InvalidConfigurationException("Storages is required");
             }
 
-            foreach (var configuration in Collections)
+            foreach (var storageConfiguration in Storages)
             {
-                configuration.Verify();
+                storageConfiguration.Verify();
             }
         }
     }

@@ -4,25 +4,20 @@
 using System;
 using System.Collections.Generic;
 using MicroElements.FileStorage.Abstractions;
-using MicroElements.FileStorage.Operations;
 
-namespace MicroElements.FileStorage.Experimental
+namespace MicroElements.FileStorage.Operations
 {
-    public interface ISession : IDisposable
-    {
-        void Store<T>(T entity) where T : class;
-
-        void Delete<T>(string key) where T : class;
-
-        void Patch<T>(string key, IDictionary<string, object> properties) where T : class;
-    }
-
     public class Session : ISession
     {
         private IDataStore _dataStore;
         private IStorageProvider _storageProvider;
-
         private List<StoreCommand> _commands = new List<StoreCommand>();
+
+        /// <inheritdoc />
+        public Session(IDataStore dataStore)
+        {
+            _dataStore = dataStore;
+        }
 
         /// <inheritdoc />
         public void Dispose()
@@ -31,9 +26,10 @@ namespace MicroElements.FileStorage.Experimental
         }
 
         /// <inheritdoc />
-        public void Store<T>(T entity) where T : class
+        public void AddOrUpdate<T>(T entity, string key) where T : class
         {
-            var sessionCommand = new StoreCommand(CommandType.Store, typeof(T), null, null);
+            _dataStore.GetWriteProvider();
+            var sessionCommand = new StoreCommand(CommandType.Store, typeof(T), key, null);
             sessionCommand.TimestampUtc = DateTime.UtcNow;
             var configuration = _dataStore.GetCollection<T>().ConfigurationTyped;
             var serializerInfo = configuration.Serializer.GetInfo();
@@ -55,25 +51,12 @@ namespace MicroElements.FileStorage.Experimental
         {
             throw new NotImplementedException();
         }
+
+        /// <inheritdoc />
+        public void SaveChanges()
+        {
+            //_storageProvider.WriteFile()
+            throw new NotImplementedException();
+        }
     }
-
-    // https://github.com/micro-elements/MicroElements.FileStorage/issues/6
-    // GH #6 Issue
-
-    /*
-proposal:
-
-* Snapshot is original data
-* Addon is snapshot changes: add, update, delete
-* It can be many addons
-* Addons must be ordered
-* Snapshot+addon_1+...+addon_N = new snapshot (compaction)
-* 
-* Audit: initiator, timestamp, signature
-* Bulk?
-* Import/Export?
-* Backup
-* Append only storage?
-
-    */
 }

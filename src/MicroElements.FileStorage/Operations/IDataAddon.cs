@@ -3,7 +3,7 @@
 
 namespace MicroElements.FileStorage.Operations
 {
-    public interface IDataAddon
+    public interface IDataAddon : IDataStorage
     {
         void Add(StoreCommand command);
     }

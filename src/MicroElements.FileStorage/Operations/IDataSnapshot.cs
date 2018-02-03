@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.Operations
@@ -10,10 +9,8 @@ namespace MicroElements.FileStorage.Operations
     /// <summary>
     /// Data snapshot represents data state in time.
     /// </summary>
-    public interface IDataSnapshot
+    public interface IDataSnapshot : IDataStorage
     {
-        Task Initialize(DataStoreConfiguration configuration);
-
         /// <summary>
         /// Get collection.
         /// </summary>
@@ -29,5 +26,7 @@ namespace MicroElements.FileStorage.Operations
 
         //todo: hash (streaming hashing?)
         //parent
+        void Drop();
+        void Save();
     }
 }

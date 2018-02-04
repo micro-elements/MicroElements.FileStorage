@@ -21,7 +21,7 @@ namespace MicroElements.FileStorage
     {
         private readonly List<T> _documents = new List<T>();
         private readonly ConcurrentDictionary<string, int> _indexIdDocIndex = new ConcurrentDictionary<string, int>();
-        private readonly IDocumentContainer<T> _documentContainer = new DocumentContainer<T>();
+        private readonly IEntityList<T> _entityList = new WritableEntityList<T>();
         private readonly CommandLog _commandLog = new CommandLog();
 
         private readonly IKeyGetter<T> _keyGetter;
@@ -29,9 +29,10 @@ namespace MicroElements.FileStorage
 
         public DocumentCollection(CollectionConfiguration configuration)
         {
-            Configuration = configuration;
+            var configurationTyped = configuration.ToTyped<T>();
 
-            ConfigurationTyped = (configuration as CollectionConfigurationTyped<T>) ?? new CollectionConfigurationTyped<T>();
+            Configuration = configurationTyped;
+            ConfigurationTyped = configurationTyped;
             _keyGetter = ConfigurationTyped.KeyGetter;
             _keySetter = ConfigurationTyped.KeySetter;
         }
@@ -208,6 +209,73 @@ namespace MicroElements.FileStorage
         private IValidator<T> GetValidator()
         {
             return ConfigurationTyped.ValidatorFactory?.GetValidator<T>();
+        }
+    }
+
+    public class CrossStorageDocumentCollection<T> : IDocumentCollection<T> where T : class
+    {
+        private IDataStore _dataStore;
+
+        /// <inheritdoc />
+        public CrossStorageDocumentCollection(IDataStore dataStore)
+        {
+            _dataStore = dataStore;
+
+            //_dataStore.Storages;
+        }
+
+        /// <inheritdoc />
+        public CollectionConfiguration Configuration { get; }
+
+        /// <inheritdoc />
+        public bool HasChanges { get; set; }
+
+        /// <inheritdoc />
+        public int Count { get; }
+
+        /// <inheritdoc />
+        public void Drop()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public CollectionConfigurationTyped<T> ConfigurationTyped { get; }
+
+        /// <inheritdoc />
+        public void Add(T item)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public T Get(string key)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public bool IsExists(string key)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<T> Find(Func<T, bool> query)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void Delete(string key)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyCommandLog GetCommandLog()
+        {
+            throw new NotImplementedException();
         }
     }
 }

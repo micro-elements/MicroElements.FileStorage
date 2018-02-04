@@ -16,16 +16,19 @@ namespace MicroElements.FileStorage
 {
     public class DataLoader
     {
+        private readonly IDataStore _dataStore;
         private Conventions _conventions;
         private ILogger _logger;
+
         private readonly DataStorageConfiguration _dataStorageConfiguration;
 
         /// <inheritdoc />
-        public DataLoader(Conventions conventions, ILogger logger, DataStorageConfiguration dataStorageConfiguration)
+        public DataLoader(IDataStore dataStore, DataStorageConfiguration dataStorageConfiguration)
         {
-            _conventions = conventions;
-            _logger = logger;
+            _dataStore = dataStore;
             _dataStorageConfiguration = dataStorageConfiguration;
+            _conventions = dataStore.Configuration.Conventions;
+            _logger = dataStore.Services.LoggerFactory.CreateLogger(typeof(DataLoader));
         }
 
         public async Task<IReadOnlyList<IDocumentCollection>> LoadCollectionsAsync(DataStorageConfiguration dataStorageConfiguration)
@@ -70,6 +73,119 @@ namespace MicroElements.FileStorage
             }
 
             return collections.ToArray();
+        }
+
+        public async Task<IDictionary<Type, IEntityList>> LoadEntitiesAsync()
+        {
+            ConcurrentDictionary<Type, IEntityList> entityLists = new ConcurrentDictionary<Type, IEntityList>();
+
+            _logger.LogDebug("Collection loading started");
+
+            foreach (var documentType in _dataStore.Schema.DocumentTypes)
+            {
+                var loadEntityListMethod = GetType().GetMethod(nameof(LoadEntityList), BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(documentType);
+                var loadEntityListTask = (Task<IEntityList>)loadEntityListMethod.Invoke(this, null);
+                var entityList = await loadEntityListTask;
+
+                entityLists.TryAdd(documentType, entityList);
+                _logger.LogInformation($"Collection loaded. Type: {documentType}");
+            }
+
+            return entityLists;
+        }
+
+        private async Task<IEntityList> LoadEntityList<T>() where T : class
+        {
+            DataStorageConfiguration storageConfig = _dataStorageConfiguration;
+            Type documentType = typeof(T);
+
+            var collectionConfig = storageConfig.Collections
+                .FirstOrDefault(config => config.DocumentType == documentType);
+
+            if (collectionConfig == null)
+            {
+                return new ReadOnlyEntityList<T>(new ExportData<T>());
+            }
+
+            var configurationTyped = collectionConfig.ToTyped<T>();
+            var serializer = GetSerializer(collectionConfig);
+
+            var fileTasks = GetFileTasks(collectionConfig, storageConfig);
+            var fileContents = await ReadAllInOneThread(fileTasks);
+            var entities = DeserializeEntitiesInOneThread<T>(fileContents, serializer);
+
+            var isReadonly = storageConfig.StorageProvider.GetStorageMetadata().IsReadonly;
+            var entityList = CreateEntityList<T>(isReadonly, entities, configurationTyped);
+            return entityList;
+        }
+
+        private List<T> DeserializeEntitiesInOneThread<T>(FileContent[] fileContents, ISerializer serializer)
+        {
+            var entities = new List<T>();
+            foreach (var fileContent in fileContents)
+            {
+                var objects = serializer.Deserialize<T>(fileContent);
+                entities.AddRange(objects);
+            }
+
+            return entities;
+        }
+
+        private IEnumerable<Task<FileContent>> GetFileTasks(CollectionConfiguration collectionConfig, DataStorageConfiguration storageConfig)
+        {
+            var storageProvider = storageConfig.StorageProvider;
+
+            IEnumerable<Task<FileContent>> fileTasks;
+
+            if (IsMultiFile(collectionConfig))
+            {
+                fileTasks = storageProvider.ReadDirectory(collectionConfig.SourceFile);
+            }
+            else
+            {
+                fileTasks = new[] { storageProvider.ReadFile(collectionConfig.SourceFile) };
+            }
+
+            return fileTasks;
+        }
+
+        private async Task<FileContent[]> ReadAllInOneThread(IEnumerable<Task<FileContent>> fileTasks)
+        {
+            var fileContents = new ConcurrentDictionary<string, FileContent>();
+            foreach (var fileTask in fileTasks)
+            {
+                var fileContent = await fileTask;
+                fileContents.TryAdd(fileContent.Location, fileContent);
+            }
+
+            return fileContents.Values.ToArray();
+        }
+
+        public IEntityList CreateEntityList<T>(
+            bool readOnly,
+            IList<T> entities,
+            CollectionConfigurationTyped<T> collectionConfig)
+            where T : class
+        {
+            string GetKey(T item) => collectionConfig.KeyGetter.GetIdFunc()(item);
+
+            var entityWithKeys = entities.Select(ent => new EntityWithKey<T>(ent, GetKey(ent))).ToList();
+
+            if (readOnly)
+            {
+                return new ReadOnlyEntityList<T>(new ExportData<T> { Added = entityWithKeys });
+            }
+            else
+            {
+                var entityList = new WritableEntityList<T>();
+
+                foreach (var entityWithKey in entityWithKeys)
+                {
+                    entityList.AddOrUpdate(entityWithKey.Entity, entityWithKey.Key);
+                }
+
+                return entityList;
+            }
         }
 
         public ISerializer GetSerializer(CollectionConfiguration configuration)

@@ -22,6 +22,13 @@ namespace MicroElements.FileStorage.Abstractions
         [NotNull] IEnumerable<object> Deserialize([NotNull] FileContent content, [NotNull] Type type);
 
         /// <summary>
+        /// Deserializes entity from text content.
+        /// </summary>
+        /// <param name="content">Content.</param>
+        /// <returns>One entity or entity list.</returns>
+        [NotNull] IEnumerable<T> Deserialize<T>([NotNull] FileContent content);
+
+        /// <summary>
         /// Serializes entity or entity list to <see cref="FileContent"/>.
         /// </summary>
         /// <param name="items">Entity or entity list.</param>

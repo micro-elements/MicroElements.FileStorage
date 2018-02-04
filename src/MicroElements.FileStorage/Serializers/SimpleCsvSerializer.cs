@@ -45,6 +45,12 @@ namespace MicroElements.FileStorage.Serializers
         }
 
         /// <inheritdoc />
+        public IEnumerable<T> Deserialize<T>(FileContent content)
+        {
+            return (IEnumerable<T>)Deserialize(content, typeof(T));
+        }
+
+        /// <inheritdoc />
         public FileContent Serialize(IReadOnlyCollection<object> items, Type type)
         {
             throw new NotImplementedException();

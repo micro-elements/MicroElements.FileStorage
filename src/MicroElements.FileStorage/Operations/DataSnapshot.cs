@@ -10,18 +10,21 @@ using Microsoft.Extensions.Logging;
 
 namespace MicroElements.FileStorage.Operations
 {
-    public class DataSnapshot : IDataSnapshot
+    public class DataSnapshot : IDataStorage
     {
-        private IDataStore _dataStore;
+        private readonly IDataStore _dataStore;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly DataStorageConfiguration _configuration;
+
+        // todo: replace collection for container
         private readonly List<IDocumentCollection> _collections = new List<IDocumentCollection>();
-        private ILoggerFactory _loggerFactory;
-        private DataStorageConfiguration _configuration;
+        private readonly IDictionary<Type, IEntityList> _entityLists = new Dictionary<Type, IEntityList>();
 
         /// <inheritdoc />
-        public DataSnapshot(IDataStore dataStore, ILoggerFactory loggerFactory, DataStorageConfiguration configuration)
+        public DataSnapshot(IDataStore dataStore, DataStorageConfiguration configuration)
         {
             _dataStore = dataStore;
-            _loggerFactory = loggerFactory;
+            _loggerFactory = dataStore.Services.LoggerFactory;
             _configuration = configuration;
         }
 
@@ -34,6 +37,18 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
+        public IEntityList<T> GetDocList<T>() where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyList<Type> GetDocTypes()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         public IReadOnlyList<IDocumentCollection> GetCollections()
         {
             return _collections.AsReadOnly();
@@ -42,12 +57,13 @@ namespace MicroElements.FileStorage.Operations
         /// <inheritdoc />
         public async Task Initialize()
         {
-            var dataLoader = new DataLoader(
-                _dataStore.Configuration.Conventions,
-                _loggerFactory.CreateLogger(typeof(DataLoader)),
-                _configuration);
-            var collections = await dataLoader.LoadCollectionsAsync(_configuration);
-            _collections.AddRange(collections);
+            var dataLoader = new DataLoader(_dataStore, _configuration);
+            var entityLists = await dataLoader.LoadEntitiesAsync();
+
+            foreach (var entityList in entityLists)
+            {
+                _entityLists.Add(entityList);
+            }
         }
 
         public void Drop()
@@ -60,10 +76,7 @@ namespace MicroElements.FileStorage.Operations
 
         public void Save()
         {
-            var dataLoader = new DataLoader(
-                _dataStore.Configuration.Conventions,
-                _loggerFactory.CreateLogger(typeof(DataLoader)),
-                _configuration);
+            var dataLoader = new DataLoader(_dataStore, _configuration);
             foreach (var collection in _collections)
             {
                 if (collection.HasChanges)

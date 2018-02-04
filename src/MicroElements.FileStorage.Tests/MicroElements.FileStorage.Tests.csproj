@@ -30,4 +30,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="TestData\MultiStore\Addon\" />
+  </ItemGroup>
+
 </Project>

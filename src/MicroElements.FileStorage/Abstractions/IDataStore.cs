@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MicroElements.FileStorage.Operations;
 
 namespace MicroElements.FileStorage.Abstractions
 {
@@ -42,6 +43,12 @@ namespace MicroElements.FileStorage.Abstractions
         void Drop();
 
         DataStoreConfiguration Configuration { get; }
+
+        IReadOnlyList<IDataStorage> Storages { get; }
+
+        Schema Schema { get; }
+
+        DataStoreServices Services { get; }
 
         ISession OpenSession();
     }

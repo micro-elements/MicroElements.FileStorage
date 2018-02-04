@@ -77,21 +77,21 @@ namespace MicroElements.FileStorage.Abstractions
         }
     }
 
-    public class Content
-    {
-        private Span<byte> _content;
-        private Encoding _encoding;
+    //public class Content
+    //{
+    //    private Span<byte> _content;
+    //    private Encoding _encoding;
 
-        /// <inheritdoc />
-        public Content(Span<byte> content, Encoding encoding)
-        {
-            _content = content;
-            _encoding = encoding;
-        }
+    //    /// <inheritdoc />
+    //    public Content(Span<byte> content, Encoding encoding)
+    //    {
+    //        _content = content;
+    //        _encoding = encoding;
+    //    }
 
-        public string Text
-        {
-            get { return _encoding.GetString(_content.ToArray()); }
-        }
-    }
+    //    public string Text
+    //    {
+    //        get { return _encoding.GetString(_content.ToArray()); }
+    //    }
+    //}
 }

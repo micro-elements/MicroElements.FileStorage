@@ -32,5 +32,27 @@ namespace MicroElements.FileStorage
 
             return storageProvider;
         }
+
+        public static string GetKey<T>(this IDocumentCollection<T> collection, T item) where T : class
+        {
+            return collection.ConfigurationTyped.KeyGetter.GetIdFunc()(item);
+        }
+
+        public static IEntityList<T> ToReadOnly<T>(this IEntityList<T> entityList) where T : class
+        {
+            if (entityList is IExportable<T> canExport)
+            {
+                var exportData = canExport.Export();
+                return new ReadOnlyEntityList<T>(exportData);
+            }
+            throw new Exception("Enumeration needed");
+        }
+
+        public static CollectionConfigurationTyped<T> ToTyped<T>(this CollectionConfiguration configuration) where T : class
+        {
+            if (configuration is CollectionConfigurationTyped<T> typed)
+                return typed;
+            return new CollectionConfigurationTyped<T>(configuration);
+        }
     }
 }

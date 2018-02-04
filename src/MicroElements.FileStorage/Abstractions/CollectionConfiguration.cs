@@ -32,6 +32,7 @@ namespace MicroElements.FileStorage.Abstractions
         public Type DocumentType
         {
             get { return _documentType; }
+
             set
             {
                 _documentType = value;
@@ -73,10 +74,23 @@ namespace MicroElements.FileStorage.Abstractions
 
     public class CollectionConfigurationTyped<T> : CollectionConfiguration where T : class
     {
-        /// <inheritdoc />
         public CollectionConfigurationTyped()
         {
             DocumentType = typeof(T);
+        }
+
+        public CollectionConfigurationTyped(CollectionConfiguration configuration)
+        {
+            if (configuration.DocumentType != typeof(T))
+                throw new InvalidOperationException($"Inconsistent entity type. Expected {typeof(T)} but was {configuration.DocumentType}");
+
+            DocumentType = configuration.DocumentType;
+            Name = configuration.Name;
+            Format = configuration.Format;
+            Serializer = configuration.Serializer;
+            OneFilePerCollection = configuration.OneFilePerCollection;
+            SourceFile = configuration.SourceFile;
+            Version = configuration.Version;
         }
 
         public IKeyGetter<T> KeyGetter { get; set; } = DefaultKeyAccessor<T>.Instance;

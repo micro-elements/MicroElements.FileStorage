@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.Operations
 {
@@ -57,6 +58,42 @@ namespace MicroElements.FileStorage.Operations
 
         /// <inheritdoc />
         public Task Initialize()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public IDocumentCollection<T> GetCollection<T>() where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public IEntityList<T> GetDocList<T>() where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyList<Type> GetDocTypes()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyList<IDocumentCollection> GetCollections()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void Drop()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void Save()
         {
             throw new NotImplementedException();
         }

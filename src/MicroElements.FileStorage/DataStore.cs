@@ -3,9 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.Abstractions.Exceptions;
 using MicroElements.FileStorage.Operations;
 using Microsoft.Extensions.Logging;
 
@@ -15,12 +18,75 @@ namespace MicroElements.FileStorage
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly DataStoreConfiguration _configuration;
-        private IDataSnapshot _dataStorage;
+        private IImmutableList<IDataStorage> _dataStorages = ImmutableArray<IDataStorage>.Empty;
+        private IImmutableDictionary<Type, IDocumentCollection> _collections = ImmutableDictionary<Type, IDocumentCollection>.Empty;
+        private Schema _schema;
 
         public DataStore(DataStoreConfiguration configuration)
         {
             _configuration = configuration;
             _loggerFactory = configuration.LoggerFactory;
+            Services = new DataStoreServices(configuration.LoggerFactory);
+        }
+
+        /// <inheritdoc />
+        public DataStoreConfiguration Configuration => _configuration;
+
+        /// <inheritdoc />
+        public IReadOnlyList<IDataStorage> Storages => _dataStorages;
+
+        /// <inheritdoc />
+        public Schema Schema => _schema;
+
+        /// <inheritdoc />
+        public DataStoreServices Services { get; }
+
+        /// <inheritdoc />
+        public async Task Initialize()
+        {
+            _configuration.Verify();
+            _schema = new Schema(_configuration);
+
+            foreach (var configurationStorage in _configuration.Storages)
+            {
+                var dataStorage = new DataSnapshot(this, configurationStorage);
+                await dataStorage.Initialize();
+                _dataStorages = _dataStorages.Add(dataStorage);
+            }
+
+            foreach (var documentType in _schema.DocumentTypes)
+            {
+                var documentCollection = CreateCollection(documentType);
+                _collections = _collections.Add(documentType, documentCollection);
+            }
+        }
+
+        private IDataStorage DataStorage => _dataStorages.Last();
+
+        /// <inheritdoc />
+        public IDocumentCollection<T> GetCollection<T>() where T : class
+        {
+            return _collections.TryGetValue(typeof(T), out var collection) ?
+                (IDocumentCollection<T>)collection :
+                throw new InvalidOperationException($"Document collection for type {typeof(T)} is not registered in data store.");
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyList<IDocumentCollection> GetCollections()
+        {
+            return _collections.Values.ToList();
+        }
+
+        /// <inheritdoc />
+        public void Save()
+        {
+            DataStorage.Save();
+        }
+
+        /// <inheritdoc />
+        public void Drop()
+        {
+            DataStorage.Drop();
         }
 
         /// <inheritdoc />
@@ -29,47 +95,36 @@ namespace MicroElements.FileStorage
             (_configuration.StorageProvider as IDisposable)?.Dispose();
         }
 
-        public async Task Initialize()
-        {
-            _configuration.Verify();
-
-            var dataStorageConfiguration = _configuration.Storages.First();
-
-            _dataStorage = new DataSnapshot(this, _loggerFactory, dataStorageConfiguration);
-            await _dataStorage.Initialize();
-        }
-
-        /// <inheritdoc />
-        public IDocumentCollection<T> GetCollection<T>() where T : class
-        {
-            return _dataStorage.GetCollection<T>();
-        }
-
-        /// <inheritdoc />
-        public IReadOnlyList<IDocumentCollection> GetCollections()
-        {
-            return _dataStorage.GetCollections();
-        }
-
-        /// <inheritdoc />
-        public void Save()
-        {
-            _dataStorage.Save();
-        }
-
-        /// <inheritdoc />
-        public void Drop()
-        {
-            _dataStorage.Drop();
-        }
-
-        /// <inheritdoc />
-        public DataStoreConfiguration Configuration => _configuration;
-
         /// <inheritdoc />
         public ISession OpenSession()
         {
             return new Session(this);
+        }
+
+        private IDocumentCollection CreateCollection(Type documentType)
+        {
+            //todo: move to factory
+            var documentCollectionType = typeof(CrossStorageDocumentCollection<>).MakeGenericType(documentType);
+            return (IDocumentCollection)Activator.CreateInstance(documentCollectionType, this);
+        }
+    }
+
+    public class Schema
+    {
+        private readonly DataStoreConfiguration _configuration;
+
+        public DataStoreConfiguration Configuration => _configuration;
+
+        public IReadOnlyList<Type> DocumentTypes { get; }
+
+        public Schema(DataStoreConfiguration configuration)
+        {
+            _configuration = configuration;
+
+            DocumentTypes = _configuration.Storages.SelectMany(storageConfig => storageConfig.Collections)
+                .Select(collectionConfig => collectionConfig.DocumentType)
+                .Distinct()
+                .ToList();
         }
     }
 }

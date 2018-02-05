@@ -17,13 +17,11 @@ namespace MicroElements.FileStorage.Operations
         Task Initialize();
 
         /// <summary>
-        /// Get collection.
+        /// Gets entity list.
         /// </summary>
-        /// <typeparam name="T">Document type.</typeparam>
-        /// <returns>Typed IDocumentCollection.</returns>
-        IDocumentCollection<T> GetCollection<T>() where T : class;
-
-        IEntityList<T> GetDocList<T>() where T : class;
+        /// <typeparam name="T">Entity type.</typeparam>
+        /// <returns>Entity list.</returns>
+        IEntityList<T> GetEntityList<T>() where T : class;
 
         /// <summary>
         /// Gets all collections.

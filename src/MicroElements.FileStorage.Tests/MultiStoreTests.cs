@@ -57,6 +57,9 @@ namespace MicroElements.FileStorage.Tests
             collection.Should().NotBeNull();
             collection.Count.Should().Be(2);
 
+            var person1 = collection.Get("1");
+            person1.Should().NotBeNull();
+
             using (var session = dataStore.OpenSession())
             {
                 var person = new Person { FirstName = "FirstNameFromAddon", LastName = "LastNameFromAddon" };

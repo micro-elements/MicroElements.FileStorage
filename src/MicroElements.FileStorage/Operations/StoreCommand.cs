@@ -69,7 +69,7 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
-        public IEntityList<T> GetDocList<T>() where T : class
+        public IEntityList<T> GetEntityList<T>() where T : class
         {
             throw new NotImplementedException();
         }

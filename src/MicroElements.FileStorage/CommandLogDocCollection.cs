@@ -46,6 +46,15 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
+        public IIndex Index { get; }
+
+        /// <inheritdoc />
+        public T GetByPos(int pos)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         public void Initialize(IReadOnlyList<EntityWithKey<T>> added, IReadOnlyList<string> deleted)
         {
             throw new NotImplementedException();

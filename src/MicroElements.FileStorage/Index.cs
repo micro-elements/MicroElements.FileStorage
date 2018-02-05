@@ -3,23 +3,49 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage
 {
-    public class Index
+    // Key->index in list => поиск по ключу
+    // Перечисление по индексу => итерация по списку
+    // Удаления??? => 
+    // Last EntityList со списком транзакций
+    // Для сквозного поиска нужны все индексы + последний
+
+    public interface IIndex
     {
-        // Key->index in list => поиск по ключу
-        // Перечисление по индексу => итерация по списку
-        // Удаления??? => 
-        // Last EntityList со списком транзакций
-        // Для сквозного поиска нужны все индексы + последний
-        private readonly ConcurrentDictionary<string, int> _indexIdDocIndex = new ConcurrentDictionary<string, int>();
+        IReadOnlyDictionary<string, int> KeyPosition { get; }
+
+        IEnumerable<string> AddedKeys { get; }
+
+        //todo: set<string>
+        IEnumerable<string> DeletedKeys { get; }
+    }
+
+    public class Index : IIndex
+    {
+        /// <inheritdoc />
+        public Index(IReadOnlyDictionary<string, int> keyPosition, IEnumerable<string> addedKeys, IEnumerable<string> deletedKeys)
+        {
+            KeyPosition = keyPosition;
+            AddedKeys = addedKeys;
+            DeletedKeys = deletedKeys;
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyDictionary<string, int> KeyPosition { get; }
+
+        /// <inheritdoc />
+        public IEnumerable<string> AddedKeys { get; }
+
+        /// <inheritdoc />
+        public IEnumerable<string> DeletedKeys { get; }
     }
 
     public interface IIndex<TBy>
     {
-        IDictionary<TBy, int> Index();
-
-        void Add(TBy item, int key);
+        IReadOnlyDictionary<TBy, int> Index();
     }
 }

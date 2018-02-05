@@ -47,5 +47,12 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// <param name="key">Entity key.</param>
         void Delete([NotNull] string key);
+
+        /// <summary>
+        /// Gets collection index.
+        /// </summary>
+        IIndex Index { get; }
+
+        [CanBeNull] T GetByPos(int pos);
     }
 }

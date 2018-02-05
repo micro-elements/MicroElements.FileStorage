@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.CodeContracts;
@@ -15,8 +16,7 @@ namespace MicroElements.FileStorage
     {
         private readonly List<T> _documents = new List<T>();
         private readonly ConcurrentDictionary<string, int> _indexIdDocIndex = new ConcurrentDictionary<string, int>();
-
-        private IIndex<string> _byKeyIndex;
+        private ImmutableHashSet<string> _deleted = ImmutableHashSet<string>.Empty;
 
         /// <inheritdoc />
         public bool IsReadOnly { get; }
@@ -66,6 +66,8 @@ namespace MicroElements.FileStorage
                     // Add item.
                     _documents.Add(item);
                     _indexIdDocIndex[key] = _documents.Count - 1;
+                    if (_deleted.Contains(key))
+                        _deleted = _deleted.Remove(key);
                 }
             }
         }
@@ -84,6 +86,7 @@ namespace MicroElements.FileStorage
                     }
 
                     _indexIdDocIndex.TryRemove(key, out _);
+                    _deleted = _deleted.Add(key);
                 }
             }
             else
@@ -91,6 +94,21 @@ namespace MicroElements.FileStorage
                 // todo: error?
                 // throw new EntityNotFoundException();
             }
+        }
+
+        /// <inheritdoc />
+        public IIndex Index => new Index(_indexIdDocIndex, _indexIdDocIndex.Keys, null);
+
+        /// <inheritdoc />
+        public T GetByPos(int pos)
+        {
+            lock (_documents)
+            {
+                if (pos >= 0 && pos < _documents.Count)
+                    return _documents[pos];
+            }
+
+            return null;
         }
 
         public IEnumerable<T> Find(Func<T, bool> query)

@@ -16,7 +16,7 @@ namespace MicroElements.FileStorage
     public class ReadOnlyEntityList<T> : IEntityList<T> where T : class
     {
         private readonly T[] _documents;
-        private readonly IDictionary<string, int> _indexKeyPosition;
+        private readonly Dictionary<string, int> _indexKeyPosition;
         private readonly ImmutableHashSet<string> _deleted;
 
         /// <summary>
@@ -38,10 +38,6 @@ namespace MicroElements.FileStorage
             _documents = documents;
             _indexKeyPosition = indexKeyPosition;
             _deleted = data.Deleted.ToImmutableHashSet();
-        }
-
-        public ReadOnlyEntityList(IList<T> list)
-        {
         }
 
         /// <inheritdoc />
@@ -74,6 +70,17 @@ namespace MicroElements.FileStorage
         public void Delete(string key)
         {
             throw new InvalidOperationException("Collection is read only");
+        }
+
+        /// <inheritdoc />
+        public IIndex Index => new Index(_indexKeyPosition, _indexKeyPosition.Keys, _deleted);
+
+        /// <inheritdoc />
+        public T GetByPos(int pos)
+        {
+            if (pos >= 0 && pos < _documents.Length)
+                return _documents[pos];
+            return null;
         }
     }
 }

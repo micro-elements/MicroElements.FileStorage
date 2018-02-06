@@ -47,6 +47,7 @@ namespace MicroElements.FileStorage.Operations
         /// <inheritdoc />
         public IReadOnlyList<Type> GetDocTypes()
         {
+            //_configuration.Collections
             throw new NotImplementedException();
         }
 

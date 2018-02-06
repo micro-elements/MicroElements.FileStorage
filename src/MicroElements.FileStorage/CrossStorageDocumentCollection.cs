@@ -30,7 +30,10 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
-        public CollectionConfiguration Configuration { get; }
+        public CollectionConfiguration Configuration
+        {
+            get { throw new NotImplementedException(); }
+        }
 
         /// <inheritdoc />
         public bool HasChanges { get; set; }
@@ -57,7 +60,10 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
-        public CollectionConfigurationTyped<T> ConfigurationTyped { get; }
+        public CollectionConfigurationTyped<T> ConfigurationTyped
+        {
+            get { throw new NotImplementedException(); }
+        }
 
         /// <inheritdoc />
         public void Add(T item)
@@ -79,6 +85,7 @@ namespace MicroElements.FileStorage
                         // entity found
                         return entity;
                     }
+
                     if (_indices[i].DeletedKeys.Contains(key))
                     {
                         // entity was deleted
@@ -86,19 +93,30 @@ namespace MicroElements.FileStorage
                     }
                 }
             }
+
             return null;
         }
 
         /// <inheritdoc />
         public bool IsExists(string key)
         {
-            throw new NotImplementedException();
+            for (int i = _indices.Count - 1; i >= 0; i--)
+            {
+                if (_indices[i].AddedKeys.Contains(key))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <inheritdoc />
         public IEnumerable<T> Find(Func<T, bool> query)
         {
-            throw new NotImplementedException();
+            var fullIndex = IndexBuilder.BuildFullIndex(_indices, _entityLists);
+            var result = fullIndex.Values
+                .Select(indexKey => indexKey.EntityList.GetByPos(indexKey.Pos))
+                .Where(query);
+            return result;
         }
 
         /// <inheritdoc />

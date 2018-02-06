@@ -20,7 +20,7 @@ namespace MicroElements.FileStorage
 
         IEnumerable<string> AddedKeys { get; }
 
-        //todo: set<string>
+        //todo: set<string> or IsDeleted
         IEnumerable<string> DeletedKeys { get; }
     }
 
@@ -47,5 +47,40 @@ namespace MicroElements.FileStorage
     public interface IIndex<TBy>
     {
         IReadOnlyDictionary<TBy, int> Index();
+    }
+
+    public class IndexKey<T>
+    {
+        public string Key { get; }
+        public IEntityList<T> EntityList { get; }
+        public int Pos { get; }
+
+        public IndexKey(string key, IEntityList<T> entityList, int pos)
+        {
+            Key = key;
+            EntityList = entityList;
+            Pos = pos;
+        }
+    }
+
+    public static class IndexBuilder
+    {
+        public static IDictionary<string, IndexKey<T>> BuildFullIndex<T>(IReadOnlyList<IIndex> indices, IReadOnlyList<IEntityList<T>> entityLists) where T : class
+        {
+            Dictionary<string, IndexKey<T>> fullIndex = new Dictionary<string, IndexKey<T>>();
+            for (int i = 0; i < indices.Count; i++)
+            {
+                foreach (var valuePair in indices[i].KeyPosition)
+                {
+                    fullIndex.Add(valuePair.Key, new IndexKey<T>(valuePair.Key, entityLists[i], valuePair.Value));
+                }
+                foreach (var deletedKey in indices[i].DeletedKeys)
+                {
+                    fullIndex.Remove(deletedKey);
+                }
+            }
+
+            return fullIndex;
+        }
     }
 }

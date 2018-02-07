@@ -29,14 +29,6 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
-        public IDocumentCollection<T> GetCollection<T>() where T : class
-        {
-            var documentCollection = (IDocumentCollection<T>)_collections.FirstOrDefault(collection => collection is IDocumentCollection<T>);
-            // todo: add snapshot key to message
-            return documentCollection ?? throw new InvalidOperationException($"Document collection for type {typeof(T)} is not registered in data store.");
-        }
-
-        /// <inheritdoc />
         public IEntityList<T> GetEntityList<T>() where T : class
         {
             return _entityLists.TryGetValue(typeof(T), out var list) ?
@@ -52,10 +44,7 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
-        public IReadOnlyList<IDocumentCollection> GetCollections()
-        {
-            return _collections.AsReadOnly();
-        }
+        public DataStorageConfiguration Configuration => _configuration;
 
         /// <inheritdoc />
         public async Task Initialize()
@@ -71,16 +60,15 @@ namespace MicroElements.FileStorage.Operations
 
         public void Drop()
         {
-            foreach (var collection in _collections)
-            {
-                collection.Drop();
-            }
+            throw new NotImplementedException();
         }
 
         public void Save()
         {
+            //todo: obsolete. all saves in session
             var dataLoader = new DataLoader(_dataStore, _configuration);
-            foreach (var collection in _collections)
+            var collections = _dataStore.GetCollections();
+            foreach (var collection in collections)
             {
                 if (collection.HasChanges)
                 {

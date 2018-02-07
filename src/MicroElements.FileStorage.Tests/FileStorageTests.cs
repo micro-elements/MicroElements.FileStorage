@@ -247,8 +247,6 @@ namespace MicroElements.FileStorage.Tests
             var basePath = Path.GetFullPath("TestData/DataStore/create_collection_and_save");
             var dataStore = GetPersonDataStore(typeStorageEngine, basePath);
 
-            await dataStore.Initialize();
-
             var collection = dataStore.GetCollection<Person>();
             collection.Should().NotBeNull();
             collection.Drop();

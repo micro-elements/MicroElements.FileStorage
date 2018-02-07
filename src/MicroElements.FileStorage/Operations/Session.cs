@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.Operations
@@ -22,22 +23,46 @@ namespace MicroElements.FileStorage.Operations
         /// <inheritdoc />
         public void Dispose()
         {
-            _dataStore.Save();
+            SaveChanges();
         }
 
         /// <inheritdoc />
         public void AddOrUpdate<T>(T entity, string key) where T : class
         {
-            _dataStore.GetWriteProvider();
-            var sessionCommand = new StoreCommand(CommandType.Store, typeof(T), key, null);
-            sessionCommand.TimestampUtc = DateTime.UtcNow;
-            var configuration = _dataStore.GetCollection<T>().ConfigurationTyped;
-            var serializerInfo = configuration.Serializer.GetInfo();
+            key = key ?? GetKey(entity);
+            if (key == null)
+            {
+                key = GetNextKey(entity);
+                SetKey(entity, key);
+            }
 
-            // todo: serializer is not optimal for one object
-            sessionCommand.Content = configuration.Serializer.Serialize(new[] { entity }, typeof(T)).Content;
+            var sessionCommand = new StoreCommand(CommandType.Store, typeof(T), key)
+            {
+                TimestampUtc = DateTime.UtcNow,
+                Entity = entity
+            };
 
             _commands.Add(sessionCommand);
+        }
+
+        private string GetKey<T>(T item) where T : class
+        {
+            var configurationTyped = _dataStore.GetConfigurationTyped<T>();
+            var key = configurationTyped.KeyGetter.GetIdFunc()(item);
+            return key;
+        }
+
+        private void SetKey<T>(T item, string key) where T : class
+        {
+            var configurationTyped = _dataStore.GetConfigurationTyped<T>();
+            configurationTyped.KeySetter.SetIdFunc()(item, key);
+        }
+
+        private string GetNextKey<T>(T item) where T : class
+        {
+            var collectionConfiguration = _dataStore.GetConfigurationTyped<T>();
+            var nextKey = collectionConfiguration.KeyGenerator.GetNextKey(_dataStore, item);
+            return nextKey.Formatted;
         }
 
         /// <inheritdoc />
@@ -55,8 +80,14 @@ namespace MicroElements.FileStorage.Operations
         /// <inheritdoc />
         public void SaveChanges()
         {
+            //var dataLoader = new DataLoader(_dataStore, _dataStore.Storages.Last().Configuration);
+            //dataLoader.SaveCollection();
+
+            _dataStore.Save();
+
+            //_entityLists.Last().AddOrUpdate();
             //_storageProvider.WriteFile()
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }

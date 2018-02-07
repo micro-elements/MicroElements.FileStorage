@@ -44,6 +44,9 @@ namespace MicroElements.FileStorage
         /// <inheritdoc />
         public async Task Initialize()
         {
+            if (_schema != null)
+                throw new FileStorageException("DataStore already initialized");
+
             _configuration.Verify();
             _schema = new Schema(_configuration);
 
@@ -103,9 +106,21 @@ namespace MicroElements.FileStorage
 
         private IDocumentCollection CreateCollection(Type documentType)
         {
+            return (IDocumentCollection)Activator.CreateInstance(typeof(CrossStorageDocumentCollection<>).MakeGenericType(documentType), this);
+
             //todo: move to factory
-            var documentCollectionType = typeof(CrossStorageDocumentCollection<>).MakeGenericType(documentType);
-            return (IDocumentCollection)Activator.CreateInstance(documentCollectionType, this);
+            if (_dataStorages.Count > 1)
+            {
+                var documentCollectionType = typeof(CrossStorageDocumentCollection<>).MakeGenericType(documentType);
+                return (IDocumentCollection)Activator.CreateInstance(documentCollectionType, this);
+            }
+            else
+            {
+                var documentCollectionType = typeof(DocumentCollection<>).MakeGenericType(documentType);
+                var collectionConfiguration = _dataStorages[0].Configuration.Collections
+                    .First(configuration => configuration.DocumentType == documentType);
+                return (IDocumentCollection)Activator.CreateInstance(documentCollectionType, collectionConfiguration);
+            }
         }
     }
 

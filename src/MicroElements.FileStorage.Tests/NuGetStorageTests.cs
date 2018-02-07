@@ -120,7 +120,7 @@ namespace Classifiers
         /// <inheritdoc />
         public IEnumerable<T> Deserialize<T>(FileContent content)
         {
-            return (IEnumerable<T>)Deserialize(content, typeof(T));
+            return Deserialize(content, typeof(T)).Cast<T>();
         }
 
         /// <inheritdoc />

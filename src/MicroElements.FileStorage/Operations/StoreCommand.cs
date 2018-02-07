@@ -81,6 +81,9 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
+        public DataStorageConfiguration Configuration { get; }
+
+        /// <inheritdoc />
         public IReadOnlyList<IDocumentCollection> GetCollections()
         {
             throw new NotImplementedException();

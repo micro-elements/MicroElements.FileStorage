@@ -24,5 +24,12 @@ namespace MicroElements.FileStorage.KeyGenerators
             var key = entity.Md5Hash(_serializer);
             return new Key(KeyType.Hash, key);
         }
+
+        /// <inheritdoc />
+        public Key GetNextKey(IDataStore dataStore, T entity)
+        {
+            var key = entity.Md5Hash(_serializer);
+            return new Key(KeyType.Hash, key);
+        }
     }
 }

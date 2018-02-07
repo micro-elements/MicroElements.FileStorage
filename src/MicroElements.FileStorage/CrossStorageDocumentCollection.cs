@@ -62,13 +62,24 @@ namespace MicroElements.FileStorage
         /// <inheritdoc />
         public CollectionConfigurationTyped<T> ConfigurationTyped
         {
-            get { throw new NotImplementedException(); }
+            get
+            {
+                return _dataStore.Configuration
+                    .Storages.Last()
+                    .Collections
+                    .First(configuration => configuration.DocumentType == typeof(T))
+                    .ToTyped<T>();
+            }
         }
 
         /// <inheritdoc />
         public void Add(T item)
         {
-            _dataStore.Storages.Last().GetEntityList<T>().AddOrUpdate(item, null);
+            using (var session = new Session(_dataStore))
+            {
+                session.AddOrUpdate(item, null);
+            }
+
         }
 
         /// <inheritdoc />

@@ -35,6 +35,7 @@ namespace MicroElements.FileStorage.KeyGenerators
         /// <inheritdoc />
         public Key GetNextKey(IDocumentCollection<T> collection, T entity)
         {
+            // name (prefix), Count?, Iterate(Keys)
             string collectionName = collection.ConfigurationTyped.Name;
 
             int ParseKey(string key)
@@ -45,6 +46,37 @@ namespace MicroElements.FileStorage.KeyGenerators
                 }
                 return int.Parse(key);
             }
+
+            int nextId = _startValue;
+            if (collection.Count > 0)
+            {
+                int max = collection
+                    .Find(arg => true)
+                    .Select(collection.GetKey)
+                    .Select(ParseKey)
+                    .Max();
+                nextId = Math.Max(_startValue, max + 1);
+            }
+
+            return new Key(KeyType.Identity, nextId.ToString(), _useCollectionPrefix ? collectionName : null);
+        }
+
+        /// <inheritdoc />
+        public Key GetNextKey(IDataStore dataStore, T entity)
+        {
+            // name (prefix), Count?, Iterate(Keys)
+            string collectionName = dataStore.GetConfigurationTyped<T>().Name;
+
+            int ParseKey(string key)
+            {
+                if (key.Length > collectionName.Length + 1 && key.StartsWith(collectionName))
+                {
+                    key = key.Substring(collectionName.Length + 1);
+                }
+                return int.Parse(key);
+            }
+
+            var collection = new CrossStorageDocumentCollection<T>(dataStore);
 
             int nextId = _startValue;
             if (collection.Count > 0)

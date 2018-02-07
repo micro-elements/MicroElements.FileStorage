@@ -20,5 +20,11 @@ namespace MicroElements.FileStorage.KeyGenerators
         {
             return new Key(KeyType.UniqId, Guid.NewGuid().ToString());
         }
+
+        /// <inheritdoc />
+        public Key GetNextKey(IDataStore dataStore, T entity)
+        {
+            return new Key(KeyType.UniqId, Guid.NewGuid().ToString());
+        }
     }
 }

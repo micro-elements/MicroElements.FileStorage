@@ -208,19 +208,21 @@ namespace MicroElements.FileStorage
 
         private void SaveCollectionInternal<T>(IDocumentCollection<T> collection) where T : class
         {
-            var serializer = GetSerializer(collection.Configuration);
+            var configuration = collection.Configuration;
+
+            var serializer = GetSerializer(configuration);
             var serializerInfo = serializer.GetInfo();
             var items = collection.Find(arg => true).ToList();
-            var collectionDir = collection.Configuration.SourceFile;
+            var collectionDir = configuration.SourceFile;
 
-            if (IsMultiFile(collection.Configuration))
+            if (IsMultiFile(configuration))
             {
                 foreach (var item in items)
                 {
                     var key = collection.GetKey(item);
                     var format = string.Format("{0}{1}", key, serializerInfo.Extension);
                     var fileName = Path.Combine(collectionDir, format);
-                    SaveFiles(serializer, new[] { item }, fileName, collection.Configuration.DocumentType);
+                    SaveFiles(serializer, new[] { item }, fileName, configuration.DocumentType);
                 }
 
                 ProcessDeletes(collection, collectionDir, serializerInfo.Extension).GetAwaiter().GetResult();
@@ -228,7 +230,7 @@ namespace MicroElements.FileStorage
             else
             {
                 //todo: do not rewrite same
-                SaveFiles(serializer, items, collection.Configuration.SourceFile, collection.Configuration.DocumentType);
+                SaveFiles(serializer, items, configuration.SourceFile, configuration.DocumentType);
             }
 
             collection.HasChanges = false;

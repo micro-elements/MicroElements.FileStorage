@@ -29,6 +29,8 @@ namespace MicroElements.FileStorage.Operations
         /// <returns>Collection list.</returns>
         IReadOnlyList<Type> GetDocTypes();
 
+        DataStorageConfiguration Configuration { get; }
+
         void Drop();
         void Save();
 

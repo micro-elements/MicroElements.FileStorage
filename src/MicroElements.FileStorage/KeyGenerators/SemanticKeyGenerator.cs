@@ -31,5 +31,12 @@ namespace MicroElements.FileStorage.KeyGenerators
             var key = _getKeyfunc(entity);
             return new Key(KeyType.Semantic, key);
         }
+
+        /// <inheritdoc />
+        public Key GetNextKey(IDataStore dataStore, T entity)
+        {
+            var key = _getKeyfunc(entity);
+            return new Key(KeyType.Semantic, key);
+        }
     }
 }

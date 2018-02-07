@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using MicroElements.FileStorage.Abstractions;
 using Newtonsoft.Json;
@@ -47,7 +48,8 @@ namespace MicroElements.FileStorage.Serializers
         /// <inheritdoc />
         public IEnumerable<T> Deserialize<T>(FileContent content)
         {
-            return (IEnumerable<T>)Deserialize(content, typeof(T));
+            var objects = Deserialize(content, typeof(T)).Cast<T>();
+            return objects;
         }
 
         /// <inheritdoc />

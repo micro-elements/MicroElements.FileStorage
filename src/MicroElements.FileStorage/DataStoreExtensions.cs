@@ -52,7 +52,19 @@ namespace MicroElements.FileStorage
         {
             if (configuration is CollectionConfigurationTyped<T> typed)
                 return typed;
-            return new CollectionConfigurationTyped<T>(configuration);
+
+            if (configuration.DocumentType == typeof(T))
+                return new CollectionConfigurationTyped<T>(configuration);
+
+            return new CollectionConfigurationTyped<T>();
+        }
+
+        public static CollectionConfigurationTyped<T> GetConfigurationTyped<T>(this IDataStore dataStore) where T : class
+        {
+            var collectionConfiguration = dataStore.Configuration.Storages.Last().Collections
+                .FirstOrDefault(configuration => configuration.DocumentType == typeof(T))
+                .ToTyped<T>();
+            return collectionConfiguration;
         }
     }
 }

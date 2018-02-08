@@ -36,6 +36,8 @@ namespace MicroElements.FileStorage
             set => Storages.First().Collections = value;
         }
 
+        public bool ReadOnly { get; set; } = false;
+
         public DataStorageConfiguration[] Storages { get; set; } = { new DataStorageConfiguration() };
 
         public ILoggerFactory LoggerFactory { get; set; } = NullLoggerFactory.Instance;
@@ -53,6 +55,7 @@ namespace MicroElements.FileStorage
             {
                 storageConfiguration.Verify();
             }
+
         }
     }
 
@@ -72,6 +75,11 @@ namespace MicroElements.FileStorage
         /// Collection definitions.
         /// </summary>
         public CollectionConfiguration[] Collections { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether storage is readonly.
+        /// </summary>
+        public bool ReadOnly { get; set; } = true;
 
         public void Verify()
         {

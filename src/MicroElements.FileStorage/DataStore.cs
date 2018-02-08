@@ -57,6 +57,18 @@ namespace MicroElements.FileStorage
                 _dataStorages = _dataStorages.Add(dataStorage);
             }
 
+            if (!_configuration.ReadOnly)
+            {
+                var countOfWritableStorages = Storages.Count(storage => storage.IsWritable());
+                if (countOfWritableStorages > 1)
+                    throw new InvalidConfigurationException("DataStore is writable but there more than one writable storages.");
+
+                if (_dataStorages.Count == 1 || countOfWritableStorages == 0)
+                {
+                    _dataStorages = _dataStorages.Add(new DataAddon());
+                }
+            }
+
             foreach (var documentType in _schema.DocumentTypes)
             {
                 var documentCollection = CreateCollection(documentType);
@@ -106,9 +118,9 @@ namespace MicroElements.FileStorage
 
         private IDocumentCollection CreateCollection(Type documentType)
         {
+            //todo: move to factory
             return (IDocumentCollection)Activator.CreateInstance(typeof(CrossStorageDocumentCollection<>).MakeGenericType(documentType), this);
 
-            //todo: move to factory
             if (_dataStorages.Count > 1)
             {
                 var documentCollectionType = typeof(CrossStorageDocumentCollection<>).MakeGenericType(documentType);
@@ -121,25 +133,6 @@ namespace MicroElements.FileStorage
                     .First(configuration => configuration.DocumentType == documentType);
                 return (IDocumentCollection)Activator.CreateInstance(documentCollectionType, collectionConfiguration);
             }
-        }
-    }
-
-    public class Schema
-    {
-        private readonly DataStoreConfiguration _configuration;
-
-        public DataStoreConfiguration Configuration => _configuration;
-
-        public IReadOnlyList<Type> DocumentTypes { get; }
-
-        public Schema(DataStoreConfiguration configuration)
-        {
-            _configuration = configuration;
-
-            DocumentTypes = _configuration.Storages.SelectMany(storageConfig => storageConfig.Collections)
-                .Select(collectionConfig => collectionConfig.DocumentType)
-                .Distinct()
-                .ToList();
         }
     }
 }

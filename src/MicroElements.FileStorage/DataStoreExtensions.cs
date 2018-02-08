@@ -6,6 +6,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.CodeContracts;
+using MicroElements.FileStorage.Operations;
 
 namespace MicroElements.FileStorage
 {
@@ -65,6 +66,24 @@ namespace MicroElements.FileStorage
                 .FirstOrDefault(configuration => configuration.DocumentType == typeof(T))
                 .ToTyped<T>();
             return collectionConfiguration;
+        }
+
+        public static bool IsReadOnly(this IDataStorage dataStorage)
+        {
+            return dataStorage.Configuration.ReadOnly;
+        }
+
+        public static bool IsWritable(this IDataStorage dataStorage)
+        {
+            return !dataStorage.IsReadOnly();
+        }
+
+        [CanBeNull]
+        public static IDataAddon GetWritableStorage([NotNull] this IDataStore dataStore)
+        {
+            Check.NotNull(dataStore, nameof(dataStore));
+
+            return dataStore.Storages.FirstOrDefault(storage => storage.IsWritable()) as IDataAddon;
         }
     }
 }

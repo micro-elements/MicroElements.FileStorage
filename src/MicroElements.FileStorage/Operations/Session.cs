@@ -10,20 +10,25 @@ namespace MicroElements.FileStorage.Operations
 {
     public class Session : ISession
     {
-        private IDataStore _dataStore;
+        private readonly IDataStore _dataStore;
+        private readonly IDataAddon _writableStorage;
         private IStorageProvider _storageProvider;
         private List<StoreCommand> _commands = new List<StoreCommand>();
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Session"/> class.
+        /// </summary>
+        /// <param name="dataStore">The Data store.</param>
         public Session(IDataStore dataStore)
         {
             _dataStore = dataStore;
-        }
 
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            SaveChanges();
+            if (_dataStore.Configuration.ReadOnly)
+                throw new InvalidOperationException("DataStore is readonly and cannot be changed.");
+
+            _writableStorage = _dataStore.GetWritableStorage();
+            if (_writableStorage == null)
+                throw new InvalidOperationException("DataStore does not contain writable storages.");
         }
 
         /// <inheritdoc />
@@ -45,6 +50,56 @@ namespace MicroElements.FileStorage.Operations
             _commands.Add(sessionCommand);
         }
 
+        /// <inheritdoc />
+        public void Delete<T>(string key) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void Patch<T>(string key, IDictionary<string, object> properties) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void SaveChanges()
+        {
+            //_commands.GroupBy(command => command.EntityType)
+            foreach (var storeCommand in _commands)
+            {
+                // todo: persist to storage
+                // todo: add to in memory addon
+                // todo: mark as persisted
+
+                _writableStorage.Add(storeCommand);
+
+                storeCommand.Persisted = true;
+            }
+
+            //_writableStorage.Add(_commands[0]);
+            //var storageProvider = _writableStorage.Configuration.StorageProvider;
+            //storageProvider.WriteFile()
+            //var dataLoader = new DataLoader(_dataStore, _dataStore.Storages.Last().Configuration);
+            //dataLoader.SaveCollection();
+
+            //var dataLoader = new DataLoader(_dataStore, _writableStorage.Configuration);
+            //var collections = _dataStore.GetCollections();
+            //foreach (var collection in collections)
+            //{
+            //    if (collection.HasChanges)
+            //    {
+            //        dataLoader.SaveCollection(collection);
+            //    }
+            //}
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            SaveChanges();
+        }
+
         private string GetKey<T>(T item) where T : class
         {
             var configurationTyped = _dataStore.GetConfigurationTyped<T>();
@@ -63,31 +118,6 @@ namespace MicroElements.FileStorage.Operations
             var collectionConfiguration = _dataStore.GetConfigurationTyped<T>();
             var nextKey = collectionConfiguration.KeyGenerator.GetNextKey(_dataStore, item);
             return nextKey.Formatted;
-        }
-
-        /// <inheritdoc />
-        public void Delete<T>(string key) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public void Patch<T>(string key, IDictionary<string, object> properties) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public void SaveChanges()
-        {
-            //var dataLoader = new DataLoader(_dataStore, _dataStore.Storages.Last().Configuration);
-            //dataLoader.SaveCollection();
-
-            _dataStore.Save();
-
-            //_entityLists.Last().AddOrUpdate();
-            //_storageProvider.WriteFile()
-            //throw new NotImplementedException();
         }
     }
 }

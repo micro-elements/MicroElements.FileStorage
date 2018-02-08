@@ -587,9 +587,8 @@ namespace MicroElements.FileStorage.Tests
             collection.Get("USD").Name.Should().Be("Dollar updated");
         }
 
-        [Theory()]
-        [InlineData(nameof(FileStorageProvider))]
-        public async Task add_get_with_identity_key(string typeStorageEngine)
+        [Fact]
+        public async Task add_get_with_identity_key()
         {
             var basePath = Path.GetFullPath("TestData/DataStore/add_get_with_identity_key");
             var file = Path.Combine(basePath, "entities.json");
@@ -616,10 +615,14 @@ namespace MicroElements.FileStorage.Tests
             await dataStore.Initialize();
 
             var entityWithIntId = new Person() { LastName = "SomeName" };
-            var collection = dataStore.GetCollection<Person>();
-            collection.Add(entityWithIntId);
+            var session = dataStore.OpenSession();
+            session.AddOrUpdate(entityWithIntId);
+
+            //
+            //collection.Add(entityWithIntId);
             entityWithIntId.Id.Should().Be("entities/1");
 
+            var collection = dataStore.GetCollection<Person>();
             var getResult = collection.Get("entities/1");
             getResult.Should().NotBeNull();
 

@@ -17,6 +17,8 @@ namespace MicroElements.FileStorage.StorageEngine
     /// </summary>
     public class FileStorageProvider : IStorageProvider
     {
+        // todo: to interfaces
+        private FileStorageConfiguration _configuration;
         private readonly string _basePath;
 
         /// <summary>
@@ -27,6 +29,8 @@ namespace MicroElements.FileStorage.StorageEngine
         {
             Check.NotNull(configuration, nameof(configuration));
             Check.NotNull(configuration.BasePath, nameof(configuration.BasePath));
+
+            _configuration = configuration;
 
             _basePath = configuration.BasePath.PathNormalize();
             if (!Directory.Exists(_basePath))
@@ -96,7 +100,7 @@ namespace MicroElements.FileStorage.StorageEngine
         {
             return new StorageMetadata
             {
-                IsReadonly = false
+                IsReadonly = _configuration.IsReadOnly
             };
         }
 

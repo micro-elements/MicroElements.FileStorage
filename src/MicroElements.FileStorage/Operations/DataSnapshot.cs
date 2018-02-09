@@ -6,25 +6,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
-using Microsoft.Extensions.Logging;
 
 namespace MicroElements.FileStorage.Operations
 {
     public class DataSnapshot : IDataStorage
     {
         private readonly IDataStore _dataStore;
-        private readonly ILoggerFactory _loggerFactory;
         private readonly DataStorageConfiguration _configuration;
 
-        // todo: replace collection for container
-        private readonly List<IDocumentCollection> _collections = new List<IDocumentCollection>();
         private readonly IDictionary<Type, IEntityList> _entityLists = new Dictionary<Type, IEntityList>();
 
-        /// <inheritdoc />
         public DataSnapshot(IDataStore dataStore, DataStorageConfiguration configuration)
         {
             _dataStore = dataStore;
-            _loggerFactory = dataStore.Services.LoggerFactory;
             _configuration = configuration;
         }
 
@@ -39,8 +33,7 @@ namespace MicroElements.FileStorage.Operations
         /// <inheritdoc />
         public IReadOnlyList<Type> GetDocTypes()
         {
-            //_configuration.Collections
-            throw new NotImplementedException();
+            return _configuration.Collections.Select(configuration => configuration.DocumentType).ToList();
         }
 
         /// <inheritdoc />

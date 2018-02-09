@@ -19,4 +19,13 @@ namespace MicroElements.FileStorage.StorageEngine
         /// </summary>
         public bool IsReadOnly { get; set; } = false;
     }
+
+    public interface IStorageConfiguration
+    {
+        string Name { get; }
+        int Order { get; }
+        bool IsActive { get; }
+        string[] Types { get; }
+        bool IsDefault { get; }
+    }
 }

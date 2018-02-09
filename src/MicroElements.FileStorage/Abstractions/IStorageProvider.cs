@@ -9,6 +9,7 @@ namespace MicroElements.FileStorage.Abstractions
 {
     /// <summary>
     /// Storage for underlying storage system.
+    /// todo: Support SQl and NoSQL (Cassandra, YesSQL)
     /// </summary>
     public interface IStorageProvider
     {

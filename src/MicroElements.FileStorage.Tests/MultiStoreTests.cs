@@ -19,10 +19,10 @@ namespace MicroElements.FileStorage.Tests
                 {
                     new DataStorageConfiguration
                     {
+                        ReadOnly = true,
                         StorageProvider = new FileStorageProvider(new FileStorageConfiguration
                         {
-                            BasePath = Path.GetFullPath("TestData/MultiStore/Snapshot"),
-                            IsReadOnly = true
+                            BasePath = Path.GetFullPath("TestData/MultiStore/Snapshot")
                         }),
                         Collections = new[]
                         {
@@ -34,10 +34,10 @@ namespace MicroElements.FileStorage.Tests
                     },
                     new DataStorageConfiguration
                     {
+                        ReadOnly = false,
                         StorageProvider = new FileStorageProvider(new FileStorageConfiguration
                         {
                             BasePath = Path.GetFullPath("TestData/MultiStore/Addon"),
-                            IsReadOnly = false
                         }),
                         Collections = new[]
                         {

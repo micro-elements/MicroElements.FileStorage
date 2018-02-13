@@ -10,6 +10,9 @@ namespace MicroElements.FileStorage.Abstractions
     /// <summary>
     /// Storage for underlying storage system.
     /// todo: Support SQl and NoSQL (Cassandra, YesSQL)
+    /// todo: subPath => Id?
+    /// todo: ReadDirectory => enumerate pathes not content
+    /// todo: see IFileInfo
     /// </summary>
     public interface IStorageProvider
     {

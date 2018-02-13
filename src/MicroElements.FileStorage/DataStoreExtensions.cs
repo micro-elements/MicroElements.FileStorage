@@ -26,7 +26,7 @@ namespace MicroElements.FileStorage
             Check.NotNull(dataStore, nameof(dataStore));
 
             var storageProvider = dataStore.Configuration.Storages.Last().StorageProvider;
-            if (storageProvider.GetStorageMetadata().IsReadonly)
+            if (storageProvider.GetStorageMetadata().IsReadOnly)
             {
                 throw new InvalidOperationException("Last storage provider in DataStore is ReadOnly!");
             }
@@ -68,9 +68,19 @@ namespace MicroElements.FileStorage
             return collectionConfiguration;
         }
 
+        public static bool IsReadOnly(this DataStoreConfiguration dataStoreConfiguration)
+        {
+            return dataStoreConfiguration.ReadOnly || dataStoreConfiguration.Storages.All(configuration => configuration.IsReadOnly());
+        }
+
         public static bool IsReadOnly(this IDataStorage dataStorage)
         {
-            return dataStorage.Configuration.ReadOnly;
+            return dataStorage.Configuration.IsReadOnly();
+        }
+
+        public static bool IsReadOnly(this IDataStorageConfiguration dataStorageConfiguration)
+        {
+            return dataStorageConfiguration.ReadOnly || dataStorageConfiguration.StorageProvider.GetStorageMetadata().IsReadOnly;
         }
 
         public static bool IsWritable(this IDataStorage dataStorage)

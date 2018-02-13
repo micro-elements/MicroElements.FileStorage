@@ -23,21 +23,7 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
-        public IEntityList<T> GetEntityList<T>() where T : class
-        {
-            return _entityLists.TryGetValue(typeof(T), out var list) ?
-                (IEntityList<T>)list :
-                throw new InvalidOperationException($"EntityList for type {typeof(T)} is not registered in storage.");
-        }
-
-        /// <inheritdoc />
-        public IReadOnlyList<Type> GetDocTypes()
-        {
-            return _configuration.Collections.Select(configuration => configuration.DocumentType).ToList();
-        }
-
-        /// <inheritdoc />
-        public DataStorageConfiguration Configuration => _configuration;
+        public IDataStorageConfiguration Configuration => _configuration;
 
         /// <inheritdoc />
         public async Task Initialize()
@@ -51,24 +37,12 @@ namespace MicroElements.FileStorage.Operations
             }
         }
 
-        public void Drop()
+        /// <inheritdoc />
+        public IEntityList<T> GetEntityList<T>() where T : class
         {
-            throw new NotImplementedException();
+            return _entityLists.TryGetValue(typeof(T), out var list) ?
+                (IEntityList<T>)list :
+                throw new InvalidOperationException($"EntityList for type {typeof(T)} is not registered in storage.");
         }
-
-        public void Save()
-        {
-            //todo: obsolete. all saves in session
-            var dataLoader = new DataLoader(_dataStore, _configuration);
-            var collections = _dataStore.GetCollections();
-            foreach (var collection in collections)
-            {
-                if (collection.HasChanges)
-                {
-                    dataLoader.SaveCollection(collection);
-                }
-            }
-        }
-
     }
 }

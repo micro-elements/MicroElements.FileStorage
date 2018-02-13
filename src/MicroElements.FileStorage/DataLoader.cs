@@ -114,7 +114,7 @@ namespace MicroElements.FileStorage
             var fileContents = await ReadAllInOneThread(fileTasks);
             var entities = DeserializeEntitiesInOneThread<T>(fileContents, serializer);
 
-            var isReadonly = storageConfig.StorageProvider.GetStorageMetadata().IsReadonly;
+            var isReadonly = storageConfig.IsReadOnly();
             var entityList = CreateEntityList<T>(isReadonly, entities, configurationTyped);
             return entityList;
         }

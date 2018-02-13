@@ -120,7 +120,7 @@ namespace MicroElements.FileStorage.ZipEngine
         {
             return new StorageMetadata
             {
-                IsReadonly = _configuration.Mode != ZipStorageEngineMode.Write
+                IsReadOnly = _configuration.Mode != ZipStorageEngineMode.Write
             };
         }
 

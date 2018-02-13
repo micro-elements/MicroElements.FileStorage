@@ -10,7 +10,18 @@ namespace MicroElements.FileStorage.Operations
 {
     public class DataAddon : IDataAddon
     {
+        private readonly IDataStore _dataStore;
+        private readonly DataStorageConfiguration _configuration;
+        private readonly DataSnapshot _dataSnapshot;
         private List<StoreCommand> _commands = new List<StoreCommand>();
+
+
+        public DataAddon(IDataStore dataStore, DataStorageConfiguration configuration)
+        {
+            _dataStore = dataStore;
+            _configuration = configuration;
+            _dataSnapshot = new DataSnapshot(dataStore, configuration);
+        }
 
         /// <inheritdoc />
         public void Add(StoreCommand command)
@@ -19,9 +30,9 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
-        public Task Initialize()
+        public async Task Initialize()
         {
-            throw new NotImplementedException();
+            await _dataSnapshot.Initialize();
         }
 
         /// <inheritdoc />
@@ -43,7 +54,7 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
-        public DataStorageConfiguration Configuration { get; }
+        public IDataStorageConfiguration Configuration => _configuration;
 
         /// <inheritdoc />
         public IReadOnlyList<IDocumentCollection> GetCollections()

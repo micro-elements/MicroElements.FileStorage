@@ -8,7 +8,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// <summary>
         /// Storage is read only.
         /// </summary>
-        public bool IsReadonly { get; set; }
+        public bool IsReadOnly { get; set; }
 
         /*
         // todo: StorageMetadata:

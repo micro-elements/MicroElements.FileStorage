@@ -24,6 +24,13 @@ namespace MicroElements.FileStorage.Abstractions
         [CanBeNull] T Get([NotNull] string key);
 
         /// <summary>
+        /// Gets item by position.
+        /// </summary>
+        /// <param name="pos">Position, zero based row num.</param>
+        /// <returns>Item or null if index is out of bound.</returns>
+        [CanBeNull] T GetByPos(int pos);
+
+        /// <summary>
         /// Gets a value indicating whether an entity exists.
         /// </summary>
         /// <param name="key">Entity key.</param>
@@ -34,6 +41,11 @@ namespace MicroElements.FileStorage.Abstractions
         /// Gets a value indicating whether collection is readonly.
         /// </summary>
         bool IsReadOnly { get; }
+
+        /// <summary>
+        /// Gets collection index.
+        /// </summary>
+        IIndex Index { get; }
 
         /// <summary>
         /// Adds new item to collection.
@@ -47,12 +59,5 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// <param name="key">Entity key.</param>
         void Delete([NotNull] string key);
-
-        /// <summary>
-        /// Gets collection index.
-        /// </summary>
-        IIndex Index { get; }
-
-        [CanBeNull] T GetByPos(int pos);
     }
 }

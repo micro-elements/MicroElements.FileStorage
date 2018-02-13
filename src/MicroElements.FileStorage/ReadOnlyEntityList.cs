@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage
@@ -17,7 +16,7 @@ namespace MicroElements.FileStorage
     {
         private readonly T[] _documents;
         private readonly Dictionary<string, int> _indexKeyPosition;
-        private readonly ImmutableHashSet<string> _deleted;
+        private readonly HashSet<string> _deleted;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadOnlyEntityList{T}"/> class.
@@ -37,13 +36,21 @@ namespace MicroElements.FileStorage
 
             _documents = documents;
             _indexKeyPosition = indexKeyPosition;
-            _deleted = data.Deleted.ToImmutableHashSet();
+            _deleted = data.Deleted != null ? new HashSet<string>(data.Deleted) : null;
         }
 
         /// <inheritdoc />
         public T Get(string key)
         {
             return IsDeleted(key) ? null : (_indexKeyPosition.TryGetValue(key, out var pos) ? _documents[pos] : null);
+        }
+
+        /// <inheritdoc />
+        public T GetByPos(int pos)
+        {
+            if (pos >= 0 && pos < _documents.Length)
+                return _documents[pos];
+            return null;
         }
 
         /// <inheritdoc />
@@ -57,7 +64,7 @@ namespace MicroElements.FileStorage
 
         private bool IsDeleted(string key)
         {
-            return _deleted.Contains(key);
+            return _deleted != null && _deleted.Contains(key);
         }
 
         /// <inheritdoc />
@@ -74,13 +81,5 @@ namespace MicroElements.FileStorage
 
         /// <inheritdoc />
         public IIndex Index => new Index(_indexKeyPosition, _indexKeyPosition.Keys, _deleted);
-
-        /// <inheritdoc />
-        public T GetByPos(int pos)
-        {
-            if (pos >= 0 && pos < _documents.Length)
-                return _documents[pos];
-            return null;
-        }
     }
 }

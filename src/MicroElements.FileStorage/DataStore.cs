@@ -52,12 +52,21 @@ namespace MicroElements.FileStorage
 
             foreach (var configurationStorage in _configuration.Storages)
             {
-                var dataStorage = new DataSnapshot(this, configurationStorage);
-                await dataStorage.Initialize();
-                _dataStorages = _dataStorages.Add(dataStorage);
+                if (configurationStorage.IsReadOnly())
+                {
+                    var dataStorage = new DataSnapshot(this, configurationStorage);
+                    await dataStorage.Initialize();
+                    _dataStorages = _dataStorages.Add(dataStorage);
+                }
+                else
+                {
+                    var dataStorage = new DataAddon(this, configurationStorage);
+                    await dataStorage.Initialize();
+                    _dataStorages = _dataStorages.Add(dataStorage);
+                }
             }
 
-            if (!_configuration.ReadOnly)
+            if (!_configuration.IsReadOnly())
             {
                 var countOfWritableStorages = Storages.Count(storage => storage.IsWritable());
                 if (countOfWritableStorages > 1)
@@ -65,7 +74,7 @@ namespace MicroElements.FileStorage
 
                 if (_dataStorages.Count == 1 || countOfWritableStorages == 0)
                 {
-                    _dataStorages = _dataStorages.Add(new DataAddon());
+                    _dataStorages = _dataStorages.Add(new DataAddon(this, null));
                 }
             }
 
@@ -95,13 +104,11 @@ namespace MicroElements.FileStorage
         /// <inheritdoc />
         public void Save()
         {
-            DataStorage.Save();
         }
 
         /// <inheritdoc />
         public void Drop()
         {
-            DataStorage.Drop();
         }
 
         /// <inheritdoc />

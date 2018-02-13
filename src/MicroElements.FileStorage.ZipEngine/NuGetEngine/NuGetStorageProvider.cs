@@ -120,7 +120,7 @@ namespace MicroElements.FileStorage.NuGetEngine
         {
             return new StorageMetadata
             {
-                IsReadonly = true
+                IsReadOnly = true
             };
         }
 

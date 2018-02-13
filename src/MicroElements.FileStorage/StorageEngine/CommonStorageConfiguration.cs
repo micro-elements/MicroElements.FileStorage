@@ -15,7 +15,7 @@ namespace MicroElements.FileStorage.StorageEngine
 
         /// <summary>
         /// Gets a value indicating whether storage is writable.
-        /// <para>Any change operation prohibited for read only storages.</para>
+        /// <para>Any change operations are prohibited for read only storages.</para>
         /// </summary>
         public bool IsReadOnly { get; set; } = false;
     }

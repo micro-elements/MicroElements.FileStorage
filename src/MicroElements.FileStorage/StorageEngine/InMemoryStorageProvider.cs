@@ -56,7 +56,7 @@ namespace MicroElements.FileStorage.StorageEngine
         {
             return new StorageMetadata
             {
-                IsReadonly = false
+                IsReadOnly = false
             };
         }
     }

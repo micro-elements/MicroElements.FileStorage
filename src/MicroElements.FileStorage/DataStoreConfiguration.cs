@@ -59,39 +59,6 @@ namespace MicroElements.FileStorage
         }
     }
 
-    public class DataStorageConfiguration
-    {
-        /// <summary>
-        /// Parent storage.
-        /// </summary>
-        public DataStorageConfiguration Parent { get; set; }
-
-        /// <summary>
-        /// StorageProvider.
-        /// </summary>
-        public IStorageProvider StorageProvider { get; set; }
-
-        /// <summary>
-        /// Collection definitions.
-        /// </summary>
-        public CollectionConfiguration[] Collections { get; set; }
-
-        /// <summary>
-        /// Gets a value indicating whether storage is readonly.
-        /// </summary>
-        public bool ReadOnly { get; set; } = true;
-
-        public void Verify()
-        {
-            new DataStorageConfigurationValidator().ValidateAndThrow(this);
-
-            foreach (var configuration in Collections)
-            {
-                configuration.Verify();
-            }
-        }
-    }
-
     public class DataStorageConfigurationValidator : AbstractValidator<DataStorageConfiguration>
     {
         public DataStorageConfigurationValidator()

@@ -1,15 +1,20 @@
 ﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.Operations
 {
+    // todo: Name, Key, Hash, parent
     public interface IDataStorage
     {
+        /// <summary>
+        /// Storage configuration.
+        /// </summary>
+        [NotNull] IDataStorageConfiguration Configuration { get; }
+
         /// <summary>
         /// Initializes DataStorage. Creates internal data structures, loads data.
         /// </summary>
@@ -22,18 +27,5 @@ namespace MicroElements.FileStorage.Operations
         /// <typeparam name="T">Entity type.</typeparam>
         /// <returns>Entity list.</returns>
         IEntityList<T> GetEntityList<T>() where T : class;
-
-        /// <summary>
-        /// Gets all collections.
-        /// </summary>
-        /// <returns>Collection list.</returns>
-        IReadOnlyList<Type> GetDocTypes();
-
-        DataStorageConfiguration Configuration { get; }
-
-        void Drop();
-        void Save();
-
-        //Name, Key, Hash, parent
     }
 }

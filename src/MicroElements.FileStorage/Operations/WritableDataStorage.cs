@@ -2,37 +2,50 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.Operations
 {
-    public class DataAddon : IDataAddon
+    public class WritableDataStorage : IWritableDataStorage
     {
         private readonly IDataStore _dataStore;
         private readonly DataStorageConfiguration _configuration;
-        private readonly DataSnapshot _dataSnapshot;
+        private readonly ReadOnlyDataStorage _readOnlyDataStorage;
         private List<StoreCommand> _commands = new List<StoreCommand>();
+        private ConcurrentDictionary<Type, IEntityList> _entityLists = new ConcurrentDictionary<Type, IEntityList>();
 
 
-        public DataAddon(IDataStore dataStore, DataStorageConfiguration configuration)
+        public WritableDataStorage(IDataStore dataStore, DataStorageConfiguration configuration)
         {
             _dataStore = dataStore;
             _configuration = configuration;
-            _dataSnapshot = new DataSnapshot(dataStore, configuration);
+            _readOnlyDataStorage = new ReadOnlyDataStorage(dataStore, configuration);
         }
 
         /// <inheritdoc />
         public void Add(StoreCommand command)
         {
+            var addInternal = GetType().GetMethod(nameof(AddInternal), BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(StoreCommand) }, null);
+            addInternal = addInternal.MakeGenericMethod(command.EntityType);
+            addInternal.Invoke(this, new[] { command });
+        }
+
+        private void AddInternal<T>(StoreCommand command) where T : class
+        {
             _commands.Add(command);
+
+            var entityList = GetEntityList<T>();
+            entityList.AddOrUpdate((T)command.Entity, command.Key);
         }
 
         /// <inheritdoc />
         public async Task Initialize()
         {
-            await _dataSnapshot.Initialize();
+            await _readOnlyDataStorage.Initialize();
         }
 
         /// <inheritdoc />
@@ -44,7 +57,12 @@ namespace MicroElements.FileStorage.Operations
         /// <inheritdoc />
         public IEntityList<T> GetEntityList<T>() where T : class
         {
-            throw new NotImplementedException();
+            return (IEntityList<T>)GetOrCreateEntityList(typeof(T));
+        }
+
+        private IEntityList GetOrCreateEntityList(Type entityType)
+        {
+            return _entityLists.GetOrAdd(entityType, type => EntityListFactory.Create(typeof(WritableEntityList<>), entityType));
         }
 
         /// <inheritdoc />

@@ -598,25 +598,32 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>
+                    new DataStorageConfiguration
                     {
-                        Name = "entities",
-                        SourceFile = "entities.json",
-                        KeyGetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
-                        KeySetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
-                        KeyGenerator = new IdentityKeyGenerator<Person>(1, true)
-                    },
+                        ReadOnly = false,
+                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
+                        Collections = new[]
+                        {
+                            new CollectionConfigurationTyped<Person>
+                            {
+                                Name = "entities",
+                                SourceFile = "entities.json",
+                                KeyGetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                                KeySetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                                KeyGenerator = new IdentityKeyGenerator<Person>(1, true)
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
             await dataStore.Initialize();
 
             var entityWithIntId = new Person() { LastName = "SomeName" };
-            var session = dataStore.OpenSession();
-            session.AddOrUpdate(entityWithIntId);
+            using (var session = dataStore.OpenSession())
+                session.AddOrUpdate(entityWithIntId);
 
             //
             //collection.Add(entityWithIntId);
@@ -632,17 +639,24 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration2 = new DataStoreConfiguration
             {
-                StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>
+                    new DataStorageConfiguration
                     {
-                        Name = "entities",
-                        SourceFile = "entities.json",
-                        KeyGetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
-                        KeySetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
-                        KeyGenerator = new IdentityKeyGenerator<Person>(1, false)
-                    },
+                        ReadOnly = false,
+                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
+                        Collections = new[]
+                        {
+                            new CollectionConfigurationTyped<Person>
+                            {
+                                Name = "entities",
+                                SourceFile = "entities.json",
+                                KeyGetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                                KeySetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                                KeyGenerator = new IdentityKeyGenerator<Person>(1, false)
+                            },
+                        }
+                    }
                 }
             };
             var dataStore2 = new DataStore(storeConfiguration2);

@@ -89,11 +89,11 @@ namespace MicroElements.FileStorage
         }
 
         [CanBeNull]
-        public static IDataAddon GetWritableStorage([NotNull] this IDataStore dataStore)
+        public static IWritableDataStorage GetWritableStorage([NotNull] this IDataStore dataStore)
         {
             Check.NotNull(dataStore, nameof(dataStore));
 
-            return dataStore.Storages.FirstOrDefault(storage => storage.IsWritable()) as IDataAddon;
+            return dataStore.Storages.FirstOrDefault(storage => storage.IsWritable()) as IWritableDataStorage;
         }
     }
 }

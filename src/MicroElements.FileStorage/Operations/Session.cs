@@ -11,7 +11,7 @@ namespace MicroElements.FileStorage.Operations
     public class Session : ISession
     {
         private readonly IDataStore _dataStore;
-        private readonly IDataAddon _writableStorage;
+        private readonly IWritableDataStorage _writableStorage;
         private IStorageProvider _storageProvider;
         private List<StoreCommand> _commands = new List<StoreCommand>();
 

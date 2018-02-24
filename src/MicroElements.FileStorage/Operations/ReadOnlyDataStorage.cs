@@ -3,20 +3,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.Operations
 {
-    public class DataSnapshot : IDataStorage
+    /// <summary>
+    /// ReadOnly Data Storage.
+    /// </summary>
+    public class ReadOnlyDataStorage : IDataStorage
     {
         private readonly IDataStore _dataStore;
         private readonly DataStorageConfiguration _configuration;
 
         private readonly IDictionary<Type, IEntityList> _entityLists = new Dictionary<Type, IEntityList>();
 
-        public DataSnapshot(IDataStore dataStore, DataStorageConfiguration configuration)
+        public ReadOnlyDataStorage(IDataStore dataStore, DataStorageConfiguration configuration)
         {
             _dataStore = dataStore;
             _configuration = configuration;
@@ -28,12 +30,13 @@ namespace MicroElements.FileStorage.Operations
         /// <inheritdoc />
         public async Task Initialize()
         {
-            var dataLoader = new DataLoader(_dataStore, _configuration);
-            var entityLists = await dataLoader.LoadEntitiesAsync();
+            var dataLoader = new FileSystemLoader(new LoaderSettings(_dataStore, _configuration));
+            var collectionDatas = await dataLoader.LoadEntitiesAsync();
 
-            foreach (var entityList in entityLists)
+            foreach (var valuePair in collectionDatas)
             {
-                _entityLists.Add(entityList);
+                var entityList = EntityListFactory.Create(typeof(ReadOnlyEntityList<>), valuePair.Value);
+                _entityLists.Add(valuePair.Key, entityList);
             }
         }
 

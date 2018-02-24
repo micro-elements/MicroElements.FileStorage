@@ -74,9 +74,13 @@ namespace MicroElements.FileStorage
                 {
                     fullIndex.Add(valuePair.Key, new IndexKey<T>(valuePair.Key, entityLists[i], valuePair.Value));
                 }
-                foreach (var deletedKey in indices[i].DeletedKeys)
+
+                if (indices[i].DeletedKeys != null)
                 {
-                    fullIndex.Remove(deletedKey);
+                    foreach (var deletedKey in indices[i].DeletedKeys)
+                    {
+                        fullIndex.Remove(deletedKey);
+                    }
                 }
             }
 

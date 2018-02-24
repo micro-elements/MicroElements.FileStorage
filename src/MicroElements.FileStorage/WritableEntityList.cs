@@ -19,6 +19,11 @@ namespace MicroElements.FileStorage
         private ImmutableHashSet<string> _deleted = ImmutableHashSet<string>.Empty;
 
         /// <inheritdoc />
+        public WritableEntityList()
+        {
+        }
+
+        /// <inheritdoc />
         public bool IsReadOnly { get; }
 
         /// <inheritdoc />

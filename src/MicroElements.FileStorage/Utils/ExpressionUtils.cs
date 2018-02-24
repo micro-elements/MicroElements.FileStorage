@@ -76,6 +76,16 @@ namespace MicroElements.FileStorage
             return lambda.Compile();
         }
 
+        public static Func<object> CreateInstance(Type classType, Type itemType, object arg)
+        {
+            //not tested
+            var genericType = classType.MakeGenericType(itemType);
+            var constructorInfo = genericType.GetConstructor(Array.Empty<Type>());
+            var body = Expression.New(constructorInfo, Expression.Constant(arg));
+            var lambda = Expression.Lambda<Func<object>>(body);
+            return lambda.Compile();
+        }
+
         public static Expression<Func<IEnumerable<T>, T>> CreateLambda<T>()
         {
             return source => source.Last();

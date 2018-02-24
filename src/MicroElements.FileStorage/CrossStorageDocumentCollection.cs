@@ -15,7 +15,10 @@ namespace MicroElements.FileStorage
         private readonly List<IEntityList<T>> _entityLists;
         private readonly List<IIndex> _indices = new List<IIndex>();
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CrossStorageDocumentCollection{T}"/> class.
+        /// </summary>
+        /// <param name="dataStore">The DataStore.</param>
         public CrossStorageDocumentCollection(IDataStore dataStore)
         {
             _dataStore = dataStore;

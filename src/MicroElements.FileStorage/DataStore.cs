@@ -54,13 +54,13 @@ namespace MicroElements.FileStorage
             {
                 if (configurationStorage.IsReadOnly())
                 {
-                    var dataStorage = new DataSnapshot(this, configurationStorage);
+                    var dataStorage = new ReadOnlyDataStorage(this, configurationStorage);
                     await dataStorage.Initialize();
                     _dataStorages = _dataStorages.Add(dataStorage);
                 }
                 else
                 {
-                    var dataStorage = new DataAddon(this, configurationStorage);
+                    var dataStorage = new WritableDataStorage(this, configurationStorage);
                     await dataStorage.Initialize();
                     _dataStorages = _dataStorages.Add(dataStorage);
                 }
@@ -72,9 +72,9 @@ namespace MicroElements.FileStorage
                 if (countOfWritableStorages > 1)
                     throw new InvalidConfigurationException("DataStore is writable but there more than one writable storages.");
 
-                if (_dataStorages.Count == 1 || countOfWritableStorages == 0)
+                if (countOfWritableStorages == 0)
                 {
-                    _dataStorages = _dataStorages.Add(new DataAddon(this, null));
+                    _dataStorages = _dataStorages.Add(new WritableDataStorage(this, null));
                 }
             }
 

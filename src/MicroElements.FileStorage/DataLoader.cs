@@ -6,73 +6,78 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.Operations;
+using MicroElements.FileStorage.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace MicroElements.FileStorage
 {
+    public class DataLoaderSettings
+    {
+        public IDataStore DataStore { get; }
+
+        public DataStorageConfiguration DataStorageConfiguration { get; }
+
+        public Func<CollectionData, IEntityList> CreateList { get; set; }
+
+        public void Set<T>(Func<T, CollectionData, IEntityList<T>> aa)
+        {
+        }
+
+        public Func<IList<T>, T> SelectionMethod<T>() { return list => list.First(); }
+
+        public DataLoaderSettings(IDataStore dataStore, DataStorageConfiguration dataStorageConfiguration)
+        {
+            DataStore = dataStore;
+            DataStorageConfiguration = dataStorageConfiguration;
+        }
+    }
+
+    public static class EntityListFactory
+    {
+        public static IEntityList Create(Type entityListType, CollectionData collectionData)
+        {
+            var genericType = entityListType.MakeGenericType(collectionData.EntityType);
+            return (IEntityList)Activator.CreateInstance(genericType, collectionData);
+        }
+
+        public static IEntityList Create(Type entityListType, Type entityType)
+        {
+            var genericType = entityListType.MakeGenericType(entityType);
+            return (IEntityList)Activator.CreateInstance(genericType);
+        }
+
+        public static IEntityList Create(Type entityListType, Type entityType, object arg)
+        {
+            var genericType = entityListType.MakeGenericType(entityType);
+            return (IEntityList)Activator.CreateInstance(genericType, arg);
+        }
+    }
+
     public class DataLoader
     {
+        private DataLoaderSettings _loaderSettings;
         private readonly IDataStore _dataStore;
         private Conventions _conventions;
         private ILogger _logger;
 
         private readonly DataStorageConfiguration _dataStorageConfiguration;
 
-        /// <inheritdoc />
-        public DataLoader(IDataStore dataStore, DataStorageConfiguration dataStorageConfiguration)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DataLoader"/> class.
+        /// </summary>
+        /// <param name="loaderSettings"></param>
+        public DataLoader(DataLoaderSettings loaderSettings)
         {
-            _dataStore = dataStore;
-            _dataStorageConfiguration = dataStorageConfiguration;
-            _conventions = dataStore.Configuration.Conventions;
-            _logger = dataStore.Services.LoggerFactory.CreateLogger(typeof(DataLoader));
-        }
-
-        public async Task<IReadOnlyList<IDocumentCollection>> LoadCollectionsAsync(DataStorageConfiguration dataStorageConfiguration)
-        {
-            ConcurrentBag<IDocumentCollection> collections = new ConcurrentBag<IDocumentCollection>();
-            //todo: logger
-            _logger.LogDebug("Collection loading started");
-            foreach (var configuration in dataStorageConfiguration.Collections)
-            {
-                var documentCollectionType = typeof(DocumentCollection<>).MakeGenericType(configuration.DocumentType);
-                var documentCollection = (IDocumentCollection)Activator.CreateInstance(documentCollectionType, configuration);
-                var addMethodInfo = documentCollectionType.GetMethod(nameof(IDocumentCollection<object>.Add), new[] { configuration.DocumentType });
-
-                IEnumerable<Task<FileContent>> fileTasks;
-                if (IsMultiFile(configuration))
-                {
-                    fileTasks = dataStorageConfiguration.StorageProvider.ReadDirectory(configuration.SourceFile);
-                }
-                else
-                {
-                    fileTasks = new[] { dataStorageConfiguration.StorageProvider.ReadFile(configuration.SourceFile) };
-                }
-
-                foreach (var fileTask in fileTasks)
-                {
-                    var content = await fileTask;
-
-                    if (string.IsNullOrEmpty(content.Content))
-                        continue;
-
-                    var serializer = GetSerializer(configuration);
-
-                    var objects = serializer.Deserialize(content, configuration.DocumentType);
-                    foreach (var document in objects)
-                    {
-                        addMethodInfo.Invoke(documentCollection, new[] { document });
-                    }
-                }
-
-                collections.Add(documentCollection);
-                _logger.LogInformation($"Collection loaded. Type: {configuration.DocumentType}");
-            }
-
-            return collections.ToArray();
+            _loaderSettings = loaderSettings;
+            _dataStore = loaderSettings.DataStore;
+            _dataStorageConfiguration = loaderSettings.DataStorageConfiguration;
+            _conventions = _dataStore.Configuration.Conventions;
+            _logger = _dataStore.Services.LoggerFactory.CreateLogger(typeof(DataLoader));
         }
 
         public async Task<IDictionary<Type, IEntityList>> LoadEntitiesAsync()
@@ -169,11 +174,23 @@ namespace MicroElements.FileStorage
         {
             string GetKey(T item) => collectionConfig.KeyGetter.GetIdFunc()(item);
 
-            var entityWithKeys = entities.Select(ent => new EntityWithKey<T>(ent, GetKey(ent))).ToList();
+            if (_loaderSettings.CreateList != null)
+            {
+                return _loaderSettings.CreateList(new CollectionData
+                {
+                    Entities = entities.ToArray(),
+                    EntityType = typeof(T),
+                    Keys = entities.Select(GetKey).ToArray()
+                });
+            }
 
+            var entityWithKeys = entities.Select(ent => new EntityWithKey<T>(ent, GetKey(ent))).ToList();
             if (readOnly)
             {
-                return new ReadOnlyEntityList<T>(new ExportData<T> { Added = entityWithKeys });
+                return new ReadOnlyEntityList<T>(new ExportData<T>
+                {
+                    Added = entityWithKeys
+                });
             }
             else
             {
@@ -254,6 +271,19 @@ namespace MicroElements.FileStorage
                 await _dataStorageConfiguration.StorageProvider.DeleteFile(fileName);
                 deleteCommand.Processed = true;
             }
+        }
+    }
+
+    public class LoaderSettings
+    {
+        public IDataStore DataStore { get; }
+
+        public DataStorageConfiguration DataStorageConfiguration { get; }
+
+        public LoaderSettings(IDataStore dataStore, DataStorageConfiguration dataStorageConfiguration)
+        {
+            DataStore = dataStore;
+            DataStorageConfiguration = dataStorageConfiguration;
         }
     }
 }

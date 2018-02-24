@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage
@@ -37,6 +38,25 @@ namespace MicroElements.FileStorage
             _documents = documents;
             _indexKeyPosition = indexKeyPosition;
             _deleted = data.Deleted != null ? new HashSet<string>(data.Deleted) : null;
+        }
+
+        public ReadOnlyEntityList(CollectionData data)
+        {
+            // todo: validate data
+            _documents = new T[data.Entities.Length];
+
+            Dictionary<string, int> indexKeyPosition = new Dictionary<string, int>();
+
+            for (var index = 0; index < data.Entities.Length; index++)
+            {
+                var entity = data.Entities[index];
+                var key = data.Keys[index];
+                _documents[index] = (T)entity;
+                indexKeyPosition[key] = index;
+            }
+
+            _indexKeyPosition = indexKeyPosition;
+            _deleted = data.DeletedKeys != null ? new HashSet<string>(data.DeletedKeys) : null;
         }
 
         /// <inheritdoc />

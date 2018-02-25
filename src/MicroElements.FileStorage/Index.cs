@@ -1,10 +1,11 @@
 ﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Concurrent;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.CodeContracts;
 
 namespace MicroElements.FileStorage
 {
@@ -18,19 +19,35 @@ namespace MicroElements.FileStorage
     {
         IReadOnlyDictionary<string, int> KeyPosition { get; }
 
-        IEnumerable<string> AddedKeys { get; }
+        ISet<string> AddedKeys { get; }
 
-        //todo: set<string> or IsDeleted
-        IEnumerable<string> DeletedKeys { get; }
+        ISet<string> DeletedKeys { get; }
     }
 
     public class Index : IIndex
     {
-        /// <inheritdoc />
-        public Index(IReadOnlyDictionary<string, int> keyPosition, IEnumerable<string> addedKeys, IEnumerable<string> deletedKeys)
+        public Index(IReadOnlyDictionary<string, int> keyPosition, ISet<string> addedKeys, ISet<string> deletedKeys)
         {
+            Check.NotNull(keyPosition, nameof(keyPosition));
+            Check.NotNull(addedKeys, nameof(addedKeys));
+            Check.NotNull(deletedKeys, nameof(deletedKeys));
+            if (addedKeys.Count + deletedKeys.Count != keyPosition.Count)
+                throw new ArgumentException("addedKeys.Count + deletedKeys.Count != keyPosition.Count");
+
             KeyPosition = keyPosition;
             AddedKeys = addedKeys;
+            DeletedKeys = deletedKeys;
+        }
+
+        public Index(IReadOnlyDictionary<string, int> keyPosition, ISet<string> deletedKeys)
+        {
+            Check.NotNull(keyPosition, nameof(keyPosition));
+            Check.NotNull(deletedKeys, nameof(deletedKeys));
+
+            KeyPosition = keyPosition;
+            var added = new HashSet<string>(keyPosition.Keys);
+            added.ExceptWith(deletedKeys);
+            AddedKeys = added;
             DeletedKeys = deletedKeys;
         }
 
@@ -38,10 +55,10 @@ namespace MicroElements.FileStorage
         public IReadOnlyDictionary<string, int> KeyPosition { get; }
 
         /// <inheritdoc />
-        public IEnumerable<string> AddedKeys { get; }
+        public ISet<string> AddedKeys { get; }
 
         /// <inheritdoc />
-        public IEnumerable<string> DeletedKeys { get; }
+        public ISet<string> DeletedKeys { get; }
     }
 
     public interface IIndex<TBy>

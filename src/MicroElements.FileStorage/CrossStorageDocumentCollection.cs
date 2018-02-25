@@ -46,10 +46,16 @@ namespace MicroElements.FileStorage
         {
             get
             {
-                HashSet<string> added = new HashSet<string>();
-                for (int i = _indices.Count - 1; i >= 0; i--)
+                if (_entityLists.Count == 1)
                 {
-                    added.UnionWith(_indices[i].AddedKeys);
+                    return _entityLists[0].Index.AddedKeys.Count;
+                }
+
+                var indices = _entityLists.Select(list => list.Index).ToList();
+                HashSet<string> added = new HashSet<string>();
+                for (int i = indices.Count - 1; i >= 0; i--)
+                {
+                    added.UnionWith(indices[i].AddedKeys);
                 }
 
                 return added.Count;
@@ -82,16 +88,16 @@ namespace MicroElements.FileStorage
             {
                 session.AddOrUpdate(item, null);
             }
-
         }
 
         /// <inheritdoc />
         public T Get(string key)
         {
-            for (int i = _indices.Count - 1; i >= 0; i--)
+            var indices = _entityLists.Select(list => list.Index).ToList();
+            for (int i = indices.Count - 1; i >= 0; i--)
             {
                 // if found in added
-                if (_indices[i].KeyPosition.TryGetValue(key, out var pos))
+                if (indices[i].KeyPosition.TryGetValue(key, out var pos))
                 {
                     var entity = _entityLists[i].GetByPos(pos);
                     if (entity != null)
@@ -100,7 +106,7 @@ namespace MicroElements.FileStorage
                         return entity;
                     }
 
-                    if (_indices[i].DeletedKeys.Contains(key))
+                    if (indices[i].DeletedKeys.Contains(key))
                     {
                         // entity was deleted
                         return null;
@@ -114,10 +120,14 @@ namespace MicroElements.FileStorage
         /// <inheritdoc />
         public bool IsExists(string key)
         {
-            for (int i = _indices.Count - 1; i >= 0; i--)
+            var indices = _entityLists.Select(list => list.Index).ToList();
+            for (int i = indices.Count - 1; i >= 0; i--)
             {
-                if (_indices[i].AddedKeys.Contains(key))
+                if (indices[i].AddedKeys.Contains(key))
                     return true;
+
+                if (indices[i].DeletedKeys.Contains(key))
+                    return false;
             }
 
             return false;
@@ -126,7 +136,8 @@ namespace MicroElements.FileStorage
         /// <inheritdoc />
         public IEnumerable<T> Find(Func<T, bool> query)
         {
-            var fullIndex = IndexBuilder.BuildFullIndex(_indices, _entityLists);
+            var indices = _entityLists.Select(list => list.Index).ToList();
+            var fullIndex = IndexBuilder.BuildFullIndex(indices, _entityLists);
             var result = fullIndex.Values
                 .Select(indexKey => indexKey.EntityList.GetByPos(indexKey.Pos))
                 .Where(query);
@@ -136,7 +147,10 @@ namespace MicroElements.FileStorage
         /// <inheritdoc />
         public void Delete(string key)
         {
-            throw new NotImplementedException();
+            using (var session = new Session(_dataStore))
+            {
+                session.Delete<T>(key);
+            }
         }
 
         /// <inheritdoc />

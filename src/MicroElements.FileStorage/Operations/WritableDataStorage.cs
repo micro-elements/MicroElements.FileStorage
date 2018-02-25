@@ -39,7 +39,15 @@ namespace MicroElements.FileStorage.Operations
             _commands.Add(command);
 
             var entityList = GetEntityList<T>();
-            entityList.AddOrUpdate((T)command.Entity, command.Key);
+
+            if (command.CommandType == CommandType.Store)
+            {
+                entityList.AddOrUpdate((T)command.Entity, command.Key);
+            }
+            if (command.CommandType == CommandType.Delete)
+            {
+                entityList.Delete(command.Key);
+            }
         }
 
         /// <inheritdoc />

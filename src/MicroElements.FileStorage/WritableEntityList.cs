@@ -102,7 +102,18 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
-        public IIndex Index => new Index(_indexIdDocIndex, _indexIdDocIndex.Keys, null);
+        public void Clear()
+        {
+            lock (_documents)
+            {
+                _documents.Clear();
+                _indexIdDocIndex.Clear();
+                _deleted = _deleted.Clear();
+            }
+        }
+
+        /// <inheritdoc />
+        public IIndex Index => new Index(_indexIdDocIndex, _deleted);
 
         /// <inheritdoc />
         public T GetByPos(int pos)

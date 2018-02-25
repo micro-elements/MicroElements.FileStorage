@@ -37,6 +37,12 @@ namespace MicroElements.FileStorage.Abstractions
         void Patch<T>(string key, IDictionary<string, object> properties) where T : class;
 
         /// <summary>
+        /// Deletes all entities of type.
+        /// </summary>
+        /// <typeparam name="T">Entity type.</typeparam>
+        void Drop<T>() where T : class;
+
+        /// <summary>
         /// Saves changes to <see cref="IStorageProvider"/>.
         /// <para>Can be called several times if needed.</para>
         /// <para>Calls automatically on session dispose.</para>

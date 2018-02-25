@@ -249,8 +249,7 @@ namespace MicroElements.FileStorage.Tests
 
             var collection = dataStore.GetCollection<Person>();
             collection.Should().NotBeNull();
-            collection.Drop();
-            //collection.Count.Should().Be(0);
+            collection.Count.Should().Be(0);
 
             var person1 = new Person
             {
@@ -313,18 +312,25 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageProvider = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>()
+                    new DataStorageConfiguration
                     {
-                        Name = "Persons",
-                        SourceFile = "persons.json",
-                        Format = "json",
-                        Version = "1.0",
-                        Serializer = new JsonSerializer(),
-                        OneFilePerCollection = true,
-                    },
+                        ReadOnly = false,
+                        StorageProvider = storageEngine,
+                        Collections = new[]
+                        {
+                            new CollectionConfigurationTyped<Person>
+                            {
+                                Name = "Persons",
+                                SourceFile = "persons.json",
+                                Format = "json",
+                                Version = "1.0",
+                                Serializer = new JsonSerializer(),
+                                OneFilePerCollection = true,
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);

@@ -22,10 +22,5 @@ namespace MicroElements.FileStorage.Abstractions
         /// Gets count of items in collection.
         /// </summary>
         int Count { get; }
-
-        /// <summary>
-        /// Clears collection.
-        /// </summary>
-        void Drop();
     }
 }

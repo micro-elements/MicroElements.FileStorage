@@ -14,15 +14,22 @@ namespace MicroElements.FileStorage.Tests
             await inMemoryStorageEngine.WriteFile("currencies.json", new FileContent("currencies.json", "[]"));
             DataStoreConfiguration storeConfiguration = new DataStoreConfiguration
             {
-                StorageProvider = inMemoryStorageEngine,
-                Collections = new CollectionConfiguration[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Currency>
-                    {
-                        DocumentType = typeof(Currency),
-                        SourceFile = "currencies.json",
-                        KeyGetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Code)),
-                    },
+                   new DataStorageConfiguration
+                   {
+                       ReadOnly = false,
+                       StorageProvider = inMemoryStorageEngine,
+                       Collections = new CollectionConfiguration[]
+                       {
+                           new CollectionConfigurationTyped<Currency>
+                           {
+                               DocumentType = typeof(Currency),
+                               SourceFile = "currencies.json",
+                               KeyGetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Code)),
+                           },
+                       }
+                   }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);

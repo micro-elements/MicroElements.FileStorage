@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage
@@ -37,7 +37,7 @@ namespace MicroElements.FileStorage
 
             _documents = documents;
             _indexKeyPosition = indexKeyPosition;
-            _deleted = data.Deleted != null ? new HashSet<string>(data.Deleted) : null;
+            _deleted = new HashSet<string>(data.Deleted ?? Array.Empty<string>());
         }
 
         public ReadOnlyEntityList(CollectionData data)
@@ -56,7 +56,7 @@ namespace MicroElements.FileStorage
             }
 
             _indexKeyPosition = indexKeyPosition;
-            _deleted = data.DeletedKeys != null ? new HashSet<string>(data.DeletedKeys) : null;
+            _deleted = new HashSet<string>(data.DeletedKeys ?? Array.Empty<string>());
         }
 
         /// <inheritdoc />
@@ -100,6 +100,12 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
-        public IIndex Index => new Index(_indexKeyPosition, _indexKeyPosition.Keys, _deleted);
+        public void Clear()
+        {
+            throw new InvalidOperationException("Collection is read only");
+        }
+
+        /// <inheritdoc />
+        public IIndex Index => new Index(_indexKeyPosition, _deleted);
     }
 }

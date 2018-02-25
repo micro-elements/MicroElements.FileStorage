@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
 using MicroElements.FileStorage.Abstractions;
@@ -94,6 +96,47 @@ namespace MicroElements.FileStorage
             Check.NotNull(dataStore, nameof(dataStore));
 
             return dataStore.Storages.FirstOrDefault(storage => storage.IsWritable()) as IWritableDataStorage;
+        }
+
+        [Obsolete("Used for debugging. Remove ToArray for performance reason.")]
+        public static T[] ToArrayTemp<T>(this IEnumerable<T> items)
+        {
+            return items.ToArray();
+        }
+
+        [Obsolete("Used for debugging. Remove ToList for performance reason.")]
+        public static List<T> ToListTemp<T>(this IEnumerable<T> items)
+        {
+            return items.ToList();
+        }
+
+        public static ISerializer GetSerializer(this DataStoreConfiguration dataStoreConfiguration, Type entityType)
+        {
+            CollectionConfiguration collectionConfiguration = dataStoreConfiguration.GetCollectionConfiguration(entityType);
+
+            if (collectionConfiguration?.Serializer != null)
+                return collectionConfiguration.Serializer;
+
+            return dataStoreConfiguration.Conventions.GetSerializer(collectionConfiguration);
+        }
+
+        public static CollectionConfiguration GetCollectionConfiguration(this DataStoreConfiguration dataStoreConfiguration, Type entityType)
+        {
+            CollectionConfiguration collectionConfiguration = null;
+            foreach (var storageConfiguration in dataStoreConfiguration.Storages)
+            {
+                collectionConfiguration = storageConfiguration.Collections.FirstOrDefault(configuration =>
+                    configuration.DocumentType == entityType);
+                if (collectionConfiguration != null)
+                    break;
+            }
+            return collectionConfiguration;
+        }
+
+        public static bool IsMultiFile(this CollectionConfiguration configuration)
+        {
+            var isDirectory = !Path.HasExtension(configuration.SourceFile);
+            return isDirectory;
         }
     }
 }

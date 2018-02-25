@@ -59,5 +59,11 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// <param name="key">Entity key.</param>
         void Delete([NotNull] string key);
+
+        /// <summary>
+        /// Clears the list and <see cref="Index"/>.
+        /// <para>No operations recorded.</para>
+        /// </summary>
+        void Clear();
     }
 }

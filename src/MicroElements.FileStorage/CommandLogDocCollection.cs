@@ -46,6 +46,12 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
+        public void Clear()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         public IIndex Index { get; }
 
         /// <inheritdoc />

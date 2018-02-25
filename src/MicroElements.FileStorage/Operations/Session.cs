@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage.Operations
@@ -43,7 +45,6 @@ namespace MicroElements.FileStorage.Operations
 
             var sessionCommand = new StoreCommand(CommandType.Store, typeof(T), key)
             {
-                TimestampUtc = DateTime.UtcNow,
                 Entity = entity
             };
 
@@ -53,7 +54,9 @@ namespace MicroElements.FileStorage.Operations
         /// <inheritdoc />
         public void Delete<T>(string key) where T : class
         {
-            throw new NotImplementedException();
+            var sessionCommand = new StoreCommand(CommandType.Delete, typeof(T), key);
+
+            _commands.Add(sessionCommand);
         }
 
         /// <inheritdoc />
@@ -63,9 +66,27 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
+        public void Drop<T>() where T : class
+        {
+            //_dataStore.Storages[0].GetEntityList<T>().Clear();
+            throw new NotImplementedException();
+        }
+
+        private class SaveData
+        {
+            public Type EntityType;
+            public IEntityList EntityList;
+            public List<StoreCommand> Commands;
+            public CollectionConfiguration CollectionConfiguration;
+        }
+
+        /// <inheritdoc />
         public void SaveChanges()
         {
             //_commands.GroupBy(command => command.EntityType)
+            var storeCommands = _commands.Where(command => command.CommandType == CommandType.Store);
+            var deleteCommands = _commands.Where(command => command.CommandType == CommandType.Delete);
+
             foreach (var storeCommand in _commands)
             {
                 // todo: persist to storage
@@ -76,12 +97,18 @@ namespace MicroElements.FileStorage.Operations
 
                 storeCommand.Persisted = true;
             }
+            var changedTypes = _commands.Select(command => command.EntityType).Distinct().ToArrayTemp();
+            foreach (var changedType in changedTypes)
+            {
+                _writableStorage.GetEntityList<object>();
+                _dataStore.GetCollection<object>().Find()
+            }
 
             //_writableStorage.Add(_commands[0]);
-            //var storageProvider = _writableStorage.Configuration.StorageProvider;
-            //storageProvider.WriteFile()
-            //var dataLoader = new DataLoader(_dataStore, _dataStore.Storages.Last().Configuration);
-            //dataLoader.SaveCollection();
+            var storageProvider = _writableStorage.Configuration.StorageProvider;
+            storageProvider.WriteFile()
+            var dataLoader = new DataLoader(_dataStore, _dataStore.Storages.Last().Configuration);
+            dataLoader.SaveCollection();
 
             //var dataLoader = new DataLoader(_dataStore, _writableStorage.Configuration);
             //var collections = _dataStore.GetCollections();
@@ -119,5 +146,48 @@ namespace MicroElements.FileStorage.Operations
             var nextKey = collectionConfiguration.KeyGenerator.GetNextKey(_dataStore, item);
             return nextKey.Formatted;
         }
+
+        private void SaveCollection(SaveData saveData)
+        {
+            GetType().GetMethod(nameof(SaveCollectionInternal), BindingFlags.Instance | BindingFlags.NonPublic)
+                .MakeGenericMethod(saveData.EntityType)
+                .Invoke(this, new[] { saveData });
+        }
+
+        private void SaveCollectionInternal<T>(SaveData saveData) where T : class
+        {
+            var configuration = _dataStore.Configuration.GetCollectionConfiguration(saveData.EntityType);
+            var serializer = _dataStore.Configuration.GetSerializer(typeof(T));
+            var serializerInfo = serializer.GetInfo();
+            var items = collection.Find(arg => true).ToList();
+            var collectionDir = configuration.SourceFile;
+
+            if (IsMultiFile(configuration))
+            {
+                foreach (var item in items)
+                {
+                    var key = collection.GetKey(item);
+                    var format = string.Format("{0}{1}", key, serializerInfo.Extension);
+                    var fileName = Path.Combine(collectionDir, format);
+                    SaveFiles(serializer, new[] { item }, fileName, configuration.DocumentType);
+                }
+
+                ProcessDeletes(collection, collectionDir, serializerInfo.Extension).GetAwaiter().GetResult();
+            }
+            else
+            {
+                //todo: do not rewrite same
+                SaveFiles(serializer, items, configuration.SourceFile, configuration.DocumentType);
+            }
+
+            collection.HasChanges = false;
+        }
+    }
+
+
+
+    public class DataSaver
+    {
+
     }
 }

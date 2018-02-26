@@ -26,7 +26,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// <typeparam name="T">Entity type.</typeparam>
         /// <param name="key">Entity key.</param>
-        void Delete<T>(string key) where T : class;
+        void Delete<T>([NotNull] string key) where T : class;
 
         /// <summary>
         /// Patches or overrides some properties of an existing entity.
@@ -34,7 +34,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// <typeparam name="T">Entity type.</typeparam>
         /// <param name="key">Entity key.</param>
         /// <param name="properties">Properties.</param>
-        void Patch<T>(string key, IDictionary<string, object> properties) where T : class;
+        void Patch<T>([NotNull] string key, IDictionary<string, object> properties) where T : class;
 
         /// <summary>
         /// Deletes all entities of type.

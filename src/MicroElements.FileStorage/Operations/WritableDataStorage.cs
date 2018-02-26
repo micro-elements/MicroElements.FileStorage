@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
@@ -54,6 +55,13 @@ namespace MicroElements.FileStorage.Operations
         public async Task Initialize()
         {
             await _readOnlyDataStorage.Initialize();
+            var entityTypes = _readOnlyDataStorage.Configuration.Collections.Select(configuration => configuration.DocumentType);
+            foreach (var entityType in entityTypes)
+            {
+                Executor.SaveCollection(() => entityType, this);
+                var entityList = _readOnlyDataStorage.GetEntityList<object>();
+                GetOrCreateEntityList(entityType).AddAll(entityList);
+            }
         }
 
         /// <inheritdoc />
@@ -98,6 +106,23 @@ namespace MicroElements.FileStorage.Operations
         public void Save()
         {
             throw new NotImplementedException();
+        }
+    }
+
+    public static class Executor
+    {
+        public static Task SaveCollection(Func<Type> getType, object arg)
+        {
+            var methodInfo = typeof(Executor)
+                .GetMethod(nameof(SaveCollectionInternal), BindingFlags.Instance | BindingFlags.NonPublic)
+                .MakeGenericMethod(getType());
+
+            return (Task)methodInfo.Invoke(null, new[] { arg });
+        }
+
+        private static async Task SaveCollectionInternal<T>(object arg)
+        {
+
         }
     }
 }

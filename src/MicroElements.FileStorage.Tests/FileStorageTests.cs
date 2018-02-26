@@ -8,6 +8,7 @@ using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.Experimental;
 using MicroElements.FileStorage.KeyAccessors;
 using MicroElements.FileStorage.KeyGenerators;
+using MicroElements.FileStorage.Operations;
 using MicroElements.FileStorage.Serializers;
 using MicroElements.FileStorage.StorageEngine;
 using MicroElements.FileStorage.Tests.Models;
@@ -38,16 +39,23 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageProvider = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>
+                    new DataStorageConfiguration
                     {
-                        SourceFile = "persons",
-                        Serializer = new JsonSerializer(),
-                        KeyGetter = new DefaultKeyAccessor<Person>(),
-                        KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
-                    },
+                        ReadOnly = false,
+                        StorageProvider = storageEngine,
+                        Collections = new[]
+                        {
+                            new CollectionConfigurationTyped<Person>
+                            {
+                                SourceFile = "persons",
+                                Serializer = new JsonSerializer(),
+                                KeyGetter = new DefaultKeyAccessor<Person>(),
+                                KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -79,17 +87,18 @@ namespace MicroElements.FileStorage.Tests
             File.Exists(fileBill).Should().BeTrue();
             File.Exists(fileSteve).Should().BeTrue();
 
-            collection.Delete("1");
+            var session = new Session(dataStore);
+            session.Delete<Person>("1");
+
             File.Exists(fileBill).Should().BeTrue();
-            dataStore.Save();
+            session.SaveChanges();
             File.Exists(fileBill).Should().BeFalse();
             File.Exists(fileSteve).Should().BeTrue();
 
-            collection.Delete("2");
+            session.Delete<Person>("2");
             File.Exists(fileSteve).Should().BeTrue();
-            dataStore.Save();
+            session.SaveChanges();
             File.Exists(fileSteve).Should().BeFalse();
-
         }
 
         [Theory()]
@@ -261,9 +270,6 @@ namespace MicroElements.FileStorage.Tests
 
             var person2 = collection.Find(p => true).First();
             person2.Id.Should().NotBeNullOrEmpty("Id must be generated");
-
-            dataStore.Save();
-
         }
 
         [Theory()]
@@ -358,16 +364,23 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageProvider = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>
+                    new DataStorageConfiguration
                     {
-                        SourceFile = "persons",
-                        Serializer = new JsonSerializer(),
-                        KeyGetter = new DefaultKeyAccessor<Person>(),
-                        KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
-                    },
+                        ReadOnly = false,
+                        StorageProvider = storageEngine,
+                        Collections = new[]
+                        {
+                            new CollectionConfigurationTyped<Person>
+                            {
+                                SourceFile = "persons",
+                                Serializer = new JsonSerializer(),
+                                KeyGetter = new DefaultKeyAccessor<Person>(),
+                                KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -446,15 +459,22 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageProvider = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>
+                    new DataStorageConfiguration
                     {
-                        DocumentType = typeof(Person),
-                        SourceFile = "persons.json",
-                        KeyGenerator = new IdentityKeyGenerator<Person>()
-                    },
+                        ReadOnly = false,
+                        StorageProvider = storageEngine,
+                        Collections = new[]
+                        {
+                            new CollectionConfigurationTyped<Person>
+                            {
+                                DocumentType = typeof(Person),
+                                SourceFile = "persons.json",
+                                KeyGenerator = new IdentityKeyGenerator<Person>()
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -496,15 +516,22 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Currency>
+                    new DataStorageConfiguration
                     {
-                        DocumentType = typeof(Currency),
-                        SourceFile = "currencies.json",
-                        KeyGetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Code)),
-                    },
+                        ReadOnly = false,
+                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
+                        Collections = new[]
+                        {
+                            new CollectionConfigurationTyped<Currency>
+                            {
+                                DocumentType = typeof(Currency),
+                                SourceFile = "currencies.json",
+                                KeyGetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Code)),
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);

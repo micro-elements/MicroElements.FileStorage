@@ -98,13 +98,13 @@ namespace MicroElements.FileStorage
             return dataStore.Storages.FirstOrDefault(storage => storage.IsWritable()) as IWritableDataStorage;
         }
 
-        [Obsolete("Used for debugging. Remove ToArray for performance reason.")]
+        //[Obsolete("Used for debugging. Remove ToArray for performance reason.")]
         public static T[] ToArrayTemp<T>(this IEnumerable<T> items)
         {
             return items.ToArray();
         }
 
-        [Obsolete("Used for debugging. Remove ToList for performance reason.")]
+        //[Obsolete("Used for debugging. Remove ToList for performance reason.")]
         public static List<T> ToListTemp<T>(this IEnumerable<T> items)
         {
             return items.ToList();

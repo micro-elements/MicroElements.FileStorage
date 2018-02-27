@@ -36,7 +36,7 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
-        public void AddOrUpdate<T>(T entity, string key) where T : class
+        public void AddOrUpdate<T>(T entity, string key = null) where T : class
         {
             key = key ?? GetKey(entity);
             if (key == null)
@@ -92,6 +92,8 @@ namespace MicroElements.FileStorage.Operations
 
             foreach (var storeCommand in _commands)
             {
+                if (storeCommand.Persisted)
+                    continue;
                 _writableStorage.Add(storeCommand);
             }
 

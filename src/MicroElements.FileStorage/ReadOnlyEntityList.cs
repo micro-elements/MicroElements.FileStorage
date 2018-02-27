@@ -60,6 +60,12 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
+        public Type EntityType => typeof(T);
+
+        /// <inheritdoc />
+        public int Count => Index.AddedKeys.Count;
+
+        /// <inheritdoc />
         public T Get(string key)
         {
             return IsDeleted(key) ? null : (_indexKeyPosition.TryGetValue(key, out var pos) ? _documents[pos] : null);

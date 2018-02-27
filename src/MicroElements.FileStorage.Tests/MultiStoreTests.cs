@@ -13,6 +13,10 @@ namespace MicroElements.FileStorage.Tests
         [Fact]
         public async Task create_multistore_test()
         {
+            var addonPersonsJson = "TestData/MultiStore/Addon/Persons.json";
+            if (File.Exists(addonPersonsJson))
+                File.Delete(addonPersonsJson);
+
             var storeConfiguration = new DataStoreConfiguration
             {
                 Storages = new[]

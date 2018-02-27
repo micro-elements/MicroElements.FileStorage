@@ -13,6 +13,12 @@ namespace MicroElements.FileStorage
         private ICommandLog _commandLog = new CommandLog();
 
         /// <inheritdoc />
+        public Type EntityType => typeof(T);
+
+        /// <inheritdoc />
+        public int Count => _commandLog.Count;
+
+        /// <inheritdoc />
         public T Get(string key)
         {
             throw new NotImplementedException();

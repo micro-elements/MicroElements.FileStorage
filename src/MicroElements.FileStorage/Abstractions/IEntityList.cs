@@ -1,6 +1,7 @@
 ﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using JetBrains.Annotations;
 
 namespace MicroElements.FileStorage.Abstractions
@@ -8,7 +9,12 @@ namespace MicroElements.FileStorage.Abstractions
     /// <summary>
     /// Marker interface for entity lists.
     /// </summary>
-    public interface IEntityList { }
+    public interface IEntityList
+    {
+        Type EntityType { get; }
+
+        int Count { get; }
+    }
 
     /// <summary>
     /// Entity list.

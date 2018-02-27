@@ -58,16 +58,25 @@ namespace MicroElements.FileStorage.Operations
             var entityTypes = _readOnlyDataStorage.Configuration.Collections.Select(configuration => configuration.DocumentType);
             foreach (var entityType in entityTypes)
             {
-                Executor.SaveCollection(() => entityType, this);
-                var entityList = _readOnlyDataStorage.GetEntityList<object>();
-                GetOrCreateEntityList(entityType).AddAll(entityList);
+                await Executor.Execute(entityType, this, nameof(InitializeInternal), null);
+            }
+        }
+
+        public async Task InitializeInternal<T>() where T : class
+        {
+            var entityList = _readOnlyDataStorage.GetEntityList<T>();
+
+            if (entityList.Count > 0)
+            {
+                var list = (IEntityList<T>)GetOrCreateEntityList(typeof(T));
+                entityList.ForEach((ent, key) => list.AddOrUpdate(ent, key));
             }
         }
 
         /// <inheritdoc />
-        public IDocumentCollection<T> GetCollection<T>() where T : class
+        public IEntityList GetEntityList(Type entityType)
         {
-            throw new NotImplementedException();
+            return GetOrCreateEntityList(entityType);
         }
 
         /// <inheritdoc />
@@ -82,47 +91,18 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
-        public IReadOnlyList<Type> GetDocTypes()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
         public IDataStorageConfiguration Configuration => _configuration;
-
-        /// <inheritdoc />
-        public IReadOnlyList<IDocumentCollection> GetCollections()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public void Drop()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public void Save()
-        {
-            throw new NotImplementedException();
-        }
     }
 
     public static class Executor
     {
-        public static Task SaveCollection(Func<Type> getType, object arg)
+        public static Task Execute(Type genericParamType, object methodHost, string methodName, object arg = null)
         {
-            var methodInfo = typeof(Executor)
-                .GetMethod(nameof(SaveCollectionInternal), BindingFlags.Instance | BindingFlags.NonPublic)
-                .MakeGenericMethod(getType());
+            var methodInfo = methodHost.GetType()
+                .GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .MakeGenericMethod(genericParamType);
 
-            return (Task)methodInfo.Invoke(null, new[] { arg });
-        }
-
-        private static async Task SaveCollectionInternal<T>(object arg)
-        {
-
+            return (Task)methodInfo.Invoke(methodHost, arg != null ? new[] { arg } : null);
         }
     }
 }

@@ -138,5 +138,14 @@ namespace MicroElements.FileStorage
             var isDirectory = !Path.HasExtension(configuration.SourceFile);
             return isDirectory;
         }
+
+        public static void ForEach<T>(this IEntityList<T> entityList, Action<T, string> action)
+        {
+            foreach (var key in entityList.Index.AddedKeys)
+            {
+                var item = entityList.GetByPos(entityList.Index.KeyPosition[key]);
+                action(item, key);
+            }
+        }
     }
 }

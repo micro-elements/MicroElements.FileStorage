@@ -24,6 +24,12 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
+        public Type EntityType => typeof(T);
+
+        /// <inheritdoc />
+        public int Count => _indexIdDocIndex.Count;
+
+        /// <inheritdoc />
         public bool IsReadOnly { get; }
 
         /// <inheritdoc />

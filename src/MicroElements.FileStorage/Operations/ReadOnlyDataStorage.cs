@@ -41,11 +41,15 @@ namespace MicroElements.FileStorage.Operations
         }
 
         /// <inheritdoc />
+        public IEntityList GetEntityList(Type entityType)
+        {
+            return _entityLists.TryGetValue(entityType, out var list) ? list : null;
+        }
+
+        /// <inheritdoc />
         public IEntityList<T> GetEntityList<T>() where T : class
         {
-            return _entityLists.TryGetValue(typeof(T), out var list) ?
-                (IEntityList<T>)list :
-                throw new InvalidOperationException($"EntityList for type {typeof(T)} is not registered in storage.");
+            return (IEntityList<T>)GetEntityList(typeof(T));
         }
     }
 }

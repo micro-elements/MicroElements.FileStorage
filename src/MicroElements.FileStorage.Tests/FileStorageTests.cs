@@ -287,18 +287,22 @@ namespace MicroElements.FileStorage.Tests
                 FirstName = "Bill_123456789",
                 LastName = "Gates"
             };
-            collection.Add(person1);
+            var session = new Session(dataStore);
+
+            session.AddOrUpdate(person1);
+            session.SaveChanges();
+
             collection.Count.Should().Be(1);
 
-            // First save
-            dataStore.Save();
+
 
             var personId = person1.Id;
             var person2 = collection.Get(personId);
             person1.FirstName.Should().Be("Bill_123456789");
             person2.FirstName = "Bill_123";
-            collection.HasChanges = true;
-            dataStore.Save();
+
+            session.AddOrUpdate(person2);
+            session.SaveChanges();
 
             dataStore = GetPersonDataStore(typeStorageEngine, basePath, delete: false);
             collection = dataStore.GetCollection<Person>();
@@ -669,6 +673,9 @@ namespace MicroElements.FileStorage.Tests
             var item = new Person { LastName = "Name2" };
             collection.Add(item);
             item.Id.Should().Be("entities/2");
+
+            if (File.Exists(file))
+                File.Delete(file);
 
             var storeConfiguration2 = new DataStoreConfiguration
             {

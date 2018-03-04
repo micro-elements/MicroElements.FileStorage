@@ -18,7 +18,9 @@ namespace MicroElements.FileStorage.StorageEngine
         /// <inheritdoc />
         public Task<FileContent> ReadFile(string subPath)
         {
-            return Task.FromResult(_contents[subPath]);
+            if (!_contents.TryGetValue(subPath, out var fileContent))
+                fileContent = new FileContent(subPath, "[]");
+            return Task.FromResult(fileContent);
         }
 
         /// <inheritdoc />
@@ -27,7 +29,7 @@ namespace MicroElements.FileStorage.StorageEngine
             var keys = _contents.Keys.Where(path => path.Contains(subPath));
             foreach (var key in keys)
             {
-                yield return Task.FromResult(_contents[key]);
+                yield return ReadFile(key);
             }
         }
 

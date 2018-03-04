@@ -10,16 +10,11 @@ namespace MicroElements.FileStorage.KeyGenerators
     /// Generates Guid keys.
     /// </summary>
     /// <remarks>Note: Guid keys is globally unique. But not suited for sorting or db key. Use NewId if possible.</remarks>
+    /// /// <typeparam name="T">Entity type.</typeparam>
     public class GuidKeyGenerator<T> : IKeyGenerator<T> where T : class
     {
         /// <inheritdoc />
         public KeyType KeyStrategy { get; } = KeyType.UniqId;
-
-        /// <inheritdoc />
-        public Key GetNextKey(IDocumentCollection<T> collection, T entity)
-        {
-            return new Key(KeyType.UniqId, Guid.NewGuid().ToString());
-        }
 
         /// <inheritdoc />
         public Key GetNextKey(IDataStore dataStore, T entity)

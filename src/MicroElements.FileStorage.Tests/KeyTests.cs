@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq.Expressions;
-using System.Reflection;
-using FluentAssertions;
+﻿using FluentAssertions;
 using MicroElements.FileStorage.KeyAccessors;
 using MicroElements.FileStorage.Tests.Models;
 using Xunit;
@@ -36,33 +33,6 @@ namespace MicroElements.FileStorage.Tests
             var idFunc = new DefaultKeyAccessor<Person>().SetIdFunc();
             idFunc(person, "persons/1");
             person.Id.Should().Be("persons/1");
-        }
-
-        private void SetAndRaise<TViewModel, TProperty>(
-            TViewModel vm,
-            Expression<Func<TViewModel, TProperty>> exp,
-            TProperty value)
-        {
-            var propertyInfo = (PropertyInfo)((MemberExpression)exp.Body).Member;
-            propertyInfo.SetValue(vm, value, null);
-        }
-
-        private Expression<Action> Assignment2<T>(Expression<Func<T>> lvalue, T rvalue)
-        {
-            var body = lvalue.Body;
-            var c = Expression.Constant(rvalue, typeof(T));
-            var a = Expression.Assign(body, c);
-            return Expression.Lambda<Action>(a);
-        }
-
-        private Expression<Action> Assignment<TValue, TProperty>(
-            Expression<Func<TValue, TProperty>> propExpression,
-            TProperty rvalue)
-        {
-            var body = propExpression.Body;
-            var c = Expression.Constant(rvalue, typeof(TProperty));
-            var a = Expression.Assign(body, c);
-            return Expression.Lambda<Action>(a);
         }
 
         [Fact]

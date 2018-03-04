@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.KeyAccessors;
+using MicroElements.FileStorage.KeyGenerators;
 using MicroElements.FileStorage.StorageEngine;
 using MicroElements.FileStorage.Tests.Models;
 
@@ -30,6 +31,46 @@ namespace MicroElements.FileStorage.Tests
                            },
                        }
                    }
+                }
+            };
+            var dataStore = new DataStore(storeConfiguration);
+
+            await dataStore.Initialize();
+            return dataStore;
+        }
+    }
+
+    internal static class TestData
+    {
+        public static Person Bill => new Person
+        {
+            Id = "1",
+            FirstName = "Bill",
+            LastName = "Gates"
+        };
+
+        public static async Task<DataStore> CreatePersonsDataStore()
+        {
+            var inMemoryStorageEngine = new InMemoryStorageProvider();
+            DataStoreConfiguration storeConfiguration = new DataStoreConfiguration
+            {
+                Storages = new[]
+                {
+                    new DataStorageConfiguration
+                    {
+                        ReadOnly = false,
+                        StorageProvider = inMemoryStorageEngine,
+                        Collections = new CollectionConfiguration[]
+                        {
+                            new CollectionConfigurationTyped<Person>
+                            {
+                                DocumentType = typeof(Person),
+                                SourceFile = "persons",
+                                KeyGetter = new DefaultKeyAccessor<Person>(),
+                                KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);

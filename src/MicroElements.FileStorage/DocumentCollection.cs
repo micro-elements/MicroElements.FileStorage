@@ -26,6 +26,7 @@ namespace MicroElements.FileStorage
 
         private readonly IKeyGetter<T> _keyGetter;
         private readonly IKeySetter<T> _keySetter;
+        private IDataStore _dataStore;
 
         public DocumentCollection(CollectionConfiguration configuration)
         {
@@ -202,7 +203,7 @@ namespace MicroElements.FileStorage
 
         private string GetNextKey(T item)
         {
-            var nextKey = ConfigurationTyped.KeyGenerator.GetNextKey(this, item);
+            var nextKey = ConfigurationTyped.KeyGenerator.GetNextKey(_dataStore, item);
             return nextKey.Formatted;
         }
 

@@ -57,7 +57,7 @@ namespace MicroElements.FileStorage.Tests
                         StorageProvider = nuGetStorageEngine,
                         Collections = new[]
                         {
-                            new CollectionConfigurationTyped<Currency>()
+                            new CollectionConfiguration<Currency>()
                             {
                                 SourceFile = @"Classifiers\Currency\ISO_4217.xml",
                                 Serializer = new CurrencyXmlSerializer(),

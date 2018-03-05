@@ -6,7 +6,12 @@ namespace MicroElements.FileStorage.StorageEngine
     /// <summary>
     /// Configuration for <see cref="FileStorageProvider"/>.
     /// </summary>
-    public class FileStorageConfiguration : CommonStorageConfiguration
+    public class FileStorageConfiguration : IFileStorageConfiguration
     {
+        /// <inheritdoc />
+        public string BasePath { get; set; }
+
+        /// <inheritdoc />
+        public bool ReadOnly { get; set; }
     }
 }

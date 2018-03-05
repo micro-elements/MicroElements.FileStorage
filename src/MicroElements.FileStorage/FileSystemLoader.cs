@@ -127,7 +127,7 @@ namespace MicroElements.FileStorage
         public IEntityList CreateEntityList<T>(
             bool readOnly,
             IList<T> entities,
-            CollectionConfigurationTyped<T> collectionConfig)
+            CollectionConfiguration<T> collectionConfig)
             where T : class
         {
             string GetKey(T item) => collectionConfig.KeyGetter.GetIdFunc()(item);

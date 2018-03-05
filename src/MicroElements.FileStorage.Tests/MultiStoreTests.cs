@@ -30,7 +30,7 @@ namespace MicroElements.FileStorage.Tests
                         }),
                         Collections = new[]
                         {
-                            new CollectionConfigurationTyped<Person>
+                            new CollectionConfiguration<Person>
                             {
                                 SourceFile = "Persons.json",
                             },
@@ -45,7 +45,7 @@ namespace MicroElements.FileStorage.Tests
                         }),
                         Collections = new[]
                         {
-                            new CollectionConfigurationTyped<Person>
+                            new CollectionConfiguration<Person>
                             {
                                 SourceFile = "Persons.json",
                             },

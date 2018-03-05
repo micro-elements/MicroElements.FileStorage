@@ -2,13 +2,14 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.IO;
+using MicroElements.FileStorage.StorageEngine;
 
 namespace MicroElements.FileStorage.ZipEngine
 {
     /// <summary>
     /// Cjnfiguration for <see cref="ZipStorageProvider"/>.
     /// </summary>
-    public class ZipStorageConfiguration
+    public class ZipStorageConfiguration : IFileStorageConfiguration
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ZipStorageConfiguration"/> class.
@@ -42,6 +43,9 @@ namespace MicroElements.FileStorage.ZipEngine
         /// Base path to search files.
         /// </summary>
         public string BasePath { get; set; }
+
+        /// <inheritdoc />
+        public bool ReadOnly { get; set; }
 
         /// <summary>
         /// To use FileStream or MemoryStream. For Memory available in read-only mode. For FileStream available in read-write mode.

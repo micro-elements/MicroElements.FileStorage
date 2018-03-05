@@ -6,26 +6,17 @@ namespace MicroElements.FileStorage.StorageEngine
     /// <summary>
     /// Common properties for storage engines.
     /// </summary>
-    public class CommonStorageConfiguration
+    public interface IFileStorageConfiguration
     {
         /// <summary>
         /// Base path to search files.
         /// </summary>
-        public string BasePath { get; set; }
+        string BasePath { get; }
 
         /// <summary>
         /// Gets a value indicating whether storage is writable.
         /// <para>Any change operations are prohibited for read only storages.</para>
         /// </summary>
-        public bool IsReadOnly { get; set; } = false;
-    }
-
-    public interface IStorageConfiguration
-    {
-        string Name { get; }
-        int Order { get; }
-        bool IsActive { get; }
-        string[] Types { get; }
-        bool IsDefault { get; }
+        bool ReadOnly { get; }
     }
 }

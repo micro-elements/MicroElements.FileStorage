@@ -53,13 +53,13 @@ namespace MicroElements.FileStorage
 
         public static ICollectionConfiguration<T> ToTyped<T>(this ICollectionConfiguration configuration) where T : class
         {
-            if (configuration is CollectionConfigurationTyped<T> typed)
+            if (configuration is CollectionConfiguration<T> typed)
                 return typed;
 
             if (configuration.DocumentType == typeof(T))
-                return new CollectionConfigurationTyped<T>(configuration);
+                return new CollectionConfiguration<T>(configuration);
 
-            return new CollectionConfigurationTyped<T>();
+            return new CollectionConfiguration<T>();
         }
 
         public static ICollectionConfiguration<T> GetConfigurationTyped<T>(this IDataStore dataStore) where T : class

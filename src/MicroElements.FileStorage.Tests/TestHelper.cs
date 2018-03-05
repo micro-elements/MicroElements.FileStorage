@@ -23,7 +23,7 @@ namespace MicroElements.FileStorage.Tests
                        StorageProvider = inMemoryStorageEngine,
                        Collections = new CollectionConfiguration[]
                        {
-                           new CollectionConfigurationTyped<Currency>
+                           new CollectionConfiguration<Currency>
                            {
                                DocumentType = typeof(Currency),
                                SourceFile = "currencies.json",
@@ -62,7 +62,7 @@ namespace MicroElements.FileStorage.Tests
                         StorageProvider = inMemoryStorageEngine,
                         Collections = new CollectionConfiguration[]
                         {
-                            new CollectionConfigurationTyped<Person>
+                            new CollectionConfiguration<Person>
                             {
                                 DocumentType = typeof(Person),
                                 SourceFile = "persons",

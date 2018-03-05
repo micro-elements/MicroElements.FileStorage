@@ -17,15 +17,14 @@ namespace MicroElements.FileStorage.StorageEngine
     /// </summary>
     public class FileStorageProvider : IStorageProvider
     {
-        // todo: to interfaces
-        private FileStorageConfiguration _configuration;
+        private readonly IFileStorageConfiguration _configuration;
         private readonly string _basePath;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileStorageProvider"/> class.
         /// </summary>
         /// <param name="configuration">FileStorageConfiguration.</param>
-        public FileStorageProvider([NotNull] FileStorageConfiguration configuration)
+        public FileStorageProvider([NotNull] IFileStorageConfiguration configuration)
         {
             Check.NotNull(configuration, nameof(configuration));
             Check.NotNull(configuration.BasePath, nameof(configuration.BasePath));
@@ -100,7 +99,7 @@ namespace MicroElements.FileStorage.StorageEngine
         {
             return new StorageMetadata
             {
-                IsReadOnly = _configuration.IsReadOnly
+                IsReadOnly = _configuration.ReadOnly
             };
         }
 

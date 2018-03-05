@@ -1,12 +1,14 @@
 ﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using MicroElements.FileStorage.StorageEngine;
+
 namespace MicroElements.FileStorage.NuGetEngine
 {
     /// <summary>
     /// Configuration for <see cref="NuGetStorageProvider"/>.
     /// </summary>
-    public class NuGetStorageConfiguration
+    public class NuGetStorageConfiguration : IFileStorageConfiguration
     {
         /// <summary>
         /// Nuget package source.
@@ -27,6 +29,9 @@ namespace MicroElements.FileStorage.NuGetEngine
         /// Base path to search files.
         /// </summary>
         public string BasePath { get; set; }
+
+        /// <inheritdoc />
+        public bool ReadOnly => true;
 
         /// <summary>
         /// Global package cache folder. All packages cached in this folder.

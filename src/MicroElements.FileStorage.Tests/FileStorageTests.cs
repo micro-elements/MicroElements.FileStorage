@@ -47,7 +47,7 @@ namespace MicroElements.FileStorage.Tests
                         StorageProvider = storageEngine,
                         Collections = new[]
                         {
-                            new CollectionConfigurationTyped<Person>
+                            new CollectionConfiguration<Person>
                             {
                                 SourceFile = "persons",
                                 Serializer = new JsonSerializer(),
@@ -347,7 +347,7 @@ namespace MicroElements.FileStorage.Tests
                         StorageProvider = storageEngine,
                         Collections = new[]
                         {
-                            new CollectionConfigurationTyped<Person>
+                            new CollectionConfiguration<Person>
                             {
                                 Name = "Persons",
                                 SourceFile = "persons.json",
@@ -393,7 +393,7 @@ namespace MicroElements.FileStorage.Tests
                         StorageProvider = storageEngine,
                         Collections = new[]
                         {
-                            new CollectionConfigurationTyped<Person>
+                            new CollectionConfiguration<Person>
                             {
                                 SourceFile = "persons",
                                 Serializer = new JsonSerializer(),
@@ -486,7 +486,7 @@ namespace MicroElements.FileStorage.Tests
                         StorageProvider = storageEngine,
                         Collections = new[]
                         {
-                            new CollectionConfigurationTyped<Person>
+                            new CollectionConfiguration<Person>
                             {
                                 DocumentType = typeof(Person),
                                 SourceFile = "persons.json",
@@ -540,7 +540,7 @@ namespace MicroElements.FileStorage.Tests
                         StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
                         Collections = new[]
                         {
-                            new CollectionConfigurationTyped<Currency>
+                            new CollectionConfiguration<Currency>
                             {
                                 DocumentType = typeof(Currency),
                                 SourceFile = "currencies.json",
@@ -653,7 +653,7 @@ namespace MicroElements.FileStorage.Tests
                         StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
                         Collections = new[]
                         {
-                            new CollectionConfigurationTyped<Person>
+                            new CollectionConfiguration<Person>
                             {
                                 Name = "entities",
                                 SourceFile = "entities.json",
@@ -697,7 +697,7 @@ namespace MicroElements.FileStorage.Tests
                         StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
                         Collections = new[]
                         {
-                            new CollectionConfigurationTyped<Person>
+                            new CollectionConfiguration<Person>
                             {
                                 Name = "entities",
                                 SourceFile = "entities.json",

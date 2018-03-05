@@ -39,7 +39,7 @@ namespace MicroElements.FileStorage.KeyGenerators
             Check.NotNull(dataStore, nameof(dataStore));
 
             var collection = dataStore.GetCollection<T>();
-            string collectionName = collection.ConfigurationTyped.Name;
+            string collectionName = collection.Configuration.Name;
 
             int ParseKey(string key)
             {

@@ -54,7 +54,7 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
-        public ICollectionConfiguration<T> ConfigurationTyped
+        public ICollectionConfiguration<T> Configuration
         {
             get
             {

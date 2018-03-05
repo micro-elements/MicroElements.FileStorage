@@ -38,7 +38,7 @@ namespace MicroElements.FileStorage
 
         public static string GetKey<T>(this IDocumentCollection<T> collection, T item) where T : class
         {
-            return collection.ConfigurationTyped.KeyGetter.GetIdFunc()(item);
+            return collection.Configuration.KeyGetter.GetIdFunc()(item);
         }
 
         public static IEntityList<T> ToReadOnly<T>(this IEntityList<T> entityList) where T : class

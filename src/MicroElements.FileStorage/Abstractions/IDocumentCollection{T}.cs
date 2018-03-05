@@ -16,7 +16,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// <summary>
         /// Typed configuration.
         /// </summary>
-        ICollectionConfiguration<T> ConfigurationTyped { get; }
+        ICollectionConfiguration<T> Configuration { get; }
 
         /// <summary>
         /// Adds new item to collection.

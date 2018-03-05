@@ -7,30 +7,38 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using MicroElements.FileStorage.CodeContracts;
 
 namespace MicroElements.FileStorage.Utils
 {
+    public interface IFileAsync
+    {
+        Task<string> ReadAllText(string path, [CanBeNull] Encoding encoding = null);
+
+        Task WriteAllText(string path, string content, [CanBeNull] Encoding encoding = null);
+    }
+
     /// <summary>
     /// Async file utils.
     /// </summary>
     public class FileAsync
     {
-        public static async Task<string> ReadAllText(string path, Encoding encoding)
+        public static async Task<string> ReadAllText(string path, [CanBeNull] Encoding encoding = null)
         {
             Check.NotNull(path, nameof(path));
 
-            using (var reader = AsyncStreamReader(path, encoding))
+            using (var reader = AsyncStreamReader(path, encoding ?? Encoding.UTF8))
             {
                 return await reader.ReadToEndAsync();
             }
         }
 
-        public static async Task WriteAllText(string path, string content, Encoding encoding)
+        public static async Task WriteAllText(string path, string content, [CanBeNull] Encoding encoding = null)
         {
             Check.NotNull(path, nameof(path));
 
-            using (var streamWriter = AsyncStreamWriter(path, encoding, append: false))
+            using (var streamWriter = AsyncStreamWriter(path, encoding ?? Encoding.UTF8, append: false))
             {
                 await streamWriter.WriteAsync(content);
             }

@@ -66,13 +66,13 @@ namespace MicroElements.FileStorage.Tests
             collection.Should().NotBeNull();
             collection.Count.Should().Be(0);
 
-            collection.Add(new Person
+            collection.AddOrUpdate(new Person
             {
                 Id = "1",
                 FirstName = "Bill",
                 LastName = "Gates"
             });
-            collection.Add(new Person
+            collection.AddOrUpdate(new Person
             {
                 Id = "2",
                 FirstName = "Steve",
@@ -80,7 +80,6 @@ namespace MicroElements.FileStorage.Tests
             });
             collection.Count.Should().Be(2);
 
-            dataStore.Save();
             var fileBill = Path.Combine(collectionFullDir, fileNameBill);
             var fileSteve = Path.Combine(collectionFullDir, fileNameSteve);
 
@@ -111,17 +110,23 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageProvider = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfiguration
+                    new DataStorageConfiguration
                     {
-                        Name = "Persons",
-                        DocumentType = typeof(Person),
-                        SourceFile = "Persons.json",
-                        Format = "json",
-                        Version = "1.0"
-                    },
+                        StorageProvider = storageEngine,
+                        Collections = new[]
+                        {
+                            new CollectionConfiguration
+                            {
+                                Name = "Persons",
+                                DocumentType = typeof(Person),
+                                SourceFile = "Persons.json",
+                                Format = "json",
+                                Version = "1.0"
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -193,17 +198,23 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageProvider = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfiguration
+                    new DataStorageConfiguration
                     {
-                        Name = "Persons",
-                        DocumentType = typeof(Person),
-                        SourceFile = "persons",
-                        Format = "json",
-                        Version = "1.0"
-                    },
+                        StorageProvider = storageEngine,
+                        Collections = new[]
+                        {
+                            new CollectionConfiguration
+                            {
+                                Name = "Persons",
+                                DocumentType = typeof(Person),
+                                SourceFile = "persons",
+                                Format = "json",
+                                Version = "1.0"
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -225,16 +236,22 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                StorageProvider = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfiguration
+                    new DataStorageConfiguration
                     {
-                        DocumentType = typeof(Person),
-                        SourceFile = "persons.csv",
-                        Format = "csv",
-                        Serializer = new SimpleCsvSerializer() //todo: привязать к полю Format или к расширению
-                    },
+                        StorageProvider = storageEngine,
+                        Collections = new[]
+                        {
+                            new CollectionConfiguration
+                            {
+                                DocumentType = typeof(Person),
+                                SourceFile = "persons.csv",
+                                Format = "csv",
+                                Serializer = new SimpleCsvSerializer() //todo: привязать к полю Format или к расширению
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -265,7 +282,7 @@ namespace MicroElements.FileStorage.Tests
                 FirstName = "Bill",
                 LastName = "Gates"
             };
-            collection.Add(person1);
+            collection.AddOrUpdate(person1);
             collection.Count.Should().Be(1);
 
             var person2 = collection.Find(p => true).First();
@@ -395,19 +412,17 @@ namespace MicroElements.FileStorage.Tests
             collection.Should().NotBeNull();
             collection.Count.Should().Be(0);
 
-            collection.Add(new Person
+            collection.AddOrUpdate(new Person
             {
                 FirstName = "Bill",
                 LastName = "Gates"
             });
-            collection.Add(new Person
+            collection.AddOrUpdate(new Person
             {
                 FirstName = "Steve",
                 LastName = "Ballmer"
             });
             collection.Count.Should().Be(2);
-
-            dataStore.Save();
 
             var fileAllTextBill = string.Empty;
 
@@ -494,7 +509,7 @@ namespace MicroElements.FileStorage.Tests
                 FirstName = "Bill",
                 LastName = "Gates"
             };
-            collection.Add(person);
+            collection.AddOrUpdate(person);
             person.Id.Should().Be("person/1");
 
             person = new Person
@@ -502,11 +517,8 @@ namespace MicroElements.FileStorage.Tests
                 FirstName = "Steve",
                 LastName = "Ballmer"
             };
-            collection.Add(person);
+            collection.AddOrUpdate(person);
             person.Id.Should().Be("person/2");
-
-
-            dataStore.Save();
         }
 
         [Fact]
@@ -546,19 +558,17 @@ namespace MicroElements.FileStorage.Tests
             collection.Should().NotBeNull();
 
 
-            collection.Add(new Currency()
+            collection.AddOrUpdate(new Currency
             {
                 Code = "USD",
                 Name = "Dollar"
             });
-            collection.Add(new Currency()
+            collection.AddOrUpdate(new Currency
             {
                 Code = "EUR",
                 Name = "Euro"
             });
             collection.Count.Should().Be(2);
-
-            dataStore.Save();
         }
 
         [Fact]
@@ -577,7 +587,7 @@ namespace MicroElements.FileStorage.Tests
             });
             var serviceProvider = services.BuildServiceProvider(true);
             var collectionConfigurations = serviceProvider.GetService<IEnumerable<CollectionConfiguration>>();
-            var documentCollection = serviceProvider.GetRequiredService<IDocumentCollection<Person>>();
+            var documentCollection = serviceProvider.GetService<IDocumentCollection<Person>>();
         }
 
         [Fact]
@@ -588,8 +598,8 @@ namespace MicroElements.FileStorage.Tests
             var collection = dataStore.GetCollection<Currency>();
             collection.Should().NotBeNull();
 
-            collection.Add(new Currency { Code = "USD", Name = "Dollar" });
-            collection.Add(new Currency { Code = "EUR", Name = "Euro" });
+            collection.AddOrUpdate(new Currency { Code = "USD", Name = "Dollar" });
+            collection.AddOrUpdate(new Currency { Code = "EUR", Name = "Euro" });
             collection.Count.Should().Be(2);
 
             collection.IsExists("USD").Should().BeTrue();
@@ -615,11 +625,11 @@ namespace MicroElements.FileStorage.Tests
             var collection = dataStore.GetCollection<Currency>();
             collection.Should().NotBeNull();
 
-            collection.Add(new Currency { Code = "USD", Name = "Dollar" });
+            collection.AddOrUpdate(new Currency { Code = "USD", Name = "Dollar" });
             collection.Count.Should().Be(1);
             collection.Get("USD").Name.Should().Be("Dollar");
 
-            collection.Add(new Currency { Code = "USD", Name = "Dollar updated" });
+            collection.AddOrUpdate(new Currency { Code = "USD", Name = "Dollar updated" });
             collection.Count.Should().Be(1);
             collection.Get("USD").Name.Should().Be("Dollar updated");
         }
@@ -671,7 +681,7 @@ namespace MicroElements.FileStorage.Tests
             getResult.Should().NotBeNull();
 
             var item = new Person { LastName = "Name2" };
-            collection.Add(item);
+            collection.AddOrUpdate(item);
             item.Id.Should().Be("entities/2");
 
             if (File.Exists(file))
@@ -704,14 +714,14 @@ namespace MicroElements.FileStorage.Tests
 
             var entityWithIntId2 = new Person() { FirstName = "SomeName" };
             var collection2 = dataStore2.GetCollection<Person>();
-            collection2.Add(entityWithIntId2);
+            collection2.AddOrUpdate(entityWithIntId2);
             entityWithIntId2.Id.Should().Be("1");
 
             var getResult2 = collection2.Get("1");
             getResult2.Should().NotBeNull();
 
             var item2 = new Person { LastName = "Name2" };
-            collection2.Add(item2);
+            collection2.AddOrUpdate(item2);
             item2.Id.Should().Be("2");
         }
     }

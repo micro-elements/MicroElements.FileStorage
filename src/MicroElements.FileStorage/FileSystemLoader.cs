@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -23,7 +22,7 @@ namespace MicroElements.FileStorage
         {
             _loaderSettings = loaderSettings;
             _dataStore = loaderSettings.DataStore;
-            _logger = loaderSettings.DataStore.Services.LoggerFactory.CreateLogger(typeof(DataLoader));
+            _logger = loaderSettings.DataStore.Services.LoggerFactory.CreateLogger(typeof(FileSystemLoader));
         }
 
         public async Task<IDictionary<Type, CollectionData>> LoadEntitiesAsync()
@@ -47,7 +46,7 @@ namespace MicroElements.FileStorage
 
         private async Task<CollectionData> LoadEntityList<T>() where T : class
         {
-            DataStorageConfiguration storageConfig = _loaderSettings.DataStorageConfiguration;
+            var storageConfig = _loaderSettings.DataStorageConfiguration;
             Type documentType = typeof(T);
 
             var collectionConfig = storageConfig.Collections
@@ -95,7 +94,7 @@ namespace MicroElements.FileStorage
             return entities;
         }
 
-        private IEnumerable<Task<FileContent>> GetFileTasks(CollectionConfiguration collectionConfig, DataStorageConfiguration storageConfig)
+        private IEnumerable<Task<FileContent>> GetFileTasks(ICollectionConfiguration collectionConfig, IDataStorageConfiguration storageConfig)
         {
             var storageProvider = storageConfig.StorageProvider;
 
@@ -154,15 +153,27 @@ namespace MicroElements.FileStorage
             }
         }
 
-        public ISerializer GetSerializer(CollectionConfiguration configuration)
+        public ISerializer GetSerializer(ICollectionConfiguration configuration)
         {
             return configuration.Serializer ?? _dataStore.Configuration.Conventions.GetSerializer(configuration);
         }
 
-        public bool IsMultiFile(CollectionConfiguration configuration)
+        public bool IsMultiFile(ICollectionConfiguration configuration)
         {
-            var isDirectory = !Path.HasExtension(configuration.SourceFile);
-            return isDirectory;
+            return configuration.IsMultiFile();
+        }
+    }
+
+    public class LoaderSettings
+    {
+        public IDataStore DataStore { get; }
+
+        public IDataStorageConfiguration DataStorageConfiguration { get; }
+
+        public LoaderSettings(IDataStore dataStore, IDataStorageConfiguration dataStorageConfiguration)
+        {
+            DataStore = dataStore;
+            DataStorageConfiguration = dataStorageConfiguration;
         }
     }
 }

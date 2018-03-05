@@ -2,8 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Linq;
-using FluentValidation;
+using System.Collections.Generic;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.Abstractions.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -14,31 +13,11 @@ namespace MicroElements.FileStorage
     /// <summary>
     /// DataStore configuration.
     /// </summary>
-    public class DataStoreConfiguration
+    public class DataStoreConfiguration : IDataStoreConfiguration
     {
-        /// <summary>
-        /// StorageProvider.
-        /// </summary>
-        [Obsolete("Use Storages")]
-        public IStorageProvider StorageProvider
-        {
-            get => Storages.First().StorageProvider;
-            set => Storages.First().StorageProvider = value;
-        }
-
-        /// <summary>
-        /// Collection definitions.
-        /// </summary>
-        [Obsolete("Use Storages")]
-        public CollectionConfiguration[] Collections
-        {
-            get => Storages.First().Collections;
-            set => Storages.First().Collections = value;
-        }
-
         public bool ReadOnly { get; set; } = false;
 
-        public DataStorageConfiguration[] Storages { get; set; } = { new DataStorageConfiguration() };
+        public IReadOnlyList<IDataStorageConfiguration> Storages { get; set; } = Array.Empty<IDataStorageConfiguration>();
 
         public ILoggerFactory LoggerFactory { get; set; } = NullLoggerFactory.Instance;
 
@@ -55,15 +34,6 @@ namespace MicroElements.FileStorage
             {
                 storageConfiguration.Verify();
             }
-
-        }
-    }
-
-    public class DataStorageConfigurationValidator : AbstractValidator<DataStorageConfiguration>
-    {
-        public DataStorageConfigurationValidator()
-        {
-            RuleFor(configuration => configuration.StorageProvider).NotNull();
         }
     }
 }

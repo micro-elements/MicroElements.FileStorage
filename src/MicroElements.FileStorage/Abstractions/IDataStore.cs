@@ -17,6 +17,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// Loads data.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        /// todo: split on init and load
         Task Initialize();
 
         /// <summary>
@@ -31,16 +32,6 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// <returns>Collection list.</returns>
         IReadOnlyList<IDocumentCollection> GetCollections();
-
-        /// <summary>
-        /// Saves changed collections.
-        /// </summary>
-        void Save();
-
-        /// <summary>
-        /// Drops all collections.
-        /// </summary>
-        void Drop();
 
         DataStoreConfiguration Configuration { get; }
 

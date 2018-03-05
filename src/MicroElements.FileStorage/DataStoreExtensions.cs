@@ -51,7 +51,7 @@ namespace MicroElements.FileStorage
             throw new Exception("Enumeration needed");
         }
 
-        public static CollectionConfigurationTyped<T> ToTyped<T>(this CollectionConfiguration configuration) where T : class
+        public static ICollectionConfiguration<T> ToTyped<T>(this ICollectionConfiguration configuration) where T : class
         {
             if (configuration is CollectionConfigurationTyped<T> typed)
                 return typed;
@@ -62,7 +62,7 @@ namespace MicroElements.FileStorage
             return new CollectionConfigurationTyped<T>();
         }
 
-        public static CollectionConfigurationTyped<T> GetConfigurationTyped<T>(this IDataStore dataStore) where T : class
+        public static ICollectionConfiguration<T> GetConfigurationTyped<T>(this IDataStore dataStore) where T : class
         {
             var collectionConfiguration = dataStore.Configuration.Storages.Last().Collections
                 .FirstOrDefault(configuration => configuration.DocumentType == typeof(T))
@@ -110,9 +110,9 @@ namespace MicroElements.FileStorage
             return items.ToList();
         }
 
-        public static ISerializer GetSerializer(this DataStoreConfiguration dataStoreConfiguration, Type entityType)
+        public static ISerializer GetSerializer(this IDataStoreConfiguration dataStoreConfiguration, Type entityType)
         {
-            CollectionConfiguration collectionConfiguration = dataStoreConfiguration.GetCollectionConfiguration(entityType);
+            var collectionConfiguration = dataStoreConfiguration.GetCollectionConfiguration(entityType);
 
             if (collectionConfiguration?.Serializer != null)
                 return collectionConfiguration.Serializer;
@@ -120,9 +120,9 @@ namespace MicroElements.FileStorage
             return dataStoreConfiguration.Conventions.GetSerializer(collectionConfiguration);
         }
 
-        public static CollectionConfiguration GetCollectionConfiguration(this DataStoreConfiguration dataStoreConfiguration, Type entityType)
+        public static ICollectionConfiguration GetCollectionConfiguration(this IDataStoreConfiguration dataStoreConfiguration, Type entityType)
         {
-            CollectionConfiguration collectionConfiguration = null;
+            ICollectionConfiguration collectionConfiguration = null;
             foreach (var storageConfiguration in dataStoreConfiguration.Storages)
             {
                 collectionConfiguration = storageConfiguration.Collections.FirstOrDefault(configuration =>
@@ -133,7 +133,7 @@ namespace MicroElements.FileStorage
             return collectionConfiguration;
         }
 
-        public static bool IsMultiFile(this CollectionConfiguration configuration)
+        public static bool IsMultiFile(this ICollectionConfiguration configuration)
         {
             var isDirectory = !Path.HasExtension(configuration.SourceFile);
             return isDirectory;

@@ -14,13 +14,12 @@ namespace MicroElements.FileStorage.Operations
     public class WritableDataStorage : IWritableDataStorage
     {
         private readonly IDataStore _dataStore;
-        private readonly DataStorageConfiguration _configuration;
+        private readonly IDataStorageConfiguration _configuration;
         private readonly ReadOnlyDataStorage _readOnlyDataStorage;
         private List<StoreCommand> _commands = new List<StoreCommand>();
         private ConcurrentDictionary<Type, IEntityList> _entityLists = new ConcurrentDictionary<Type, IEntityList>();
 
-
-        public WritableDataStorage(IDataStore dataStore, DataStorageConfiguration configuration)
+        public WritableDataStorage(IDataStore dataStore, IDataStorageConfiguration configuration)
         {
             _dataStore = dataStore;
             _configuration = configuration;
@@ -87,7 +86,7 @@ namespace MicroElements.FileStorage.Operations
 
         private IEntityList GetOrCreateEntityList(Type entityType)
         {
-            return _entityLists.GetOrAdd(entityType, type => EntityListFactory.Create(typeof(WritableEntityList<>), entityType));
+            return _entityLists.GetOrAdd(entityType, type => ObjectFactory.Create(typeof(WritableEntityList<>), entityType));
         }
 
         /// <inheritdoc />

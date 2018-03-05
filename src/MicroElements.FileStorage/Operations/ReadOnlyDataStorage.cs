@@ -14,11 +14,11 @@ namespace MicroElements.FileStorage.Operations
     public class ReadOnlyDataStorage : IDataStorage
     {
         private readonly IDataStore _dataStore;
-        private readonly DataStorageConfiguration _configuration;
+        private readonly IDataStorageConfiguration _configuration;
 
         private readonly IDictionary<Type, IEntityList> _entityLists = new Dictionary<Type, IEntityList>();
 
-        public ReadOnlyDataStorage(IDataStore dataStore, DataStorageConfiguration configuration)
+        public ReadOnlyDataStorage(IDataStore dataStore, IDataStorageConfiguration configuration)
         {
             _dataStore = dataStore;
             _configuration = configuration;
@@ -35,7 +35,7 @@ namespace MicroElements.FileStorage.Operations
 
             foreach (var valuePair in collectionDatas)
             {
-                var entityList = EntityListFactory.Create(typeof(ReadOnlyEntityList<>), valuePair.Value);
+                var entityList = ObjectFactory.Create(typeof(ReadOnlyEntityList<>), valuePair.Value);
                 _entityLists.Add(valuePair.Key, entityList);
             }
         }

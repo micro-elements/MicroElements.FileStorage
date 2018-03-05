@@ -101,7 +101,7 @@ namespace MicroElements.FileStorage.Utils
             var collectionType = typeof(IDocumentCollection<>).MakeGenericType(itemType);
             ParameterExpression instance = Expression.Parameter(collectionType, "instance");
             ParameterExpression item = Expression.Parameter(itemType, "item");
-            var callExpression = Expression.Call(instance, nameof(IDocumentCollection<object>.Add), new[] { itemType }, item);
+            var callExpression = Expression.Call(instance, nameof(IDocumentCollection<object>.AddOrUpdate), new[] { itemType }, item);
             return Expression.Lambda<Action<TValue>>(callExpression, instance);
         }
     }

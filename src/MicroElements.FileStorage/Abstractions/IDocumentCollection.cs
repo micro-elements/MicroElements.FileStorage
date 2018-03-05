@@ -9,16 +9,6 @@ namespace MicroElements.FileStorage.Abstractions
     public interface IDocumentCollection
     {
         /// <summary>
-        /// Configuration.
-        /// </summary>
-        CollectionConfiguration Configuration { get; }
-
-        /// <summary>
-        /// Collection has changes.
-        /// </summary>
-        bool HasChanges { get; set; }
-
-        /// <summary>
         /// Gets count of items in collection.
         /// </summary>
         int Count { get; }

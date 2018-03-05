@@ -39,25 +39,36 @@ namespace MicroElements.FileStorage.Tests
         [Fact]
         public async Task LoadCurrenciesFromNuGet()
         {
-            var dataStoreConfiguration = new DataStoreConfiguration();
             var storageConfiguration = new NuGetStorageConfiguration
             {
                 PackageSource = "https://www.myget.org/F/micro-elements/api/v3/index.json",
                 PackageId = "Classifiers.Currency",
                 PackageVersion = "0.0.1",
             };
+
             var nuGetStorageEngine = new NuGetStorageProvider(storageConfiguration, new LoggerFactory().AddConsole());
-            dataStoreConfiguration.StorageProvider = nuGetStorageEngine;
-            dataStoreConfiguration.Collections = new[]
+
+            var dataStoreConfiguration = new DataStoreConfiguration
             {
-                new CollectionConfigurationTyped<Currency>()
+                Storages = new[]
                 {
-                    SourceFile = @"Classifiers\Currency\ISO_4217.xml",
-                    Serializer = new CurrencyXmlSerializer(),
-                    KeyGetter = new KeyAccessor<Currency>(currency1 => $"{currency1.Ccy}_{currency1.CtryNm}", (currency1, s) => { }),
-                    //KeySetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Ccy))
-                },
+                    new DataStorageConfiguration
+                    {
+                        StorageProvider = nuGetStorageEngine,
+                        Collections = new[]
+                        {
+                            new CollectionConfigurationTyped<Currency>()
+                            {
+                                SourceFile = @"Classifiers\Currency\ISO_4217.xml",
+                                Serializer = new CurrencyXmlSerializer(),
+                                KeyGetter = new KeyAccessor<Currency>(currency1 => $"{currency1.Ccy}_{currency1.CtryNm}",
+                                    (currency1, s) => { })
+                            }
+                        }
+                    }
+                }
             };
+
             var dataStore = new DataStore(dataStoreConfiguration);
             await dataStore.Initialize();
 

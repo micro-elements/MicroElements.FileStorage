@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 
 namespace MicroElements.FileStorage
 {
@@ -86,6 +87,24 @@ namespace MicroElements.FileStorage
             return lambda.Compile();
         }
 
+        //https://stackoverflow.com/questions/4432026/activator-createinstance-performance-alternative
+        public delegate object ObjectActivator();
+
+        public static ObjectActivator CreateCtor(Type type)
+        {
+            if (type == null)
+            {
+                throw new NullReferenceException("type");
+            }
+            ConstructorInfo emptyConstructor = type.GetConstructor(Type.EmptyTypes);
+            var dynamicMethod = new DynamicMethod("CreateInstance", type, Type.EmptyTypes, true);
+            ILGenerator ilGenerator = dynamicMethod.GetILGenerator();
+            ilGenerator.Emit(OpCodes.Nop);
+            ilGenerator.Emit(OpCodes.Newobj, emptyConstructor);
+            ilGenerator.Emit(OpCodes.Ret);
+            return (ObjectActivator)dynamicMethod.CreateDelegate(typeof(ObjectActivator));
+        }
+
         public static Expression<Func<IEnumerable<T>, T>> CreateLambda<T>()
         {
             return source => source.Last();
@@ -96,6 +115,18 @@ namespace MicroElements.FileStorage
             var createMeth = typeof(ExpressionUtils).GetMethod("CreateLambda");
             LambdaExpression l = (LambdaExpression)createMeth.MakeGenericMethod(yourType).Invoke(null, new object[0]);
             return l;
+        }
+
+        //https://stackoverflow.com/questions/2850265/calling-a-generic-method-using-lambda-expressions-and-a-type-only-known-at-runt?rq=1
+        public static LambdaExpression CreateLambda(Type type)
+        {
+            var source = Expression.Parameter(
+                typeof(IEnumerable<>).MakeGenericType(type), "source");
+
+            var call = Expression.Call(
+                typeof(Enumerable), "Last", new Type[] { type }, source);
+
+            return Expression.Lambda(call, source);
         }
 
     }

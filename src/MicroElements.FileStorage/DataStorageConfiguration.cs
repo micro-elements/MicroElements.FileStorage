@@ -6,29 +6,9 @@ using MicroElements.FileStorage.Abstractions;
 
 namespace MicroElements.FileStorage
 {
-    public interface IDataStorageConfiguration
-    {
-        /// <summary>
-        /// The StorageProvider.
-        /// </summary>
-        IStorageProvider StorageProvider { get; }
-
-        /// <summary>
-        /// Collection definitions.
-        /// </summary>
-        CollectionConfiguration[] Collections { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether a storage is readonly.
-        /// </summary>
-        bool ReadOnly { get; }
-
-        /// <summary>
-        /// Verifies correctness of configuration.
-        /// </summary>
-        void Verify();
-    }
-
+    /// <summary>
+    /// Configuration of DataStorage.
+    /// </summary>
     public class DataStorageConfiguration : IDataStorageConfiguration
     {
         /// <summary>
@@ -44,7 +24,7 @@ namespace MicroElements.FileStorage
         /// <summary>
         /// Collection definitions.
         /// </summary>
-        public CollectionConfiguration[] Collections { get; set; }
+        public ICollectionConfiguration[] Collections { get; set; }
 
         /// <summary>
         /// Gets a value indicating whether a storage is readonly.

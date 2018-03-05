@@ -33,15 +33,6 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
-        public CollectionConfiguration Configuration
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        /// <inheritdoc />
-        public bool HasChanges { get; set; }
-
-        /// <inheritdoc />
         public int Count
         {
             get
@@ -63,13 +54,7 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
-        public void Drop()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public CollectionConfigurationTyped<T> ConfigurationTyped
+        public ICollectionConfiguration<T> ConfigurationTyped
         {
             get
             {
@@ -82,11 +67,11 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
-        public void Add(T item)
+        public void AddOrUpdate(T item)
         {
             using (var session = new Session(_dataStore))
             {
-                session.AddOrUpdate(item, null);
+                session.AddOrUpdate(item);
             }
         }
 
@@ -151,12 +136,6 @@ namespace MicroElements.FileStorage
             {
                 session.Delete<T>(key);
             }
-        }
-
-        /// <inheritdoc />
-        public IReadOnlyCommandLog GetCommandLog()
-        {
-            throw new NotImplementedException();
         }
     }
 }

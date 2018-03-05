@@ -15,7 +15,7 @@ namespace MicroElements.FileStorage.Abstractions
     /// Collection configuration.
     /// todo: make readonly or freezable
     /// </summary>
-    public class CollectionConfiguration
+    public class CollectionConfiguration : ICollectionConfiguration
     {
         private Type _documentType;
 
@@ -71,14 +71,14 @@ namespace MicroElements.FileStorage.Abstractions
         }
     }
 
-    public class CollectionConfigurationTyped<T> : CollectionConfiguration where T : class
+    public class CollectionConfigurationTyped<T> : CollectionConfiguration, ICollectionConfiguration<T> where T : class
     {
         public CollectionConfigurationTyped()
         {
             DocumentType = typeof(T);
         }
 
-        public CollectionConfigurationTyped(CollectionConfiguration configuration)
+        public CollectionConfigurationTyped(ICollectionConfiguration configuration)
         {
             if (configuration.DocumentType != typeof(T))
                 throw new InvalidOperationException($"Inconsistent entity type. Expected {typeof(T)} but was {configuration.DocumentType}");

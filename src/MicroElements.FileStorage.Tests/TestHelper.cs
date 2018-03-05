@@ -49,9 +49,9 @@ namespace MicroElements.FileStorage.Tests
             LastName = "Gates"
         };
 
-        public static async Task<DataStore> CreatePersonsDataStore()
+        public static async Task<DataStore> CreatePersonsDataStore(IStorageProvider storageProvider = null)
         {
-            var inMemoryStorageEngine = new InMemoryStorageProvider();
+            var inMemoryStorageEngine = storageProvider ?? new InMemoryStorageProvider();
             DataStoreConfiguration storeConfiguration = new DataStoreConfiguration
             {
                 Storages = new[]

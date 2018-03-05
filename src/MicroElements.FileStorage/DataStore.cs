@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.Abstractions.Exceptions;
@@ -85,13 +84,10 @@ namespace MicroElements.FileStorage
             }
         }
 
-        private IDataStorage DataStorage => _dataStorages.Last();
-
         /// <inheritdoc />
         public IDocumentCollection<T> GetCollection<T>() where T : class
         {
-            return _collections.TryGetValue(typeof(T), out var collection) ?
-                (IDocumentCollection<T>)collection :
+            return _collections.TryGetValue(typeof(T), out var collection) ? (IDocumentCollection<T>)collection :
                 throw new InvalidOperationException($"Document collection for type {typeof(T)} is not registered in data store.");
         }
 
@@ -102,19 +98,12 @@ namespace MicroElements.FileStorage
         }
 
         /// <inheritdoc />
-        public void Save()
-        {
-        }
-
-        /// <inheritdoc />
-        public void Drop()
-        {
-        }
-
-        /// <inheritdoc />
         public void Dispose()
         {
-            (_configuration.StorageProvider as IDisposable)?.Dispose();
+            foreach (var storageConfiguration in _configuration.Storages)
+            {
+                (storageConfiguration.StorageProvider as IDisposable)?.Dispose();
+            }
         }
 
         /// <inheritdoc />
@@ -125,21 +114,7 @@ namespace MicroElements.FileStorage
 
         private IDocumentCollection CreateCollection(Type documentType)
         {
-            //todo: move to factory
-            return (IDocumentCollection)Activator.CreateInstance(typeof(CrossStorageDocumentCollection<>).MakeGenericType(documentType), this);
-
-            if (_dataStorages.Count > 1)
-            {
-                var documentCollectionType = typeof(CrossStorageDocumentCollection<>).MakeGenericType(documentType);
-                return (IDocumentCollection)Activator.CreateInstance(documentCollectionType, this);
-            }
-            else
-            {
-                var documentCollectionType = typeof(DocumentCollection<>).MakeGenericType(documentType);
-                var collectionConfiguration = _dataStorages[0].Configuration.Collections
-                    .First(configuration => configuration.DocumentType == documentType);
-                return (IDocumentCollection)Activator.CreateInstance(documentCollectionType, collectionConfiguration);
-            }
+            return ObjectFactory.CreateDocumentCollection(typeof(CrossStorageDocumentCollection<>), documentType, this);
         }
     }
 }

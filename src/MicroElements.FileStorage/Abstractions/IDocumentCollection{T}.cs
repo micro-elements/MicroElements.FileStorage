@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
-using MicroElements.FileStorage.Operations;
 
 namespace MicroElements.FileStorage.Abstractions
 {
@@ -17,14 +16,13 @@ namespace MicroElements.FileStorage.Abstractions
         /// <summary>
         /// Typed configuration.
         /// </summary>
-        CollectionConfigurationTyped<T> ConfigurationTyped { get; }
+        ICollectionConfiguration<T> ConfigurationTyped { get; }
 
         /// <summary>
         /// Adds new item to collection.
         /// </summary>
         /// <param name="item">New item.</param>
-        /// todo: rename to Store or AddOrUpdate
-        void Add([NotNull] T item);
+        void AddOrUpdate([NotNull] T item);
 
         /// <summary>
         /// Gets item by key.
@@ -52,11 +50,5 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// <param name="key">Entity key.</param>
         void Delete([NotNull] string key);
-
-        /// <summary>
-        /// Gets command log.
-        /// </summary>
-        /// <returns><see cref="IReadOnlyCommandLog"/></returns>
-        IReadOnlyCommandLog GetCommandLog();
     }
 }

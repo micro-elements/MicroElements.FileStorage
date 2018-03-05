@@ -55,7 +55,7 @@ namespace MicroElements.FileStorage.Tests
                     new DataStorageConfiguration
                     {
                         StorageProvider = nuGetStorageEngine,
-                        Collections = new[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Currency>()
                             {

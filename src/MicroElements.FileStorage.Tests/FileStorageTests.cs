@@ -45,7 +45,7 @@ namespace MicroElements.FileStorage.Tests
                     {
                         ReadOnly = false,
                         StorageProvider = storageEngine,
-                        Collections = new[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Person>
                             {
@@ -115,7 +115,7 @@ namespace MicroElements.FileStorage.Tests
                     new DataStorageConfiguration
                     {
                         StorageProvider = storageEngine,
-                        Collections = new[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration
                             {
@@ -163,7 +163,7 @@ namespace MicroElements.FileStorage.Tests
             switch (storageName)
             {
                 case nameof(FileStorageProvider):
-                    storageProvider = new FileStorageProvider(new FileStorageConfiguration { BasePath = basePath });
+                    storageProvider = new FileStorageProvider(new FileStorageConfiguration(basePath));
                     break;
                 case nameof(ZipStorageProvider):
                     storageProvider = new ZipStorageProvider(new ZipStorageConfiguration(new MemoryStream()) { Mode = ZipStorageEngineMode.Write, LeaveOpen = true });
@@ -203,7 +203,7 @@ namespace MicroElements.FileStorage.Tests
                     new DataStorageConfiguration
                     {
                         StorageProvider = storageEngine,
-                        Collections = new[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration
                             {
@@ -241,7 +241,7 @@ namespace MicroElements.FileStorage.Tests
                     new DataStorageConfiguration
                     {
                         StorageProvider = storageEngine,
-                        Collections = new[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration
                             {
@@ -345,7 +345,7 @@ namespace MicroElements.FileStorage.Tests
                     {
                         ReadOnly = false,
                         StorageProvider = storageEngine,
-                        Collections = new[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Person>
                             {
@@ -391,7 +391,7 @@ namespace MicroElements.FileStorage.Tests
                     {
                         ReadOnly = false,
                         StorageProvider = storageEngine,
-                        Collections = new[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Person>
                             {
@@ -484,7 +484,7 @@ namespace MicroElements.FileStorage.Tests
                     {
                         ReadOnly = false,
                         StorageProvider = storageEngine,
-                        Collections = new[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Person>
                             {
@@ -537,8 +537,8 @@ namespace MicroElements.FileStorage.Tests
                     new DataStorageConfiguration
                     {
                         ReadOnly = false,
-                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
-                        Collections = new[]
+                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration(basePath)),
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Currency>
                             {
@@ -650,8 +650,8 @@ namespace MicroElements.FileStorage.Tests
                     new DataStorageConfiguration
                     {
                         ReadOnly = false,
-                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
-                        Collections = new[]
+                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration(basePath)),
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Person>
                             {
@@ -694,8 +694,8 @@ namespace MicroElements.FileStorage.Tests
                     new DataStorageConfiguration
                     {
                         ReadOnly = false,
-                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration() { BasePath = basePath }),
-                        Collections = new[]
+                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration(basePath)),
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Person>
                             {
@@ -723,6 +723,29 @@ namespace MicroElements.FileStorage.Tests
             var item2 = new Person { LastName = "Name2" };
             collection2.AddOrUpdate(item2);
             item2.Id.Should().Be("2");
+        }
+
+        [Fact(Skip = "no asserts")]
+        public async Task multiple_save_multifile_collection()
+        {
+            var basePath = Path.GetFullPath("TestData/DataStore/multiple_save_multifile_collection");
+            var dataStore = await TestData.CreatePersonsDataStore(basePath, "persons");
+
+            var persons = Enumerable.Range(1, 10).Select(i => TestData.RandomPerson()).ToList();
+            using (var session = dataStore.OpenSession())
+            {
+                foreach (var person in persons)
+                {
+                    session.AddOrUpdate(person);
+                }
+
+                session.AddOrUpdate(TestData.Bill);
+            }
+
+            using (var session = dataStore.OpenSession())
+            {
+                session.AddOrUpdate(TestData.Bill);
+            }
         }
     }
 }

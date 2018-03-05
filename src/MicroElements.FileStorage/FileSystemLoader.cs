@@ -47,7 +47,7 @@ namespace MicroElements.FileStorage
         private async Task<CollectionData> LoadEntityList<T>() where T : class
         {
             var storageConfig = _loaderSettings.DataStorageConfiguration;
-            Type documentType = typeof(T);
+            var documentType = typeof(T);
 
             var collectionConfig = storageConfig.Collections
                 .FirstOrDefault(config => config.DocumentType == documentType);

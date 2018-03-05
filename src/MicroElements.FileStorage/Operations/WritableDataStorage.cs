@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.Utils;
 
 namespace MicroElements.FileStorage.Operations
 {
@@ -57,7 +58,7 @@ namespace MicroElements.FileStorage.Operations
             var entityTypes = _readOnlyDataStorage.Configuration.Collections.Select(configuration => configuration.DocumentType);
             foreach (var entityType in entityTypes)
             {
-                await Executor.Execute(entityType, this, nameof(InitializeInternal), null);
+                await Invoker.Execute(entityType, this, nameof(InitializeInternal), null);
             }
         }
 
@@ -91,17 +92,5 @@ namespace MicroElements.FileStorage.Operations
 
         /// <inheritdoc />
         public IDataStorageConfiguration Configuration => _configuration;
-    }
-
-    public static class Executor
-    {
-        public static Task Execute(Type genericParamType, object methodHost, string methodName, object arg = null)
-        {
-            var methodInfo = methodHost.GetType()
-                .GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                .MakeGenericMethod(genericParamType);
-
-            return (Task)methodInfo.Invoke(methodHost, arg != null ? new[] { arg } : null);
-        }
     }
 }

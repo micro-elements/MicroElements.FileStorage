@@ -16,8 +16,7 @@ namespace MicroElements.FileStorage.Operations
     {
         private readonly IDataStore _dataStore;
         private readonly IWritableDataStorage _writableStorage;
-        private IStorageProvider _storageProvider;
-        private List<StoreCommand> _commands = new List<StoreCommand>();
+        private readonly List<StoreCommand> _commands = new List<StoreCommand>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Session"/> class.
@@ -152,34 +151,36 @@ namespace MicroElements.FileStorage.Operations
             var writableStorage = _dataStore.GetWritableStorage();
             var entityList = writableStorage.GetEntityList<T>();
             var serializerInfo = serializer.GetInfo();
-            var storeCommands = _commands.Where(command => command.CommandType == CommandType.Store);
-            var storeKeys = storeCommands.Select(command => command.Key);
-
+            var storeCommands = _commands.Where(command => command.CommandType == CommandType.Store && command.Persisted == false);
             var collectionDir = configuration.SourceFile;
 
             if (configuration.IsMultiFile())
             {
-                foreach (var storeKey in storeKeys)
+                foreach (var storeCommand in storeCommands)
                 {
+                    var storeKey = storeCommand.Key;
                     var item = entityList.Get(storeKey);
 
                     var format = string.Format("{0}{1}", storeKey, serializerInfo.Extension);
                     var fileName = Path.Combine(collectionDir, format);
                     await SaveFile(serializer, new[] { item }, fileName);
+                    storeCommand.Persisted = true;
                 }
 
                 await ProcessDeletes<T>(collectionDir, serializerInfo.Extension);
             }
             else
             {
-                //todo: do not rewrite same
-                List<T> items = new List<T>();
+                List<T> allItems = new List<T>();
                 foreach (var key in entityList.Index.AddedKeys)
                 {
                     var item = entityList.GetByPos(entityList.Index.KeyPosition[key]);
-                    items.Add(item);
+                    allItems.Add(item);
                 }
-                await SaveFile(serializer, items, configuration.SourceFile);
+
+                await SaveFile(serializer, allItems, configuration.SourceFile);
+                foreach (var storeCommand in storeCommands)
+                    storeCommand.Persisted = true;
             }
         }
 
@@ -192,7 +193,7 @@ namespace MicroElements.FileStorage.Operations
 
         private async Task ProcessDeletes<T>(string collectionDir, string extention) where T : class
         {
-            var deleteCommands = _commands.Where(command => !command.Processed && command.CommandType == CommandType.Delete);
+            var deleteCommands = _commands.Where(command => !command.Persisted && command.CommandType == CommandType.Delete);
 
             foreach (var deleteCommand in deleteCommands)
             {
@@ -200,7 +201,7 @@ namespace MicroElements.FileStorage.Operations
 
                 var storageProvider = _writableStorage.Configuration.StorageProvider;
                 await storageProvider.DeleteFile(fileName);
-                deleteCommand.Processed = true;
+                deleteCommand.Persisted = true;
             }
         }
     }

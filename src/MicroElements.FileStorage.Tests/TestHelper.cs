@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.KeyAccessors;
 using MicroElements.FileStorage.KeyGenerators;
@@ -21,7 +23,7 @@ namespace MicroElements.FileStorage.Tests
                    {
                        ReadOnly = false,
                        StorageProvider = inMemoryStorageEngine,
-                       Collections = new CollectionConfiguration[]
+                       Collections = new ICollectionConfiguration[]
                        {
                            new CollectionConfiguration<Currency>
                            {
@@ -49,7 +51,28 @@ namespace MicroElements.FileStorage.Tests
             LastName = "Gates"
         };
 
-        public static async Task<DataStore> CreatePersonsDataStore(IStorageProvider storageProvider = null)
+        public static Person RandomPerson()
+        {
+            return new Person
+            {
+                FirstName = Guid.NewGuid().ToString(),
+                LastName = Guid.NewGuid().ToString()
+            };
+        }
+
+        public static async Task<DataStore> CreatePersonsDataStore(string basePath, string sourceFile = "persons")
+        {
+            Directory.CreateDirectory(basePath);
+
+            var collectionFullDir = Path.Combine(basePath, sourceFile);
+            if (Directory.Exists(collectionFullDir))
+                Directory.Delete(collectionFullDir, true);
+
+            var storageEngine = new FileStorageProvider(new FileStorageConfiguration(basePath));
+            return await CreatePersonsDataStore(storageEngine);
+        }
+
+        public static async Task<DataStore> CreatePersonsDataStore(IStorageProvider storageProvider = null, string sourceFile = "persons")
         {
             var inMemoryStorageEngine = storageProvider ?? new InMemoryStorageProvider();
             DataStoreConfiguration storeConfiguration = new DataStoreConfiguration
@@ -60,12 +83,12 @@ namespace MicroElements.FileStorage.Tests
                     {
                         ReadOnly = false,
                         StorageProvider = inMemoryStorageEngine,
-                        Collections = new CollectionConfiguration[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Person>
                             {
                                 DocumentType = typeof(Person),
-                                SourceFile = "persons",
+                                SourceFile = sourceFile,
                                 KeyGetter = new DefaultKeyAccessor<Person>(),
                                 KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
                             },

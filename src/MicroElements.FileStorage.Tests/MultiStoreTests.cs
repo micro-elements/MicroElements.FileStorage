@@ -28,7 +28,7 @@ namespace MicroElements.FileStorage.Tests
                         {
                             BasePath = Path.GetFullPath("TestData/MultiStore/Snapshot")
                         }),
-                        Collections = new[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Person>
                             {
@@ -43,7 +43,7 @@ namespace MicroElements.FileStorage.Tests
                         {
                             BasePath = Path.GetFullPath("TestData/MultiStore/Addon"),
                         }),
-                        Collections = new[]
+                        Collections = new ICollectionConfiguration[]
                         {
                             new CollectionConfiguration<Person>
                             {

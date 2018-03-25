@@ -46,6 +46,24 @@ namespace MicroElements.FileStorage.Serializers
         }
 
         /// <inheritdoc />
+        public IEnumerable<T> Deserialize<T>(FileContent content)
+        {
+            Check.NotNull(content, nameof(content));
+
+            string text = content.Content;
+            var isList = text.StartsWith("[");
+            if (isList)
+            {
+                Type listType = typeof(List<>).MakeGenericType(typeof(T));
+                var deserializedList = (List<T>)JsonConvert.DeserializeObject(text, listType, _jsonSerializerSettings);
+                return deserializedList;
+            }
+
+            var deserialized = (T)JsonConvert.DeserializeObject(text, typeof(T), _jsonSerializerSettings);
+            return deserialized != null ? new[] { deserialized } : Array.Empty<T>();
+        }
+
+        /// <inheritdoc />
         public FileContent Serialize(IReadOnlyCollection<object> items, Type type)
         {
             Check.NotNull(items, nameof(items));

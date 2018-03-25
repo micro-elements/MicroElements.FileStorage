@@ -11,12 +11,21 @@ namespace MicroElements.FileStorage.Utils
     public static class HashGenerator
     {
         private static readonly Lazy<MD5CryptoServiceProvider> Md5CryptoProvider = new Lazy<MD5CryptoServiceProvider>(() => new MD5CryptoServiceProvider());
+        private static readonly Lazy<SHA256Managed> SHA256 = new Lazy<SHA256Managed>(() => new SHA256Managed());
 
         public static string Md5Hash<T>(this T entity, ISerializer serializer)
         {
             var serialized = serializer.Serialize(new object[] { entity }, typeof(T));
             var serializedBytes = Encoding.UTF8.GetBytes(serialized.Content);
             var hash = Md5CryptoProvider.Value.ComputeHash(serializedBytes);
+            return AsText(hash);
+        }
+
+        public static string SHA256Hash<T>(this T entity, ISerializer serializer)
+        {
+            var serialized = serializer.Serialize(new object[] { entity }, typeof(T));
+            var serializedBytes = Encoding.UTF8.GetBytes(serialized.Content);
+            var hash = SHA256.Value.ComputeHash(serializedBytes);
             return AsText(hash);
         }
 

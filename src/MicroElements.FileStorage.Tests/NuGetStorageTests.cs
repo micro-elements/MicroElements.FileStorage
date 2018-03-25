@@ -27,7 +27,7 @@ namespace MicroElements.FileStorage.Tests
                 PackageId = "Classifiers.Currency",
                 PackageVersion = "0.0.1"
             };
-            var nuGetStorageEngine = new NuGetStorageEngine(storageConfiguration, new LoggerFactory().AddConsole());
+            var nuGetStorageEngine = new NuGetStorageProvider(storageConfiguration, new LoggerFactory().AddConsole());
             var readDirectory = nuGetStorageEngine.ReadDirectory("Classifiers/Currency").Select(task => task.Result).ToList();
             readDirectory.Should().HaveCount(2);
             var readFile = await nuGetStorageEngine.ReadFile(@"Classifiers/Currency/ISO_4217.xml");
@@ -39,25 +39,36 @@ namespace MicroElements.FileStorage.Tests
         [Fact]
         public async Task LoadCurrenciesFromNuGet()
         {
-            var dataStoreConfiguration = new DataStoreConfiguration();
             var storageConfiguration = new NuGetStorageConfiguration
             {
                 PackageSource = "https://www.myget.org/F/micro-elements/api/v3/index.json",
                 PackageId = "Classifiers.Currency",
                 PackageVersion = "0.0.1",
             };
-            var nuGetStorageEngine = new NuGetStorageEngine(storageConfiguration, new LoggerFactory().AddConsole());
-            dataStoreConfiguration.StorageEngine = nuGetStorageEngine;
-            dataStoreConfiguration.Collections = new[]
+
+            var nuGetStorageEngine = new NuGetStorageProvider(storageConfiguration, new LoggerFactory().AddConsole());
+
+            var dataStoreConfiguration = new DataStoreConfiguration
             {
-                new CollectionConfigurationTyped<Currency>()
+                Storages = new[]
                 {
-                    SourceFile = @"Classifiers\Currency\ISO_4217.xml",
-                    Serializer = new CurrencyXmlSerializer(),
-                    KeyGetter = new KeyAccessor<Currency>(currency1 => $"{currency1.Ccy}_{currency1.CtryNm}", (currency1, s) => { }),
-                    //KeySetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Ccy))
-                },
+                    new DataStorageConfiguration
+                    {
+                        StorageProvider = nuGetStorageEngine,
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration<Currency>()
+                            {
+                                SourceFile = @"Classifiers\Currency\ISO_4217.xml",
+                                Serializer = new CurrencyXmlSerializer(),
+                                KeyGetter = new KeyAccessor<Currency>(currency1 => $"{currency1.Ccy}_{currency1.CtryNm}",
+                                    (currency1, s) => { })
+                            }
+                        }
+                    }
+                }
             };
+
             var dataStore = new DataStore(dataStoreConfiguration);
             await dataStore.Initialize();
 
@@ -115,6 +126,12 @@ namespace Classifiers
                 }
                 yield return entity;
             }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<T> Deserialize<T>(FileContent content)
+        {
+            return Deserialize(content, typeof(T)).Cast<T>();
         }
 
         /// <inheritdoc />

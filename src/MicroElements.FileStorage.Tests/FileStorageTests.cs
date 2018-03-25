@@ -8,6 +8,7 @@ using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.Experimental;
 using MicroElements.FileStorage.KeyAccessors;
 using MicroElements.FileStorage.KeyGenerators;
+using MicroElements.FileStorage.Operations;
 using MicroElements.FileStorage.Serializers;
 using MicroElements.FileStorage.StorageEngine;
 using MicroElements.FileStorage.Tests.Models;
@@ -22,7 +23,7 @@ namespace MicroElements.FileStorage.Tests
     public class FileStorageTests
     {
         [Theory]
-        [InlineData(nameof(FileStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
         public async Task delete_should_delete_file_multifile_collection(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/delete_multifile_collection");
@@ -38,18 +39,23 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                StorageEngine = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>
+                    new DataStorageConfiguration
                     {
-                        SourceFile = "persons",
-                        Serializer = new JsonSerializer(),
-                        KeyGetter = new DefaultKeyAccessor<Person>(),
-                        KeyGenerator =
-                            new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
-                    },
+                        ReadOnly = false,
+                        StorageProvider = storageEngine,
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration<Person>
+                            {
+                                SourceFile = "persons",
+                                Serializer = new JsonSerializer(),
+                                KeyGetter = new DefaultKeyAccessor<Person>(),
+                                KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -60,13 +66,13 @@ namespace MicroElements.FileStorage.Tests
             collection.Should().NotBeNull();
             collection.Count.Should().Be(0);
 
-            collection.Add(new Person
+            collection.AddOrUpdate(new Person
             {
                 Id = "1",
                 FirstName = "Bill",
                 LastName = "Gates"
             });
-            collection.Add(new Person
+            collection.AddOrUpdate(new Person
             {
                 Id = "2",
                 FirstName = "Steve",
@@ -74,29 +80,29 @@ namespace MicroElements.FileStorage.Tests
             });
             collection.Count.Should().Be(2);
 
-            dataStore.Save();
             var fileBill = Path.Combine(collectionFullDir, fileNameBill);
             var fileSteve = Path.Combine(collectionFullDir, fileNameSteve);
 
             File.Exists(fileBill).Should().BeTrue();
             File.Exists(fileSteve).Should().BeTrue();
-            
-            collection.Delete("1");
+
+            var session = new Session(dataStore);
+            session.Delete<Person>("1");
+
             File.Exists(fileBill).Should().BeTrue();
-            dataStore.Save();
+            session.SaveChanges();
             File.Exists(fileBill).Should().BeFalse();
             File.Exists(fileSteve).Should().BeTrue();
-       
-            collection.Delete("2");
+
+            session.Delete<Person>("2");
             File.Exists(fileSteve).Should().BeTrue();
-            dataStore.Save();
+            session.SaveChanges();
             File.Exists(fileSteve).Should().BeFalse();
-            
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
+        [InlineData(nameof(ZipStorageProvider))]
         public async Task load_single_file_collection(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/SingleFileCollection");
@@ -104,18 +110,23 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                StorageEngine = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfiguration
+                    new DataStorageConfiguration
                     {
-                        Name = "Persons",
-                        DocumentType = typeof(Person),
-                        SourceFile = "Persons.json",
-                        Format = "json",
-                        Version = "1.0"
-                    },
+                        StorageProvider = storageEngine,
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration
+                            {
+                                Name = "Persons",
+                                DocumentType = typeof(Person),
+                                SourceFile = "Persons.json",
+                                Format = "json",
+                                Version = "1.0"
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -144,39 +155,39 @@ namespace MicroElements.FileStorage.Tests
             person.LastName.Should().Be("Gates");
         }
 
-        private static IStorageEngine GetStorageEngine(string storageName, string basePath)
+        private static IStorageProvider GetStorageEngine(string storageName, string basePath)
         {
             if (!Directory.Exists(basePath))
                 Directory.CreateDirectory(basePath);
-            IStorageEngine storageEngine = null;
+            IStorageProvider storageProvider = null;
             switch (storageName)
             {
-                case nameof(FileStorageEngine):
-                    storageEngine = new FileStorageEngine(basePath);
+                case nameof(FileStorageProvider):
+                    storageProvider = new FileStorageProvider(new FileStorageConfiguration(basePath));
                     break;
-                case nameof(ZipStorageEngine):
-                    storageEngine = new ZipStorageEngine(new ZipStorageConfiguration(new MemoryStream()) { Mode = ZipStorageEngineMode.Write, LeaveOpen = true });
+                case nameof(ZipStorageProvider):
+                    storageProvider = new ZipStorageProvider(new ZipStorageConfiguration(new MemoryStream()) { Mode = ZipStorageEngineMode.Write, LeaveOpen = true });
                     var dic = new DirectoryInfo(basePath);
                     var allFiles = dic.GetFiles("*", SearchOption.AllDirectories);
                     foreach (var file in allFiles)
                     {
                         var location = file.FullName.Replace(dic.FullName, "").TrimStart('/').TrimStart('\\');
                         var fileContent = new FileContent(location, File.ReadAllText(file.FullName));
-                        storageEngine.WriteFile(location, fileContent).GetAwaiter().GetResult();
+                        storageProvider.WriteFile(location, fileContent).GetAwaiter().GetResult();
                     }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(storageName);
             }
 
-            return storageEngine;
+            return storageProvider;
         }
 
         [Theory]
-        [InlineData(nameof(FileStorageEngine), false)]
-        [InlineData(nameof(FileStorageEngine), true)]
-        [InlineData(nameof(ZipStorageEngine), false)]
-        [InlineData(nameof(ZipStorageEngine), true)]
+        [InlineData(nameof(FileStorageProvider), false)]
+        [InlineData(nameof(FileStorageProvider), true)]
+        [InlineData(nameof(ZipStorageProvider), false)]
+        [InlineData(nameof(ZipStorageProvider), true)]
         public async Task load_multi_file_collection(string typeStorageEngine, bool relative)
         {
             var basePath = "TestData/DataStore/MultiFileCollection";
@@ -187,18 +198,23 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                StorageEngine = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfiguration
+                    new DataStorageConfiguration
                     {
-                        Name = "Persons",
-                        DocumentType = typeof(Person),
-                        SourceFile = "persons",
-                        Format = "json",
-                        Version = "1.0"
-                    },
+                        StorageProvider = storageEngine,
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration
+                            {
+                                Name = "Persons",
+                                DocumentType = typeof(Person),
+                                SourceFile = "persons",
+                                Format = "json",
+                                Version = "1.0"
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -211,8 +227,8 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
+        [InlineData(nameof(ZipStorageProvider))]
         public async Task load_csv_collection(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/WithConvert");
@@ -220,17 +236,22 @@ namespace MicroElements.FileStorage.Tests
 
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                StorageEngine = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfiguration
+                    new DataStorageConfiguration
                     {
-                        DocumentType = typeof(Person),
-                        SourceFile = "persons.csv",
-                        Format = "csv",
-                        Serializer = new SimpleCsvSerializer() //todo: привязать к полю Format или к расширению
-                    },
+                        StorageProvider = storageEngine,
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration
+                            {
+                                DocumentType = typeof(Person),
+                                SourceFile = "persons.csv",
+                                Format = "csv",
+                                Serializer = new SimpleCsvSerializer() //todo: привязать к полю Format или к расширению
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -245,38 +266,32 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
+        [InlineData(nameof(ZipStorageProvider))]
         public async Task create_collection_and_save(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/create_collection_and_save");
             var dataStore = GetPersonDataStore(typeStorageEngine, basePath);
 
-            await dataStore.Initialize();
-
             var collection = dataStore.GetCollection<Person>();
             collection.Should().NotBeNull();
-            collection.Drop();
-            //collection.Count.Should().Be(0);
+            collection.Count.Should().Be(0);
 
             var person1 = new Person
             {
                 FirstName = "Bill",
                 LastName = "Gates"
             };
-            collection.Add(person1);
+            collection.AddOrUpdate(person1);
             collection.Count.Should().Be(1);
 
             var person2 = collection.Find(p => true).First();
             person2.Id.Should().NotBeNullOrEmpty("Id must be generated");
-
-            dataStore.Save();
-
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        //[InlineData(nameof(ZipStorageEngine))]//todo: doesnot work
+        [InlineData(nameof(FileStorageProvider))]
+        //[InlineData(nameof(ZipStorageProvider))]//todo: doesnot work
         public void save_update_save(string typeStorageEngine)
         {
             string basePath = Path.GetFullPath("TestData/DataStore/save_update_save");
@@ -289,18 +304,22 @@ namespace MicroElements.FileStorage.Tests
                 FirstName = "Bill_123456789",
                 LastName = "Gates"
             };
-            collection.Add(person1);
+            var session = new Session(dataStore);
+
+            session.AddOrUpdate(person1);
+            session.SaveChanges();
+
             collection.Count.Should().Be(1);
 
-            // First save
-            dataStore.Save();
+
 
             var personId = person1.Id;
             var person2 = collection.Get(personId);
             person1.FirstName.Should().Be("Bill_123456789");
             person2.FirstName = "Bill_123";
-            collection.HasChanges = true;
-            dataStore.Save();
+
+            session.AddOrUpdate(person2);
+            session.SaveChanges();
 
             dataStore = GetPersonDataStore(typeStorageEngine, basePath, delete: false);
             collection = dataStore.GetCollection<Person>();
@@ -320,19 +339,25 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                StorageEngine = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>()
+                    new DataStorageConfiguration
                     {
-                        Name = "Persons",
-                        SourceFile = "persons.json",
-                        Format = "json",
-                        Version = "1.0",
-                        Serializer = new JsonSerializer(),
-                        OneFilePerCollection = true,
-                    },
+                        ReadOnly = false,
+                        StorageProvider = storageEngine,
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration<Person>
+                            {
+                                Name = "Persons",
+                                SourceFile = "persons.json",
+                                Format = "json",
+                                Version = "1.0",
+                                Serializer = new JsonSerializer(),
+                                OneFilePerCollection = true,
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -343,8 +368,8 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
+        [InlineData(nameof(ZipStorageProvider))]
         public async Task save_multifile_collection_with_semantic_keys(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/save_multifile_collection");
@@ -360,18 +385,23 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                StorageEngine = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>
+                    new DataStorageConfiguration
                     {
-                        SourceFile = "persons",
-                        Serializer = new JsonSerializer(),
-                        KeyGetter = new DefaultKeyAccessor<Person>(),
-                        KeyGenerator =
-                            new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
-                    },
+                        ReadOnly = false,
+                        StorageProvider = storageEngine,
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration<Person>
+                            {
+                                SourceFile = "persons",
+                                Serializer = new JsonSerializer(),
+                                KeyGetter = new DefaultKeyAccessor<Person>(),
+                                KeyGenerator = new SemanticKeyGenerator<Person>(person => $"{person.FirstName}_{person.LastName}")
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -382,25 +412,23 @@ namespace MicroElements.FileStorage.Tests
             collection.Should().NotBeNull();
             collection.Count.Should().Be(0);
 
-            collection.Add(new Person
+            collection.AddOrUpdate(new Person
             {
                 FirstName = "Bill",
                 LastName = "Gates"
             });
-            collection.Add(new Person
+            collection.AddOrUpdate(new Person
             {
                 FirstName = "Steve",
                 LastName = "Ballmer"
             });
             collection.Count.Should().Be(2);
 
-            dataStore.Save();
-
             var fileAllTextBill = string.Empty;
 
             switch (typeStorageEngine)
             {
-                case nameof(FileStorageEngine):
+                case nameof(FileStorageProvider):
                     var fileBill = Path.Combine(collectionFullDir, fileNameBill);
                     var fileSteve = Path.Combine(collectionFullDir, fileNameSteve);
 
@@ -409,8 +437,8 @@ namespace MicroElements.FileStorage.Tests
 
                     fileAllTextBill = File.ReadAllText(fileBill);
                     break;
-                case nameof(ZipStorageEngine):
-                    var zipStorageEngine = storageEngine as ZipStorageEngine;
+                case nameof(ZipStorageProvider):
+                    var zipStorageEngine = storageEngine as ZipStorageProvider;
                     zipStorageEngine.Should().NotBeNull();
                     var zipArchive = zipStorageEngine.GetZipArchive();
                     using (var billStream = zipArchive.GetEntry(collectionDir + "/" + fileNameBill).Open())
@@ -436,8 +464,8 @@ namespace MicroElements.FileStorage.Tests
         }
 
         [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        [InlineData(nameof(ZipStorageEngine))]
+        [InlineData(nameof(FileStorageProvider))]
+        [InlineData(nameof(ZipStorageProvider))]
         public async Task key_generation(string typeStorageEngine)
         {
             var basePath = Path.GetFullPath("TestData/DataStore/key_generation");
@@ -450,16 +478,22 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                StorageEngine = storageEngine,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>
+                    new DataStorageConfiguration
                     {
-                        DocumentType = typeof(Person),
-                        SourceFile = "persons.json",
-                        KeyGenerator = new IdentityKeyGenerator<Person>()
-                    },
+                        ReadOnly = false,
+                        StorageProvider = storageEngine,
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration<Person>
+                            {
+                                DocumentType = typeof(Person),
+                                SourceFile = "persons.json",
+                                KeyGenerator = new IdentityKeyGenerator<Person>()
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -475,7 +509,7 @@ namespace MicroElements.FileStorage.Tests
                 FirstName = "Bill",
                 LastName = "Gates"
             };
-            collection.Add(person);
+            collection.AddOrUpdate(person);
             person.Id.Should().Be("person/1");
 
             person = new Person
@@ -483,11 +517,8 @@ namespace MicroElements.FileStorage.Tests
                 FirstName = "Steve",
                 LastName = "Ballmer"
             };
-            collection.Add(person);
+            collection.AddOrUpdate(person);
             person.Id.Should().Be("person/2");
-
-
-            dataStore.Save();
         }
 
         [Fact]
@@ -501,16 +532,22 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                //StorageEngine = new FileStorageEngine(basePath),
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Currency>
+                    new DataStorageConfiguration
                     {
-                        DocumentType = typeof(Currency),
-                        SourceFile = "currencies.json",
-                        KeyGetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Code)),
-                    },
+                        ReadOnly = false,
+                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration(basePath)),
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration<Currency>
+                            {
+                                DocumentType = typeof(Currency),
+                                SourceFile = "currencies.json",
+                                KeyGetter = new DefaultKeyAccessor<Currency>(nameof(Currency.Code)),
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
@@ -521,19 +558,17 @@ namespace MicroElements.FileStorage.Tests
             collection.Should().NotBeNull();
 
 
-            collection.Add(new Currency()
+            collection.AddOrUpdate(new Currency
             {
                 Code = "USD",
                 Name = "Dollar"
             });
-            collection.Add(new Currency()
+            collection.AddOrUpdate(new Currency
             {
                 Code = "EUR",
                 Name = "Euro"
             });
             collection.Count.Should().Be(2);
-
-            dataStore.Save();
         }
 
         [Fact]
@@ -552,7 +587,7 @@ namespace MicroElements.FileStorage.Tests
             });
             var serviceProvider = services.BuildServiceProvider(true);
             var collectionConfigurations = serviceProvider.GetService<IEnumerable<CollectionConfiguration>>();
-            var documentCollection = serviceProvider.GetRequiredService<IDocumentCollection<Person>>();
+            var documentCollection = serviceProvider.GetService<IDocumentCollection<Person>>();
         }
 
         [Fact]
@@ -563,8 +598,8 @@ namespace MicroElements.FileStorage.Tests
             var collection = dataStore.GetCollection<Currency>();
             collection.Should().NotBeNull();
 
-            collection.Add(new Currency { Code = "USD", Name = "Dollar" });
-            collection.Add(new Currency { Code = "EUR", Name = "Euro" });
+            collection.AddOrUpdate(new Currency { Code = "USD", Name = "Dollar" });
+            collection.AddOrUpdate(new Currency { Code = "EUR", Name = "Euro" });
             collection.Count.Should().Be(2);
 
             collection.IsExists("USD").Should().BeTrue();
@@ -590,18 +625,17 @@ namespace MicroElements.FileStorage.Tests
             var collection = dataStore.GetCollection<Currency>();
             collection.Should().NotBeNull();
 
-            collection.Add(new Currency { Code = "USD", Name = "Dollar" });
+            collection.AddOrUpdate(new Currency { Code = "USD", Name = "Dollar" });
             collection.Count.Should().Be(1);
             collection.Get("USD").Name.Should().Be("Dollar");
 
-            collection.Add(new Currency { Code = "USD", Name = "Dollar updated" });
+            collection.AddOrUpdate(new Currency { Code = "USD", Name = "Dollar updated" });
             collection.Count.Should().Be(1);
             collection.Get("USD").Name.Should().Be("Dollar updated");
         }
 
-        [Theory()]
-        [InlineData(nameof(FileStorageEngine))]
-        public async Task add_get_with_identity_key(string typeStorageEngine)
+        [Fact]
+        public async Task add_get_with_identity_key()
         {
             var basePath = Path.GetFullPath("TestData/DataStore/add_get_with_identity_key");
             var file = Path.Combine(basePath, "entities.json");
@@ -611,47 +645,68 @@ namespace MicroElements.FileStorage.Tests
             Directory.CreateDirectory(basePath);
             var storeConfiguration = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>
+                    new DataStorageConfiguration
                     {
-                        Name = "entities",
-                        SourceFile = "entities.json",
-                        KeyGetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
-                        KeySetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
-                        KeyGenerator = new IdentityKeyGenerator<Person>(1, true)
-                    },
+                        ReadOnly = false,
+                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration(basePath)),
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration<Person>
+                            {
+                                Name = "entities",
+                                SourceFile = "entities.json",
+                                KeyGetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                                KeySetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                                KeyGenerator = new IdentityKeyGenerator<Person>(1, true)
+                            },
+                        }
+                    }
                 }
             };
             var dataStore = new DataStore(storeConfiguration);
             await dataStore.Initialize();
 
             var entityWithIntId = new Person() { LastName = "SomeName" };
-            var collection = dataStore.GetCollection<Person>();
-            collection.Add(entityWithIntId);
+            using (var session = dataStore.OpenSession())
+                session.AddOrUpdate(entityWithIntId);
+
+            //
+            //collection.Add(entityWithIntId);
             entityWithIntId.Id.Should().Be("entities/1");
 
+            var collection = dataStore.GetCollection<Person>();
             var getResult = collection.Get("entities/1");
             getResult.Should().NotBeNull();
 
             var item = new Person { LastName = "Name2" };
-            collection.Add(item);
+            collection.AddOrUpdate(item);
             item.Id.Should().Be("entities/2");
+
+            if (File.Exists(file))
+                File.Delete(file);
 
             var storeConfiguration2 = new DataStoreConfiguration
             {
-                BasePath = basePath,
-                Collections = new[]
+                Storages = new[]
                 {
-                    new CollectionConfigurationTyped<Person>
+                    new DataStorageConfiguration
                     {
-                        Name = "entities",
-                        SourceFile = "entities.json",
-                        KeyGetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
-                        KeySetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
-                        KeyGenerator = new IdentityKeyGenerator<Person>(1, false)
-                    },
+                        ReadOnly = false,
+                        StorageProvider = new FileStorageProvider(new FileStorageConfiguration(basePath)),
+                        Collections = new ICollectionConfiguration[]
+                        {
+                            new CollectionConfiguration<Person>
+                            {
+                                Name = "entities",
+                                SourceFile = "entities.json",
+                                KeyGetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                                KeySetter = new DefaultKeyAccessor<Person>(nameof(Person.Id)),
+                                KeyGenerator = new IdentityKeyGenerator<Person>(1, false)
+                            },
+                        }
+                    }
                 }
             };
             var dataStore2 = new DataStore(storeConfiguration2);
@@ -659,15 +714,38 @@ namespace MicroElements.FileStorage.Tests
 
             var entityWithIntId2 = new Person() { FirstName = "SomeName" };
             var collection2 = dataStore2.GetCollection<Person>();
-            collection2.Add(entityWithIntId2);
+            collection2.AddOrUpdate(entityWithIntId2);
             entityWithIntId2.Id.Should().Be("1");
 
             var getResult2 = collection2.Get("1");
             getResult2.Should().NotBeNull();
 
             var item2 = new Person { LastName = "Name2" };
-            collection2.Add(item2);
+            collection2.AddOrUpdate(item2);
             item2.Id.Should().Be("2");
+        }
+
+        [Fact(Skip = "no asserts")]
+        public async Task multiple_save_multifile_collection()
+        {
+            var basePath = Path.GetFullPath("TestData/DataStore/multiple_save_multifile_collection");
+            var dataStore = await TestData.CreatePersonsDataStore(basePath, "persons");
+
+            var persons = Enumerable.Range(1, 10).Select(i => TestData.RandomPerson()).ToList();
+            using (var session = dataStore.OpenSession())
+            {
+                foreach (var person in persons)
+                {
+                    session.AddOrUpdate(person);
+                }
+
+                session.AddOrUpdate(TestData.Bill);
+            }
+
+            using (var session = dataStore.OpenSession())
+            {
+                session.AddOrUpdate(TestData.Bill);
+            }
         }
     }
 }

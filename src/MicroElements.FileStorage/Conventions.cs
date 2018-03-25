@@ -11,7 +11,7 @@ namespace MicroElements.FileStorage
     public class Conventions
     {
         public Func<ISerializer> GetDefaultSerializer { get; set; } = DefaultConventions.GetDefaultSerializer;
-        public Func<CollectionConfiguration, ISerializer> GetSerializer { get; set; } = DefaultConventions.DefaultResolveSerializer;
+        public Func<ICollectionConfiguration, ISerializer> GetSerializer { get; set; } = DefaultConventions.DefaultResolveSerializer;
 
         public static readonly Conventions Default = new Conventions
         {
@@ -22,7 +22,7 @@ namespace MicroElements.FileStorage
 
     internal static class DefaultConventions
     {
-        public static ISerializer DefaultResolveSerializer(CollectionConfiguration collectionConfiguration)
+        public static ISerializer DefaultResolveSerializer(ICollectionConfiguration collectionConfiguration)
         {
             bool IsGoodFormat(string fmt) => !string.IsNullOrEmpty(fmt);
 

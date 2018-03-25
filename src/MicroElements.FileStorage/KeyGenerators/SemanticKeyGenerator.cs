@@ -4,6 +4,7 @@
 using System;
 using System.Linq.Expressions;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.CodeContracts;
 
 namespace MicroElements.FileStorage.KeyGenerators
 {
@@ -13,23 +14,23 @@ namespace MicroElements.FileStorage.KeyGenerators
     /// <typeparam name="T">Entity type.</typeparam>
     public class SemanticKeyGenerator<T> : IKeyGenerator<T> where T : class
     {
-        private readonly Expression<Func<T, string>> _getKeyExpression;
         private readonly Func<T, string> _getKeyfunc;
 
         public SemanticKeyGenerator(Expression<Func<T, string>> getKeyExpression)
         {
-            _getKeyExpression = getKeyExpression;
-            _getKeyfunc = _getKeyExpression.Compile();
+            _getKeyfunc = getKeyExpression.Compile();
         }
 
         /// <inheritdoc />
         public KeyType KeyStrategy { get; } = KeyType.Semantic;
 
         /// <inheritdoc />
-        public Key GetNextKey(IDocumentCollection<T> collection, T entity)
+        public Key GetNextKey(IDataStore dataStore, T entity)
         {
+            Check.NotNull(entity, nameof(entity));
+
             var key = _getKeyfunc(entity);
-            return new Key(KeyType.Semantic, key);
+            return new Key(KeyStrategy, key);
         }
     }
 }

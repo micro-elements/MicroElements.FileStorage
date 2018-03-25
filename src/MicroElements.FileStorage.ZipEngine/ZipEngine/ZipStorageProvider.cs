@@ -16,7 +16,7 @@ namespace MicroElements.FileStorage.ZipEngine
     /// <summary>
     /// Zip storage engine.
     /// </summary>
-    public sealed class ZipStorageEngine : IStorageEngine, IDisposable
+    public sealed class ZipStorageProvider : IStorageProvider, IDisposable
     {
         private readonly ZipStorageConfiguration _configuration;
         private readonly Stream _zipArchiveStream;
@@ -24,10 +24,10 @@ namespace MicroElements.FileStorage.ZipEngine
         private readonly string _basePath;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ZipStorageEngine"/> class.
+        /// Initializes a new instance of the <see cref="ZipStorageProvider"/> class.
         /// </summary>
         /// <param name="configuration">Configuration.</param>
-        public ZipStorageEngine([NotNull] ZipStorageConfiguration configuration)
+        public ZipStorageProvider([NotNull] ZipStorageConfiguration configuration)
         {
             Check.NotNull(configuration, nameof(configuration));
             _configuration = configuration;
@@ -118,7 +118,10 @@ namespace MicroElements.FileStorage.ZipEngine
 
         public StorageMetadata GetStorageMetadata()
         {
-            throw new NotImplementedException();
+            return new StorageMetadata
+            {
+                IsReadOnly = _configuration.Mode != ZipStorageEngineMode.Write
+            };
         }
 
         /// <inheritdoc />

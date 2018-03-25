@@ -12,22 +12,26 @@ using MicroElements.FileStorage.Utils;
 namespace MicroElements.FileStorage.StorageEngine
 {
     /// <summary>
-    /// FileStorageEngine.
+    /// FileStorageProvider.
     /// <para>Data is stored in the file system.</para>
     /// </summary>
-    public class FileStorageEngine : IStorageEngine
+    public class FileStorageProvider : IStorageProvider
     {
+        private readonly IFileStorageConfiguration _configuration;
         private readonly string _basePath;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileStorageEngine"/> class.
+        /// Initializes a new instance of the <see cref="FileStorageProvider"/> class.
         /// </summary>
-        /// <param name="basePath">Base path.</param>
-        public FileStorageEngine([NotNull] string basePath)
+        /// <param name="configuration">FileStorageConfiguration.</param>
+        public FileStorageProvider([NotNull] IFileStorageConfiguration configuration)
         {
-            Check.NotNull(basePath, nameof(basePath));
+            Check.NotNull(configuration, nameof(configuration));
+            Check.NotNull(configuration.BasePath, nameof(configuration.BasePath));
 
-            _basePath = basePath.PathNormalize();
+            _configuration = configuration;
+
+            _basePath = configuration.BasePath.PathNormalize();
             if (!Directory.Exists(_basePath))
                 Directory.CreateDirectory(_basePath);
         }
@@ -93,7 +97,10 @@ namespace MicroElements.FileStorage.StorageEngine
         /// <inheritdoc />
         public StorageMetadata GetStorageMetadata()
         {
-            return new StorageMetadata();
+            return new StorageMetadata
+            {
+                IsReadOnly = _configuration.ReadOnly
+            };
         }
 
         private string GetFullPath(string subPath)

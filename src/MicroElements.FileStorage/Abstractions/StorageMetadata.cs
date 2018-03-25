@@ -5,6 +5,11 @@ namespace MicroElements.FileStorage.Abstractions
 {
     public class StorageMetadata
     {
+        /// <summary>
+        /// Storage is read only.
+        /// </summary>
+        public bool IsReadOnly { get; set; }
+
         /*
         // todo: StorageMetadata:
             Name

@@ -11,14 +11,16 @@ namespace MicroElements.FileStorage.StorageEngine
     /// <summary>
     /// In memory storage engine. For test scenarios.
     /// </summary>
-    public class InMemoryStorageEngine : IStorageEngine
+    public class InMemoryStorageProvider : IStorageProvider
     {
         private readonly Dictionary<string, FileContent> _contents = new Dictionary<string, FileContent>();
 
         /// <inheritdoc />
         public Task<FileContent> ReadFile(string subPath)
         {
-            return Task.FromResult(_contents[subPath]);
+            if (!_contents.TryGetValue(subPath, out var fileContent))
+                fileContent = new FileContent(subPath, "[]");
+            return Task.FromResult(fileContent);
         }
 
         /// <inheritdoc />
@@ -27,7 +29,7 @@ namespace MicroElements.FileStorage.StorageEngine
             var keys = _contents.Keys.Where(path => path.Contains(subPath));
             foreach (var key in keys)
             {
-                yield return Task.FromResult(_contents[key]);
+                yield return ReadFile(key);
             }
         }
 
@@ -54,7 +56,10 @@ namespace MicroElements.FileStorage.StorageEngine
         /// <inheritdoc />
         public StorageMetadata GetStorageMetadata()
         {
-            throw new System.NotImplementedException();
+            return new StorageMetadata
+            {
+                IsReadOnly = false
+            };
         }
     }
 }

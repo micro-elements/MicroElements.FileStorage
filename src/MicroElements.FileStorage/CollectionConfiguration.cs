@@ -2,20 +2,15 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using FluentValidation;
 using MicroElements.FileStorage.Abstractions.Exceptions;
-using MicroElements.FileStorage.KeyAccessors;
-using MicroElements.FileStorage.KeyGenerators;
 using MicroElements.FileStorage.Serializers;
-using MicroElements.FileStorage.Validation;
 
 namespace MicroElements.FileStorage.Abstractions
 {
     /// <summary>
     /// Collection configuration.
-    /// todo: make readonly or freezable
     /// </summary>
-    public class CollectionConfiguration
+    public class CollectionConfiguration : ICollectionConfiguration
     {
         private Type _documentType;
 
@@ -31,6 +26,7 @@ namespace MicroElements.FileStorage.Abstractions
         public Type DocumentType
         {
             get { return _documentType; }
+
             set
             {
                 _documentType = value;
@@ -67,35 +63,6 @@ namespace MicroElements.FileStorage.Abstractions
 
             if (Serializer == null)
                 Serializer = new JsonSerializer();
-        }
-    }
-
-    public class CollectionConfigurationTyped<T> : CollectionConfiguration where T : class
-    {
-        /// <inheritdoc />
-        public CollectionConfigurationTyped()
-        {
-            DocumentType = typeof(T);
-        }
-
-        public IKeyGetter<T> KeyGetter { get; set; } = DefaultKeyAccessor<T>.Instance;
-
-        public IKeySetter<T> KeySetter { get; set; } = DefaultKeyAccessor<T>.Instance;
-
-        public IKeyGenerator<T> KeyGenerator { get; set; } = new GuidKeyGenerator<T>();
-
-        public IValidatorFactory ValidatorFactory { get; set; } = new NullValidationFactory();
-
-        /// <inheritdoc />
-        public override void Verify()
-        {
-            base.Verify();
-
-            // Setting default implementations.
-            KeyGetter = KeyGetter ?? DefaultKeyAccessor<T>.Instance;
-            KeySetter = KeySetter ?? DefaultKeyAccessor<T>.Instance;
-            KeyGenerator = KeyGenerator ?? new GuidKeyGenerator<T>();
-            ValidatorFactory = ValidatorFactory ?? new NullValidationFactory();
         }
     }
 }

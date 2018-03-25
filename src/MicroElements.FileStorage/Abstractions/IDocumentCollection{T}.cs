@@ -16,14 +16,13 @@ namespace MicroElements.FileStorage.Abstractions
         /// <summary>
         /// Typed configuration.
         /// </summary>
-        CollectionConfigurationTyped<T> ConfigurationTyped { get; }
+        ICollectionConfiguration<T> Configuration { get; }
 
         /// <summary>
         /// Adds new item to collection.
         /// </summary>
         /// <param name="item">New item.</param>
-        /// todo: rename to Store or AddOrUpdate
-        void Add([NotNull] T item);
+        void AddOrUpdate([NotNull] T item);
 
         /// <summary>
         /// Gets item by key.
@@ -51,11 +50,5 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// <param name="key">Entity key.</param>
         void Delete([NotNull] string key);
-
-        /// <summary>
-        /// Gets list of delayed oparations.
-        /// </summary>
-        /// <returns><see cref="DelayedOperations"/>.</returns>
-        DelayedOperations GetDelayedOperations();
     }
 }

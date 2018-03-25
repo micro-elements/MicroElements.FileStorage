@@ -1,8 +1,10 @@
 ﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Collections.Generic;
 using MicroElements.FileStorage.Abstractions;
-using MicroElements.FileStorage.StorageEngine;
+using MicroElements.FileStorage.Abstractions.Exceptions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -11,38 +13,26 @@ namespace MicroElements.FileStorage
     /// <summary>
     /// DataStore configuration.
     /// </summary>
-    public class DataStoreConfiguration
+    public class DataStoreConfiguration : IDataStoreConfiguration
     {
-        /// <summary>
-        /// Base path to file storage.
-        /// </summary>
-        public string BasePath { get; set; }
+        public bool ReadOnly { get; set; } = false;
 
-        /// <summary>
-        /// StorageEngine.
-        /// </summary>
-        public IStorageEngine StorageEngine { get; set; }
+        public IReadOnlyList<IDataStorageConfiguration> Storages { get; set; } = Array.Empty<IDataStorageConfiguration>();
 
-        /// <summary>
-        /// Collection definitions.
-        /// </summary>
-        public CollectionConfiguration[] Collections { get; set; }
-
-        //todo: service collection
         public ILoggerFactory LoggerFactory { get; set; } = NullLoggerFactory.Instance;
 
         public Conventions Conventions { get; set; } = Conventions.Default;
 
         public void Verify()
         {
-            if (StorageEngine == null && BasePath != null)
+            if (Storages == null)
             {
-                StorageEngine = new FileStorageEngine(BasePath);
+                throw new InvalidConfigurationException("Storages is required");
             }
 
-            foreach (var configuration in Collections)
+            foreach (var storageConfiguration in Storages)
             {
-                configuration.Verify();
+                storageConfiguration.Verify();
             }
         }
     }

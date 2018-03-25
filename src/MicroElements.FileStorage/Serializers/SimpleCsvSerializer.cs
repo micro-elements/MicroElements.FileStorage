@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using MicroElements.FileStorage.Abstractions;
 using Newtonsoft.Json;
@@ -42,6 +43,13 @@ namespace MicroElements.FileStorage.Serializers
                 var deserialized = JsonConvert.DeserializeObject(json.ToString(), type);
                 yield return deserialized;
             }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<T> Deserialize<T>(FileContent content)
+        {
+            var objects = Deserialize(content, typeof(T)).Cast<T>();
+            return objects;
         }
 
         /// <inheritdoc />

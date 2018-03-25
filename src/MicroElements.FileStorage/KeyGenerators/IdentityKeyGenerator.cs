@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using MicroElements.FileStorage.Abstractions;
+using MicroElements.FileStorage.CodeContracts;
 
 namespace MicroElements.FileStorage.KeyGenerators
 {
@@ -33,9 +34,12 @@ namespace MicroElements.FileStorage.KeyGenerators
         public KeyType KeyStrategy { get; } = KeyType.Identity;
 
         /// <inheritdoc />
-        public Key GetNextKey(IDocumentCollection<T> collection, T entity)
+        public Key GetNextKey(IDataStore dataStore, T entity)
         {
-            string collectionName = collection.ConfigurationTyped.Name;
+            Check.NotNull(dataStore, nameof(dataStore));
+
+            var collection = dataStore.GetCollection<T>();
+            string collectionName = collection.Configuration.Name;
 
             int ParseKey(string key)
             {
@@ -43,6 +47,7 @@ namespace MicroElements.FileStorage.KeyGenerators
                 {
                     key = key.Substring(collectionName.Length + 1);
                 }
+
                 return int.Parse(key);
             }
 
@@ -57,7 +62,7 @@ namespace MicroElements.FileStorage.KeyGenerators
                 nextId = Math.Max(_startValue, max + 1);
             }
 
-            return new Key(KeyType.Identity, nextId.ToString(), _useCollectionPrefix ? collectionName : null);
+            return new Key(KeyStrategy, nextId.ToString(), _useCollectionPrefix ? collectionName : null);
         }
     }
 }

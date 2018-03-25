@@ -10,9 +10,6 @@ namespace MicroElements.FileStorage.Experimental
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(typeof(IDocumentCollection<>), typeof(DocumentCollection<>));
-            services.AddSingleton(typeof(IDocumentCollectionFactory), typeof(DocumentCollectionFactory));
-
         }
     }
 }

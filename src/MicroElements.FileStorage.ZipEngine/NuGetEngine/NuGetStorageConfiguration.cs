@@ -4,10 +4,19 @@
 namespace MicroElements.FileStorage.NuGetEngine
 {
     /// <summary>
-    /// Configuration for <see cref="NuGetStorageEngine"/>.
+    /// Configuration for <see cref="NuGetStorageProvider"/>.
     /// </summary>
-    public class NuGetStorageConfiguration
+    public class NuGetStorageConfiguration : INuGetStorageConfiguration
     {
+        /// <inheritdoc />
+        public string Name { get; set; }
+
+        /// <inheritdoc />
+        public string BasePath { get; set; }
+
+        /// <inheritdoc />
+        public bool ReadOnly => true;
+
         /// <summary>
         /// Nuget package source.
         /// </summary>
@@ -16,17 +25,12 @@ namespace MicroElements.FileStorage.NuGetEngine
         /// <summary>
         /// Package id.
         /// </summary>
-        public string PackageId { get; set; } = "NUnit";
+        public string PackageId { get; set; }
 
         /// <summary>
         /// Package version.
         /// </summary>
-        public string PackageVersion { get; set; } = "3.9.0";
-
-        /// <summary>
-        /// Base path to search files.
-        /// </summary>
-        public string BasePath { get; set; }
+        public string PackageVersion { get; set; }
 
         /// <summary>
         /// Global package cache folder. All packages cached in this folder.

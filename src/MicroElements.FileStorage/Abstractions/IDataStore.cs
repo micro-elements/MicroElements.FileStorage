@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MicroElements.FileStorage.Operations;
 
 namespace MicroElements.FileStorage.Abstractions
 {
@@ -16,6 +17,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// Loads data.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        /// todo: split on init and load
         Task Initialize();
 
         /// <summary>
@@ -31,14 +33,14 @@ namespace MicroElements.FileStorage.Abstractions
         /// <returns>Collection list.</returns>
         IReadOnlyList<IDocumentCollection> GetCollections();
 
-        /// <summary>
-        /// Saves changed collections.
-        /// </summary>
-        void Save();
+        DataStoreConfiguration Configuration { get; }
 
-        /// <summary>
-        /// Drops all collections.
-        /// </summary>
-        void Drop();
+        IReadOnlyList<IDataStorage> Storages { get; }
+
+        Schema Schema { get; }
+
+        DataStoreServices Services { get; }
+
+        ISession OpenSession();
     }
 }

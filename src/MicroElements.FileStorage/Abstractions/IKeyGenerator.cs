@@ -16,11 +16,11 @@ namespace MicroElements.FileStorage.Abstractions
         KeyType KeyStrategy { get; }
 
         /// <summary>
-        /// Generates new key for collection.
+        /// Generates new key.
         /// </summary>
-        /// <param name="collection">Document collection.</param>
+        /// <param name="dataStore">DataStore.</param>
         /// <param name="entity">Entity.</param>
         /// <returns>New key.</returns>
-        Key GetNextKey(IDocumentCollection<T> collection, T entity);
+        Key GetNextKey(IDataStore dataStore, T entity);
     }
 }

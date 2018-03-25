@@ -9,6 +9,9 @@ namespace MicroElements.FileStorage.StorageEngine
     public class FileStorageConfiguration : IFileStorageConfiguration
     {
         /// <inheritdoc />
+        public string Name { get; set; }
+
+        /// <inheritdoc />
         public string BasePath { get; set; }
 
         /// <inheritdoc />

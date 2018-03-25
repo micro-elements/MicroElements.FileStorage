@@ -9,6 +9,11 @@ namespace MicroElements.FileStorage.StorageEngine
     public interface IFileStorageConfiguration
     {
         /// <summary>
+        /// Name of Storage.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Base path to search files.
         /// </summary>
         string BasePath { get; }

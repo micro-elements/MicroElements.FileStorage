@@ -12,11 +12,6 @@ namespace MicroElements.FileStorage
     public class DataStorageConfiguration : IDataStorageConfiguration
     {
         /// <summary>
-        /// Parent storage.
-        /// </summary>
-        public DataStorageConfiguration Parent { get; set; }
-
-        /// <summary>
         /// StorageProvider.
         /// </summary>
         public IStorageProvider StorageProvider { get; set; }

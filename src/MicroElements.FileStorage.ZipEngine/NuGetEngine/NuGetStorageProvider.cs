@@ -26,7 +26,7 @@ namespace MicroElements.FileStorage.NuGetEngine
     /// </summary>
     public class NuGetStorageProvider : IStorageProvider, IDisposable
     {
-        private readonly NuGetStorageConfiguration _configuration;
+        private readonly INuGetStorageConfiguration _configuration;
         private readonly ZipStorageProvider _zipStorageProvider;
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace MicroElements.FileStorage.NuGetEngine
         /// </summary>
         /// <param name="configuration"><see cref="NuGetStorageConfiguration"/>.</param>
         /// <param name="loggerFactory"><see cref="ILoggerFactory"/>.</param>
-        public NuGetStorageProvider([NotNull] NuGetStorageConfiguration configuration, [NotNull] ILoggerFactory loggerFactory)
+        public NuGetStorageProvider([NotNull] INuGetStorageConfiguration configuration, [NotNull] ILoggerFactory loggerFactory)
         {
             Check.NotNull(configuration, nameof(configuration));
             Check.NotNull(loggerFactory, nameof(loggerFactory));

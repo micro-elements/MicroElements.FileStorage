@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.0.0-beta0004" />
     <PackageReference Include="FluentValidation" Version="7.3.4" />
+    <PackageReference Include="MicroElements" Version="1.0.9" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0" />

@@ -1,0 +1,28 @@
+﻿{
+    "DataStoreConfiguration": {
+        "ReadOnly": true,
+        "Storages": [
+            {
+                "Order": 1,
+                "Name": "NuGet",
+                "ProviderName": "NuGet",
+                "Provider": "$ref:NuGetStorageConfiguration:NuGet"
+            },
+            {
+                "Order": 2,
+                "Name": "File",
+                "Provider": "$ref:NuGetStorageConfiguration:NuGet2"
+            }
+        ]
+    },
+    "Objects": {
+        "NuGetStorageConfiguration:NuGet": {
+            "Name": "NuGet",
+            "PackageId": "SomeData"
+        },
+        "NuGetStorageConfiguration:NuGet2": {
+            "Name": "NuGet2",
+            "PackageId": "SomeData2"
+        }
+    }
+}

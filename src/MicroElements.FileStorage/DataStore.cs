@@ -9,13 +9,14 @@ using System.Threading.Tasks;
 using MicroElements.FileStorage.Abstractions;
 using MicroElements.FileStorage.Abstractions.Exceptions;
 using MicroElements.FileStorage.Operations;
-using Microsoft.Extensions.Logging;
 
 namespace MicroElements.FileStorage
 {
+    /// <summary>
+    /// DataStore.
+    /// </summary>
     public class DataStore : IDataStore
     {
-        private readonly ILoggerFactory _loggerFactory;
         private readonly DataStoreConfiguration _configuration;
         private IImmutableList<IDataStorage> _dataStorages = ImmutableArray<IDataStorage>.Empty;
         private IImmutableDictionary<Type, IDocumentCollection> _collections = ImmutableDictionary<Type, IDocumentCollection>.Empty;
@@ -24,12 +25,11 @@ namespace MicroElements.FileStorage
         public DataStore(DataStoreConfiguration configuration)
         {
             _configuration = configuration;
-            _loggerFactory = configuration.LoggerFactory;
             Services = new DataStoreServices(configuration.LoggerFactory);
         }
 
         /// <inheritdoc />
-        public DataStoreConfiguration Configuration => _configuration;
+        public IDataStoreConfiguration Configuration => _configuration;
 
         /// <inheritdoc />
         public IReadOnlyList<IDataStorage> Storages => _dataStorages;

@@ -47,9 +47,6 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         public ISerializer Serializer { get; set; } = new JsonSerializer();
 
-        // not used yet
-        public bool OneFilePerCollection { get; set; }
-
         public string Version { get; set; }
 
         /// <summary>

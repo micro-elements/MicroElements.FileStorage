@@ -1,6 +1,7 @@
 ﻿// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
 using FluentValidation;
 using MicroElements.FileStorage.Abstractions;
 
@@ -19,7 +20,7 @@ namespace MicroElements.FileStorage
         /// <summary>
         /// Collection definitions.
         /// </summary>
-        public ICollectionConfiguration[] Collections { get; set; }
+        public IReadOnlyCollection<ICollectionConfiguration> Collections { get; set; }
 
         /// <summary>
         /// Gets a value indicating whether a storage is readonly.

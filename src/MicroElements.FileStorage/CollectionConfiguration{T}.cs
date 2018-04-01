@@ -29,7 +29,6 @@ namespace MicroElements.FileStorage.Abstractions
             Name = configuration.Name;
             Format = configuration.Format;
             Serializer = configuration.Serializer;
-            OneFilePerCollection = configuration.OneFilePerCollection;
             SourceFile = configuration.SourceFile;
             Version = configuration.Version;
         }

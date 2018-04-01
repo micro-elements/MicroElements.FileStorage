@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using FluentValidation;
 using MicroElements.FileStorage.Abstractions.Exceptions;
 using MicroElements.FileStorage.Serializers;
 
@@ -30,9 +29,19 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         string Name { get; set; }
 
+        /// <summary>
+        /// Source file or directory.
+        /// </summary>
         string SourceFile { get; }
+
+        /// <summary>
+        /// Format.
+        /// </summary>
         string Format { get; }
-        bool OneFilePerCollection { get; }
+
+        /// <summary>
+        /// Version. Uses with Format.
+        /// </summary>
         string Version { get; }
 
         /// <summary>
@@ -41,16 +50,5 @@ namespace MicroElements.FileStorage.Abstractions
         /// </summary>
         /// todo: remove verify or move to other layer
         void Verify();
-    }
-
-    public interface ICollectionConfiguration<T> : ICollectionConfiguration where T : class
-    {
-        IKeyGetter<T> KeyGetter { get; }
-
-        IKeySetter<T> KeySetter { get; }
-
-        IKeyGenerator<T> KeyGenerator { get; }
-
-        IValidatorFactory ValidatorFactory { get; }
     }
 }

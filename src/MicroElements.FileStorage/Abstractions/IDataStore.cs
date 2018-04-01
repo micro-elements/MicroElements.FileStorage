@@ -33,7 +33,7 @@ namespace MicroElements.FileStorage.Abstractions
         /// <returns>Collection list.</returns>
         IReadOnlyList<IDocumentCollection> GetCollections();
 
-        DataStoreConfiguration Configuration { get; }
+        IDataStoreConfiguration Configuration { get; }
 
         IReadOnlyList<IDataStorage> Storages { get; }
 

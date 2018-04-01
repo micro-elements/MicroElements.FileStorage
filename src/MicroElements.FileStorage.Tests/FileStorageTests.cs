@@ -354,7 +354,6 @@ namespace MicroElements.FileStorage.Tests
                                 Format = "json",
                                 Version = "1.0",
                                 Serializer = new JsonSerializer(),
-                                OneFilePerCollection = true,
                             },
                         }
                     }
